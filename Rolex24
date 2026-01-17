@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rolex 24 at Daytona 2026 Guide</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f9;
+        }
+        header {
+            background-color: #003876;
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+        h1 { margin: 0; font-size: 2.5rem; }
+        h2 { color: #003876; border-bottom: 2px solid #d4af37; padding-bottom: 10px; margin-top: 2rem; }
+        h3 { color: #d4af37; }
+        .container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th { background-color: #f8f9fa; color: #003876; }
+        .highlight {
+            background-color: #fff9c4;
+            padding: 1rem;
+            border-left: 5px solid #fbc02d;
+            margin: 1.5rem 0;
+            font-style: italic;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 600px) {
+            .grid { grid-template-columns: 1fr; }
+        }
+        .badge {
+            display: inline-block;
+            background: #003876;
+            color: white;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Rolex 24 At Daytona</h1>
+    <p>The Ultimate 2026 Spectator Guide</p>
+</header>
+
+<div class="container">
+    <section>
+        <h2>🏎️ Event Overview</h2>
+        <p>The Rolex 24 is the ultimate test of man and machine. As the season opener for the <strong>IMSA WeatherTech SportsCar Championship</strong>, it features four distinct classes racing at once: <strong>GTP</strong> (Hypercars), <strong>LMP2</strong>, <strong>GTD PRO</strong>, and <strong>GTD</strong>.</p>
+        <ul>
+            <li><strong>Location:</strong> Daytona International Speedway, FL</li>
+            <li><strong>The Format:</strong> 24 hours of continuous racing on the 3.56-mile road course.</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>📅 2026 Key Schedule</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Event</th>
+                    <th>Time (ET)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Jan 16-18</td>
+                    <td>Roar Before the 24 (Qualifying)</td>
+                    <td>All Day</td>
+                </tr>
+                <tr>
+                    <td>Jan 22 (Thu)</td>
+                    <td>Practice & Night Practice</td>
+                    <td>10:00 AM - 9:00 PM</td>
+                </tr>
+                <tr>
+                    <td>Jan 23 (Fri)</td>
+                    <td>BMW M Endurance Challenge</td>
+                    <td>1:40 PM</td>
+                </tr>
+                <tr>
+                    <td><strong>Jan 24 (Sat)</strong></td>
+                    <td><strong>64th Rolex 24 - GREEN FLAG</strong></td>
+                    <td><strong>1:40 PM</strong></td>
+                </tr>
+                <tr>
+                    <td><strong>Jan 25 (Sun)</strong></td>
+                    <td><strong>64th Rolex 24 - CHECKERED FLAG</strong></td>
+                    <td><strong>1:40 PM</strong></td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section>
+        <h2>🎒 Spectator Survival Kit</h2>
+        <div class="grid">
+            <div>
+                <h3>Essential Gear</h3>
+                <ul>
+                    <li><strong>Ear Protection:</strong> Mandatory for GTP engines.</li>
+                    <li><strong>Layers:</strong> Florida nights in Jan drop to 40°F.</li>
+                    <li><strong>Comfortable Shoes:</strong> Expect 15k+ steps.</li>
+                    <li><strong>Portable Charger:</strong> For 24 hours of photos.</li>
+                </ul>
+            </div>
+            <div>
+                <h3>Track Rules</h3>
+                <ul>
+                    <li><strong>Coolers:</strong> Soft-sided only (14x14x14").</li>
+                    <li><strong>No Glass:</strong> Cans and plastic only.</li>
+                    <li><strong>Scanners:</strong> Rent a RE Radio to hear team comms.</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <div class="highlight">
+        <strong>Pro Tip:</strong> Head to the top of the grandstands at 2:00 AM. The sight of glowing brake rotors diving into Turn 1 is the best view in motorsports.
+    </div>
+
+    <section>
+        <h2>📍 Top Viewing Spots</h2>
+        <ul>
+            <li><strong>The International Horseshoe:</strong> Great for seeing overtaking and heavy braking.</li>
+            <li><strong>The Kink:</strong> High-speed action at the back of the infield.</li>
+            <li><strong>The Ferris Wheel:</strong> Located in the Fanzone; offers a bird's-eye view of the tri-oval.</li>
+            <li><strong>High Banks:</strong> Sit near the top of the stadium for the start to see the field fan out 3-wide.</li>
+        </ul>
+    </section>
+
+    <footer style="margin-top: 3rem; text-align: center; font-size: 0.9rem; color: #666;">
+        <p>Prepared for the 2026 Racing Season. Enjoy the "World Center of Racing"!</p>
+    </footer>
+</div>
+
+</body>
+</html>
