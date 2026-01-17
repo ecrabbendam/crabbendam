@@ -54,3 +54,11 @@ p {
     margin-top: 80px;
     text-align: center;
 }
+.main-image {
+    max-width: 100%;    /* Ensures the image isn't wider than the screen */
+    height: auto;       /* Keeps the image proportions correct */
+    border-radius: 15px; /* Rounds the corners */
+    border: 5px solid #ffffff;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1); /* Adds a subtle shadow */
+    margin: 20px 0;
+}
