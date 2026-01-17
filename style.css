@@ -18,3 +18,39 @@ p {
     color: #4a5568;
     font-size: 1.2rem;
 }
+/* Navigation Bar Styling */
+.navbar {
+    width: 100%;
+    background-color: #2b6cb0;
+    padding: 15px 0;
+    position: fixed;
+    top: 0;
+}
+
+.nav-links {
+    list-style: none;
+    display: flex;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+}
+
+.nav-links li {
+    margin: 0 20px;
+}
+
+.nav-links a {
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.nav-links a:hover {
+    text-decoration: underline;
+}
+
+/* Adjusting the content so it doesn't hide behind the navbar */
+.content {
+    margin-top: 80px;
+    text-align: center;
+}
