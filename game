@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Star Catcher Game</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: #0a0a23; font-family: sans-serif; }
+        canvas { display: block; margin: 0 auto; background: linear-gradient(#0a0a23, #1a1a40); }
+        #ui { position: absolute; top: 10px; left: 10px; color: white; font-size: 20px; pointer-events: none; }
+    </style>
+</head>
+<body>
+
+    <div id="ui">Score: <span id="score">0</span></div>
+    <canvas id="gameCanvas"></canvas>
+
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const scoreElement = document.getElementById('score');
+
+    let score = 0;
+    let gameActive = true;
+
+    // Resize canvas
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const player = {
+        x: canvas.width / 2,
+        y: canvas.height - 50,
+        w: 60,
+        h: 20,
+        speed: 8,
+        color: '#00d4ff'
+    };
+
+    const stars = [];
+
+    // Controls
+    let mouseX = canvas.width / 2;
+    window.addEventListener('mousemove', (e) => { mouseX = e.clientX; });
+    window.addEventListener('touchmove', (e) => { mouseX = e.touches[0].clientX; });
+
+    function createStar() {
+        if (!gameActive) return;
+        stars.push({
+            x: Math.random() * canvas.width,
+            y: -20,
+            size: Math.random() * 5 + 5,
+            speed: Math.random() * 3 + 2
+        });
+    }
+
+    function update() {
+        // Smooth follow mouse
+        player.x += (mouseX - player.x) * 0.15;
+
+        stars.forEach((star, index) => {
+            star.y += star.speed;
+
+            // Collision detection
+            if (star.y + star.size > player.y && 
+                star.x > player.x - player.w/2 && 
+                star.x < player.x + player.w/2) {
+                stars.splice(index, 1);
+                score += 10;
+                scoreElement.innerHTML = score;
+            }
+
+            // Remove off-screen stars
+            if (star.y > canvas.height) stars.splice(index, 1);
+        });
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw Player (Paddle)
+        ctx.fillStyle = player.color;
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = player.color;
+        ctx.fillRect(player.x - player.w/2, player.y, player.w, player.h);
+
+        // Draw Stars
+        ctx.fillStyle = "#fff";
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = "#fff";
+        stars.forEach(star => {
+            ctx.beginPath();
+            ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+            ctx.fill();
+        });
+
+        requestAnimationFrame(gameLoop);
+    }
+
+    function gameLoop() {
+        update();
+        draw();
+    }
+
+    setInterval(createStar, 800);
+    gameLoop();
+</script>
+</body>
+</html>
