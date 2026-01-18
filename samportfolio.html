@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio | Samuel Crabbendam</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --cream: #fdfcf8;
+            --obsidian: #1d1d1f;
+            --slate: #6e6e73;
+            --glass-bg: rgba(255, 255, 255, 0.5);
+            --glass-border: rgba(255, 255, 255, 0.8);
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            background-color: var(--cream);
+            color: var(--obsidian);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .header {
+            padding: 60px 8% 20px 8%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .back-btn {
+            text-decoration: none;
+            color: var(--slate);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: color 0.3s;
+        }
+
+        .back-btn:hover { color: var(--obsidian); }
+
+        h1 { font-size: 3rem; letter-spacing: -0.04em; margin: 0; }
+
+        .portfolio-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            padding: 40px 8%;
+        }
+
+        /* Glass Project Card */
+        .project-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .project-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+        }
+
+        .icon-circle {
+            width: 50px;
+            height: 50px;
+            background: white;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+        }
+
+        h3 { margin: 0 0 10px 0; font-size: 1.5rem; }
+        p { color: var(--slate); line-height: 1.5; margin-bottom: 25px; flex-grow: 1; }
+
+        .view-btn {
+            text-decoration: none;
+            color: var(--obsidian);
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            border-bottom: 1px solid transparent;
+            width: fit-content;
+            transition: border 0.3s;
+        }
+
+        .view-btn:hover { border-bottom: 1px solid var(--obsidian); }
+
+        @media (max-width: 768px) {
+            .header { padding: 40px 20px 10px 20px; flex-direction: column; align-items: flex-start; gap: 20px; }
+            h1 { font-size: 2.5rem; }
+            .portfolio-grid { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="header">
+        <h1>Engineering Portfolio</h1>
+        <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i> Back to Home</a>
+    </nav>
+
+    <main class="portfolio-grid">
+        <div class="project-card">
+            <div class="icon-circle"><i class="fas fa-certificate"></i></div>
+            <h3>CSWA Certification</h3>
+            <p>Certified SolidWorks Associate in Mechanical Design. Proficient in complex part modeling, assemblies, and drawing analysis.</p>
+            <a href="images/solidworks-cert.pdf" target="_blank" class="btn-link view-btn">View Certificate <i class="fas fa-chevron-right"></i></a>
+        </div>
+
+        <div class="project-card">
+            <div class="icon-circle"><i class="fas fa-file-alt"></i></div>
+            <h3>Aerodynamics Research</h3>
+            <p>A technical paper analyzing wing tip vortex reduction and its impact on fuel efficiency in commercial aviation.</p>
+            <a href="images/research-paper.pdf" target="_blank" class="btn-link view-btn">Read Paper <i class="fas fa-chevron-right"></i></a>
+        </div>
+
+        <div class="project-card">
+            <div class="icon-circle"><i class="fas fa-tools"></i></div>
+            <h3>Technical Project</h3>
+            <p>Summary of a hands-on aerospace project involving structural analysis or prototype design.</p>
+            <a href="#" class="btn-link view-btn">View Project <i class="fas fa-chevron-right"></i></a>
+        </div>
+    </main>
+
+</body>
+</html>
