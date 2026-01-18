@@ -14,11 +14,23 @@
             --glass-border: rgba(255, 255, 255, 0.8);
         }
 
+        /* Animation Keyframes */
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         body, html {
             margin: 0;
             padding: 0;
             height: 100%;
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
             background-color: var(--cream);
             color: var(--obsidian);
             -webkit-font-smoothing: antialiased;
@@ -63,6 +75,8 @@
             line-height: 1.1;
             letter-spacing: -0.04em;
             margin: 0 0 10px 0;
+            /* Added animation to header */
+            animation: fadeUp 0.8s ease-out forwards;
         }
 
         .subtitle {
@@ -70,6 +84,9 @@
             color: var(--slate);
             margin-bottom: 40px;
             font-weight: 400;
+            /* Added animation to subtitle */
+            animation: fadeUp 0.8s ease-out 0.2s forwards;
+            opacity: 0; /* Starts hidden for animation */
         }
 
         .button-grid {
@@ -77,6 +94,9 @@
             grid-template-columns: repeat(2, 1fr);
             gap: 15px;
             max-width: 450px;
+            /* Added animation to buttons */
+            animation: fadeUp 0.8s ease-out 0.4s forwards;
+            opacity: 0; /* Starts hidden for animation */
         }
 
         .btn {
@@ -118,39 +138,32 @@
     </style>
 </head>
 <body>
-
     <div class="container">
         <section class="content-side">
             <h1>Samuel <br>Crabbendam</h1>
             <p class="subtitle">Aerospace Engineering Student <br>& Private Pilot</p>
-
             <div class="button-grid">
                 <a href="images/resumesc.pdf" download="Samuel_Crabbendam_Resume.pdf" class="btn">
                     <i class="fas fa-file-pdf"></i>
                     <span>Resume</span>
                 </a>
-                
                 <a href="samportfolio.html" class="btn">
                     <i class="fas fa-rocket"></i>
                     <span>Portfolio</span>
                 </a>
-
-                <a href="https://www.linkedin.com/in/samuel-crabbendam-664426294/" target="_blank" class="btn">
+                <a href="https://www.linkedin.com/in/samuel-crabbendam-93ab33349" target="_blank" class="btn">
                     <i class="fab fa-linkedin"></i>
                     <span>LinkedIn</span>
                 </a>
-                
                 <a href="https://instagram.com/samm_crabb" target="_blank" class="btn">
                     <i class="fab fa-instagram"></i>
                     <span>Instagram</span>
                 </a>
             </div>
         </section>
-
         <div class="image-side">
             <div class="image-overlay"></div>
         </div>
     </div>
-
 </body>
 </html>
