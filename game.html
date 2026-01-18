@@ -3,24 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Deep Sea Catcher - Audio Edition</title>
+    <title>Deep Sea Catcher</title>
     <style>
         body { margin: 0; background: #001a33; display: flex; justify-content: center; align-items: center; height: 100vh; color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
         canvas { background: linear-gradient(#4db8ff, #001a33); border: 5px solid #003366; border-radius: 10px; cursor: none; }
         #ui { position: absolute; top: 20px; text-align: center; pointer-events: none; width: 100%; }
         .score-box { font-size: 24px; font-weight: bold; text-shadow: 2px 2px #000; }
-        #startPrompt { position: absolute; background: rgba(0,0,0,0.8); padding: 20px; border-radius: 10px; cursor: pointer; z-index: 10; }
     </style>
 </head>
 <body>
 
-    <div id="startPrompt" onclick="initAudio()">
-        <h1>CLICK TO START FISHING</h1>
-        <p>(Enables Water & Burp Sounds)</p>
-    </div>
-
     <div id="ui">
         <div class="score-box">FISH CAUGHT: <span id="score">0</span></div>
+        <p>Move mouse to move hook | Catch Gold Fish for +5!</p>
     </div>
 
     <canvas id="fishCanvas"></canvas>
@@ -37,129 +32,104 @@
     let hook = { x: 400, y: 50, w: 20, h: 40 };
     let fishes = [];
     let bubbles = [];
-    let audioCtx;
 
-    // --- AUDIO LOGIC ---
-    function initAudio() {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        document.getElementById('startPrompt').style.display = 'none';
-        playWaterAmbience(); // Start background hum
-        gameLoop();
-    }
-
-    function playWaterAmbience() {
-        const oscillator = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
-        oscillator.type = 'triangle';
-        oscillator.frequency.setValueAtTime(40, audioCtx.currentTime); // Low hum
-        gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
-        oscillator.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-        oscillator.start();
-    }
-
-    function playBurpSound() {
-        if(!audioCtx) return;
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        
-        // Burps are low-frequency pitch drops
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.2);
-        
-        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
-        
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.2);
-    }
-
-    function playBubbleSound() {
-        if(!audioCtx) return;
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(800 + Math.random() * 400, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.1);
-    }
-
-    // --- GAME LOGIC ---
+    // Mouse Movement
     window.addEventListener('mousemove', (e) => {
         let rect = canvas.getBoundingClientRect();
-        hook.x = e.clientX - rect.left - 10;
+        hook.x = e.clientX - rect.left;
         hook.y = e.clientY - rect.top;
     });
 
     function spawnFish() {
+        const type = Math.random() > 0.8 ? 'gold' : 'normal';
         fishes.push({
             x: Math.random() > 0.5 ? -50 : canvas.width + 50,
             y: Math.random() * (canvas.height - 100) + 100,
             speed: (Math.random() * 2 + 1) * (Math.random() > 0.5 ? 1 : -1),
             size: 30,
-            color: Math.random() > 0.8 ? '#FFD700' : '#ff8533'
+            type: type,
+            color: type === 'gold' ? '#FFD700' : '#ff8533'
         });
     }
 
+    function createBubble() {
+        bubbles.push({ x: Math.random() * canvas.width, y: canvas.height + 10, r: Math.random() * 5 + 2, speed: Math.random() * 1 + 1 });
+    }
+
     function update() {
+        // Update Bubbles
         bubbles.forEach((b, i) => {
             b.y -= b.speed;
             if (b.y < -10) bubbles.splice(i, 1);
         });
 
+        // Update Fish
         fishes.forEach((f, i) => {
             f.x += f.speed;
+
+            // Collision with Hook
             if (f.x < hook.x + hook.w && f.x + f.size > hook.x && f.y < hook.y + hook.h && f.y + f.size > hook.y) {
-                score++;
+                score += f.type === 'gold' ? 5 : 1;
                 scoreElement.innerText = score;
                 fishes.splice(i, 1);
-                playBurpSound(); // TRIGGER BURP
             }
+
+            // Remove off-screen
             if (f.x > canvas.width + 100 || f.x < -100) fishes.splice(i, 1);
         });
 
         if (Math.random() < 0.03) spawnFish();
-        if (Math.random() < 0.05) {
-            bubbles.push({ x: Math.random() * canvas.width, y: canvas.height + 10, r: Math.random() * 5 + 2, speed: Math.random() * 1 + 1 });
-            playBubbleSound(); // TRIGGER BUBBLE POP
-        }
+        if (Math.random() < 0.05) createBubble();
     }
 
     function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = "rgba(255, 255, 255, 0.2)";
+
+        // Draw Bubbles
+        ctx.fillStyle = "rgba(255, 255, 255, 0.3)";
         bubbles.forEach(b => {
             ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2); ctx.fill();
         });
 
-        ctx.strokeStyle = "#fff"; ctx.lineWidth = 2;
-        ctx.beginPath(); ctx.moveTo(hook.x + 10, 0); ctx.lineTo(hook.x + 10, hook.y); ctx.stroke();
+        // Draw Fishing Line
+        ctx.strokeStyle = "#fff";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(hook.x + hook.w/2, 0);
+        ctx.lineTo(hook.x + hook.w/2, hook.y);
+        ctx.stroke();
 
-        ctx.fillStyle = "#aaa"; ctx.fillRect(hook.x, hook.y, 20, 30);
-        ctx.beginPath(); ctx.arc(hook.x + 10, hook.y + 30, 8, 0, Math.PI); ctx.stroke();
+        // Draw Hook
+        ctx.fillStyle = "#aaa";
+        ctx.fillRect(hook.x, hook.y, hook.w, hook.h);
+        ctx.beginPath();
+        ctx.arc(hook.x + hook.w/2, hook.y + hook.h, 10, 0, Math.PI);
+        ctx.stroke();
 
+        // Draw Fish
         fishes.forEach(f => {
             ctx.fillStyle = f.color;
-            ctx.beginPath(); ctx.ellipse(f.x, f.y, 20, 12, 0, 0, Math.PI * 2); ctx.fill();
-            ctx.beginPath(); ctx.moveTo(f.x + (f.speed > 0 ? -10 : 10), f.y);
-            ctx.lineTo(f.x + (f.speed > 0 ? -20 : 20), f.y - 8);
-            ctx.lineTo(f.x + (f.speed > 0 ? -20 : 20), f.y + 8); ctx.fill();
+            // Body
+            ctx.beginPath();
+            ctx.ellipse(f.x, f.y, f.size/1.5, f.size/2.5, 0, 0, Math.PI * 2);
+            ctx.fill();
+            // Tail
+            ctx.beginPath();
+            ctx.moveTo(f.x + (f.speed > 0 ? -15 : 15), f.y);
+            ctx.lineTo(f.x + (f.speed > 0 ? -25 : 25), f.y - 10);
+            ctx.lineTo(f.x + (f.speed > 0 ? -25 : 25), f.y + 10);
+            ctx.fill();
         });
 
-        requestAnimationFrame(draw);
+        requestAnimationFrame(gameLoop);
     }
 
     function gameLoop() {
         update();
         draw();
     }
+
+    gameLoop();
 </script>
 </body>
 </html>
