@@ -7,12 +7,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
-            /* Neutral Aerospace Palette */
-            --midnight: #0f172a;      /* Deep navy/black */
-            --titanium: #f8fafc;      /* Off-white */
-            --slate-gray: #475569;    /* Muted gray */
-            --steel: #94a3b8;         /* Metallic gray */
-            --border: #334155;        /* Subtle border color */
+            --midnight: #0f172a;
+            --titanium: #f8fafc;
+            --slate-gray: #475569;
+            --steel: #94a3b8;
+            --border: #334155;
         }
 
         body, html {
@@ -31,7 +30,6 @@
             width: 100%;
         }
 
-        /* The Left Side: Content */
         .content-side {
             flex: 1;
             display: flex;
@@ -42,7 +40,6 @@
             background-color: var(--midnight);
         }
 
-        /* The Right Side: Image with Fade */
         .image-side {
             flex: 1.2;
             position: relative;
@@ -61,12 +58,12 @@
         }
 
         .subtitle {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             color: var(--steel);
             margin: 20px 0 40px 0;
             line-height: 1.6;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 2px;
         }
 
         .links-container {
@@ -94,7 +91,7 @@
             background: var(--titanium);
             color: var(--midnight);
             border-color: var(--titanium);
-            transform: translateX(5px);
+            transform: translateX(8px);
         }
 
         .socials {
@@ -113,13 +110,10 @@
             color: var(--titanium);
         }
 
-        /* Mobile Adjustments */
         @media (max-width: 900px) {
-            .container {
-                flex-direction: column-reverse; /* Put image on top */
-            }
+            .container { flex-direction: column-reverse; }
             .image-side {
-                height: 40vh;
+                height: 45vh;
                 flex: none;
                 background: 
                     linear-gradient(to top, var(--midnight) 0%, transparent 30%),
@@ -127,16 +121,12 @@
                 background-size: cover;
             }
             .content-side {
-                padding: 40px 20px;
+                padding: 60px 20px;
                 text-align: center;
                 align-items: center;
             }
-            .links-container {
-                width: 100%;
-            }
-            .socials {
-                justify-content: center;
-            }
+            .links-container { width: 100%; }
+            .socials { justify-content: center; }
         }
     </style>
 </head>
@@ -151,24 +141,26 @@
             </p>
 
             <div class="links-container">
-                <a href="resume.pdf" class="btn">
-                    <span>View Resume</span>
-                    <i class="fas fa-arrow-right"></i>
+                <a href="resume.pdf" download="Samuel_Crabbendam_Resume.pdf" class="btn">
+                    <span>Download Resume</span>
+                    <i class="fas fa-file-download"></i>
                 </a>
-                <a href="https://github.com/yourusername" class="btn">
+
+                <a href="portfolio.html" class="btn">
                     <span>Engineering Portfolio</span>
-                    <i class="fas fa-arrow-right"></i>
+                    <i class="fas fa-rocket"></i>
                 </a>
+
                 <a href="mailto:your-email@example.com" class="btn">
-                    <span>Get In Touch</span>
-                    <i class="fas fa-arrow-right"></i>
+                    <span>Contact Me</span>
+                    <i class="fas fa-envelope"></i>
                 </a>
             </div>
 
             <div class="socials">
-                <a href="#" title="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
-                <a href="#" title="GitHub"><i class="fab fa-github"></i></a>
-                <a href="#" title="Instagram"><i class="fab fa-instagram"></i></a>
+                <a href="https://linkedin.com/in/yourprofile"><i class="fab fa-linkedin-in"></i></a>
+                <a href="https://github.com/yourusername"><i class="fab fa-github"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
             </div>
         </section>
 
