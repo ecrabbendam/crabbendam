@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Side-Scroller Adventure</title>
+    <title>Side-Scroller Adventure - Fixed</title>
     <style>
         body { margin: 0; background: #222; overflow: hidden; font-family: sans-serif; }
-        #ui { position: absolute; top: 10px; left: 10px; color: white; font-size: 20px; text-shadow: 2px 2px #000; }
+        #ui { position: absolute; top: 10px; left: 10px; color: white; font-size: 20px; text-shadow: 2px 2px #000; z-index: 10; }
         canvas { display: block; background: #131313; }
     </style>
 </head>
@@ -19,27 +19,27 @@
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
 
+    // Make sure canvas stays full screen
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    // Game Constants
     const gravity = 0.8;
     const friction = 0.8;
     
-const player = {
-    x: 100,
-    y: 100,
-    w: 30,      // Slightly slimmer
-    h: 50,      // Slightly taller (more humanoid)
-    velX: 0,
-    velY: 0,
-    speed: 5,
-    jumpStrength: -15,
-    grounded: false,
-    facing: 'right', // Added to track direction
-    color: '#00ffcc' // Neon Teal
-};
-    // Level Design (x, y, width, height)
+    const player = {
+        x: 100,
+        y: 100,
+        w: 30,
+        h: 50,
+        velX: 0,
+        velY: 0,
+        speed: 5,
+        jumpStrength: -15,
+        grounded: false,
+        facing: 'right',
+        color: '#00ffcc'
+    };
+
     const platforms = [
         { x: 0, y: canvas.height - 50, w: 600, h: 50 },
         { x: 700, y: canvas.height - 150, w: 400, h: 50 },
@@ -55,15 +55,17 @@ const player = {
     window.addEventListener('keyup', e => keys[e.code] = false);
 
     function update() {
-        // Player Movement
+        // Horizontal Movement
         if (keys['ArrowRight']) {
-    if (player.velX < player.speed) player.velX++;
-    player.facing = 'right';
-}
-if (keys['ArrowLeft']) {
-    if (player.velX > -player.speed) player.velX--;
-    player.facing = 'left';
-}
+            if (player.velX < player.speed) player.velX++;
+            player.facing = 'right';
+        }
+        if (keys['ArrowLeft']) {
+            if (player.velX > -player.speed) player.velX--;
+            player.facing = 'left';
+        }
+
+        // Jump
         if (keys['ArrowUp'] || keys['Space']) {
             if (player.grounded) {
                 player.velY = player.jumpStrength;
@@ -71,19 +73,18 @@ if (keys['ArrowLeft']) {
             }
         }
 
+        // Physics
         player.velX *= friction;
         player.velY += gravity;
-
         player.grounded = false;
 
-        // Platform Collision
+        // Collision Check
         for (let p of platforms) {
             if (player.x < p.x + p.w &&
                 player.x + player.w > p.x &&
                 player.y < p.y + p.h &&
                 player.y + player.h > p.y) {
                 
-                // Only collide if falling onto the top
                 if (player.velY > 0 && player.y + player.h - player.velY <= p.y) {
                     player.grounded = true;
                     player.velY = 0;
@@ -95,36 +96,48 @@ if (keys['ArrowLeft']) {
         player.x += player.velX;
         player.y += player.velY;
 
-        // Camera Follow (Centering the player)
+        // Camera Logic
         cameraX = player.x - canvas.width / 4;
 
-        // Fall off screen reset
+        // Reset if fall
         if (player.y > canvas.height) {
-            player.x = 100;
-            player.y = 100;
-            player.velY = 0;
+            player.x = 100; player.y = 100; player.velY = 0;
         }
     }
 
- function drawPlayer() {
-    ctx.fillStyle = player.color;
-    
-    // Draw Body
-    ctx.fillRect(player.x, player.y, player.w, player.h);
+    function drawPlayer() {
+        ctx.fillStyle = player.color;
+        ctx.fillRect(player.x, player.y, player.w, player.h);
 
-    // Draw "Eyes" based on direction
-    ctx.fillStyle = "white";
-    let eyeOffset = player.facing === 'right' ? 15 : 5;
-    
-    // Left eye
-    ctx.fillRect(player.x + eyeOffset, player.y + 10, 5, 5);
-    // Right eye
-    ctx.fillRect(player.x + eyeOffset + 8, player.y + 10, 5, 5);
-}
+        // Eyes
+        ctx.fillStyle = "white";
+        let eyeOffset = player.facing === 'right' ? 15 : 5;
+        ctx.fillRect(player.x + eyeOffset, player.y + 10, 5, 5);
+        ctx.fillRect(player.x + eyeOffset + 8, player.y + 10, 5, 5);
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        ctx.save();
+        ctx.translate(-cameraX, 0);
+
+        // Draw Platforms
+        ctx.fillStyle = '#4a4a4a';
+        for (let p of platforms) {
+            ctx.fillRect(p.x, p.y, p.w, p.h);
+        }
+
+        // Use the custom drawPlayer function
+        drawPlayer();
+
+        ctx.restore();
+    }
 
     function gameLoop() {
         update();
         draw();
+        requestAnimationFrame(gameLoop); // Keep the game running!
     }
 
     gameLoop();
