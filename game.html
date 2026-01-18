@@ -3,45 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Deep Sea Catcher - Danger!</title>
+    <title>Deep Sea Catcher - Stunned!</title>
     <style>
         body { margin: 0; background: #001a33; display: flex; justify-content: center; align-items: center; height: 100vh; color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
         canvas { background: linear-gradient(#4db8ff, #001a33); border: 5px solid #003366; border-radius: 10px; cursor: none; }
         #ui { position: absolute; top: 20px; text-align: center; pointer-events: none; width: 100%; }
         .score-box { font-size: 24px; font-weight: bold; text-shadow: 2px 2px #000; }
         
-        /* Game Over Overlay */
         #gameOver {
-            display: none;
-            position: absolute;
-            background: rgba(139, 0, 0, 0.9);
-            width: 800px;
-            height: 500px;
-            display: none; /* Controlled by JS */
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            border-radius: 10px;
-            z-index: 10;
+            display: none; position: absolute; background: rgba(139, 0, 0, 0.9);
+            width: 800px; height: 500px; flex-direction: column;
+            justify-content: center; align-items: center; border-radius: 10px; z-index: 10;
         }
-        button {
-            background: white;
-            color: darkred;
-            border: none;
-            padding: 10px 20px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            border-radius: 5px;
-            margin-top: 20px;
-        }
-        button:hover { background: #eee; }
+        button { background: white; color: darkred; border: none; padding: 10px 20px; font-size: 18px; font-weight: bold; cursor: pointer; border-radius: 5px; margin-top: 20px; }
     </style>
 </head>
 <body>
 
     <div id="ui">
         <div class="score-box">SCORE: <span id="score">0</span></div>
+        <p>Avoid Sharks (Death) | Jellyfish (-10 & Freeze!)</p>
     </div>
 
     <div id="gameOver">
@@ -62,10 +43,14 @@
     canvas.height = 500;
 
     let score, gameActive, hook, fishes, bubbles;
+    let isFrozen = false;
+    let freezeTimer = 0;
 
     function resetGame() {
         score = 0;
         gameActive = true;
+        isFrozen = false;
+        freezeTimer = 0;
         hook = { x: 400, y: 50, w: 20, h: 40 };
         fishes = [];
         bubbles = [];
@@ -75,7 +60,7 @@
     }
 
     window.addEventListener('mousemove', (e) => {
-        if (!gameActive) return;
+        if (!gameActive || isFrozen) return; // Prevent movement if frozen
         let rect = canvas.getBoundingClientRect();
         hook.x = e.clientX - rect.left - 10;
         hook.y = e.clientY - rect.top;
@@ -84,23 +69,20 @@
     function spawnFish() {
         if (!gameActive) return;
         const rand = Math.random();
-        let type = 'normal';
-        let color = '#ff8533';
-        let size = 30;
+        let type = 'normal', color = '#ff8533', size = 30;
 
-        if (rand > 0.90) { // 10% chance for shark
-            type = 'shark';
-            color = '#7f8c8d';
-            size = 65;
-        } else if (rand > 0.75) {
-            type = 'gold';
-            color = '#FFD700';
+        if (rand > 0.90) { 
+            type = 'shark'; color = '#7f8c8d'; size = 65;
+        } else if (rand > 0.82) { // 8% chance for Jellyfish
+            type = 'jellyfish'; color = 'rgba(200, 100, 255, 0.7)'; size = 35;
+        } else if (rand > 0.70) {
+            type = 'gold'; color = '#FFD700';
         }
 
         fishes.push({
             x: Math.random() > 0.5 ? -100 : canvas.width + 100,
             y: Math.random() * (canvas.height - 150) + 100,
-            speed: (Math.random() * 2 + 1.5) * (Math.random() > 0.5 ? 1 : -1),
+            speed: (Math.random() * 1.5 + 1) * (Math.random() > 0.5 ? 1 : -1),
             size: size,
             type: type,
             color: color
@@ -110,6 +92,12 @@
     function update() {
         if (!gameActive) return;
 
+        // Handle Freeze Logic
+        if (isFrozen) {
+            freezeTimer--;
+            if (freezeTimer <= 0) isFrozen = false;
+        }
+
         bubbles.forEach((b, i) => {
             b.y -= b.speed;
             if (b.y < -10) bubbles.splice(i, 1);
@@ -118,15 +106,19 @@
         fishes.forEach((f, i) => {
             f.x += f.speed;
 
-            // Hitbox check
             if (f.x < hook.x + hook.w && f.x + f.size > hook.x && f.y < hook.y + hook.h && f.y + (f.size/2) > hook.y) {
                 if (f.type === 'shark') {
                     endGame();
+                } else if (f.type === 'jellyfish') {
+                    score = Math.max(0, score - 10);
+                    isFrozen = true;
+                    freezeTimer = 60; // Approx 1 second at 60fps
+                    fishes.splice(i, 1);
                 } else {
                     score += f.type === 'gold' ? 5 : 1;
-                    scoreElement.innerText = score;
                     fishes.splice(i, 1);
                 }
+                scoreElement.innerText = score;
             }
 
             if (f.x > canvas.width + 150 || f.x < -150) fishes.splice(i, 1);
@@ -148,50 +140,58 @@
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+        // Flash screen white if frozen
+        if (isFrozen) {
+            ctx.fillStyle = "rgba(255, 255, 255, 0.2)";
+            ctx.fillRect(0,0, canvas.width, canvas.height);
+        }
+
         // Bubbles
         ctx.fillStyle = "rgba(255, 255, 255, 0.3)";
         bubbles.forEach(b => {
             ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2); ctx.fill();
         });
 
-        // Line and Hook
-        ctx.strokeStyle = "#fff";
+        // Line and Hook (Glows blue if frozen/shocked)
+        ctx.strokeStyle = isFrozen ? "#00ffff" : "#fff";
         ctx.lineWidth = 2;
         ctx.beginPath(); ctx.moveTo(hook.x + hook.w/2, 0); ctx.lineTo(hook.x + hook.w/2, hook.y); ctx.stroke();
-        ctx.fillStyle = "#aaa"; ctx.fillRect(hook.x, hook.y, hook.w, hook.h);
-        ctx.beginPath(); ctx.arc(hook.x + hook.w/2, hook.y + hook.h, 10, 0, Math.PI); ctx.stroke();
+        ctx.fillStyle = isFrozen ? "#44ffff" : "#aaa"; 
+        ctx.fillRect(hook.x, hook.y, hook.w, hook.h);
 
         // Creatures
         fishes.forEach(f => {
             ctx.fillStyle = f.color;
             ctx.beginPath();
-            ctx.ellipse(f.x, f.y, f.size/1.5, f.size/2.5, 0, 0, Math.PI * 2);
-            ctx.fill();
-
-            if (f.type === 'shark') {
-                ctx.beginPath(); // Fin
-                ctx.moveTo(f.x, f.y - f.size/4);
-                ctx.lineTo(f.x - 12, f.y - f.size/1.4);
-                ctx.lineTo(f.x + 12, f.y - f.size/4);
+            
+            if (f.type === 'jellyfish') {
+                // Jellyfish Dome
+                ctx.arc(f.x, f.y, f.size/2, Math.PI, 0);
+                ctx.fill();
+                // Tentacles
+                ctx.fillRect(f.x - 10, f.y, 2, 15);
+                ctx.fillRect(f.x - 2, f.y, 2, 18);
+                ctx.fillRect(f.x + 6, f.y, 2, 15);
+            } else {
+                ctx.ellipse(f.x, f.y, f.size/1.5, f.size/2.5, 0, 0, Math.PI * 2);
+                ctx.fill();
+                if (f.type === 'shark') {
+                    ctx.beginPath(); // Fin
+                    ctx.moveTo(f.x, f.y - f.size/4); ctx.lineTo(f.x - 12, f.y - f.size/1.4); ctx.lineTo(f.x + 12, f.y - f.size/4); ctx.fill();
+                }
+                ctx.beginPath(); // Tail
+                let tailDir = f.speed > 0 ? -1 : 1;
+                ctx.moveTo(f.x + (f.size/2 * tailDir), f.y);
+                ctx.lineTo(f.x + (f.size * 0.8 * tailDir), f.y - (f.size/3));
+                ctx.lineTo(f.x + (f.size * 0.8 * tailDir), f.y + (f.size/3));
                 ctx.fill();
             }
-
-            ctx.beginPath(); // Tail
-            let tailDir = f.speed > 0 ? -1 : 1;
-            ctx.moveTo(f.x + (f.size/2 * tailDir), f.y);
-            ctx.lineTo(f.x + (f.size * 0.8 * tailDir), f.y - (f.size/3));
-            ctx.lineTo(f.x + (f.size * 0.8 * tailDir), f.y + (f.size/3));
-            ctx.fill();
         });
 
-        requestAnimationFrame(gameLoop);
+        requestAnimationFrame(draw);
     }
 
-    function gameLoop() {
-        update();
-        draw();
-    }
-
+    function gameLoop() { update(); draw(); }
     resetGame();
 </script>
 </body>
