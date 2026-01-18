@@ -3,25 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Retro Road Racer</title>
+    <title>Pro Road Racer</title>
     <style>
-        body { margin: 0; background: #222; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; color: white; font-family: 'Courier New', Courier, monospace; overflow: hidden; }
-        canvas { border: 4px solid #444; background: #333; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
-        .stats { position: absolute; top: 20px; text-align: center; pointer-events: none; }
-        #gameOver { display: none; position: absolute; background: rgba(0,0,0,0.8); padding: 20px; text-align: center; border: 2px solid #ff4444; }
-        button { background: #ff4444; border: none; color: white; padding: 10px 20px; cursor: pointer; font-family: inherit; font-weight: bold; }
+        body { margin: 0; background: #1a1a1a; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; }
+        canvas { border: 4px solid #333; background: #333; cursor: none; }
+        #menu, #gameOver { position: absolute; background: rgba(0,0,0,0.9); padding: 30px; text-align: center; border-radius: 15px; border: 2px solid #00d4ff; z-index: 10; }
+        .car-option { display: inline-block; width: 40px; height: 60px; margin: 10px; cursor: pointer; border: 3px solid transparent; transition: 0.2s; }
+        .car-option:hover { transform: scale(1.1); border-color: white; }
+        button { background: #00d4ff; border: none; color: black; padding: 10px 20px; cursor: pointer; font-weight: bold; margin-top: 15px; border-radius: 5px; }
+        .shield-timer { color: #00d4ff; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <div class="stats">
-        <h2 id="scoreDisplay">SCORE: 0</h2>
+    <div id="menu">
+        <h1>PRO ROAD RACER</h1>
+        <p>Pick Your Car:</p>
+        <div class="car-option" style="background: #00d4ff;" onclick="startGame('#00d4ff')"></div>
+        <div class="car-option" style="background: #ffcc00;" onclick="startGame('#ffcc00')"></div>
+        <div class="car-option" style="background: #ff00ff;" onclick="startGame('#ff00ff')"></div>
+        <p>Use Mouse to Steer<br>Get Shields to Survive Crashes!</p>
     </div>
 
-    <div id="gameOver">
-        <h1>CRASHED!</h1>
+    <div id="gameOver" style="display:none;">
+        <h1>WRECKED!</h1>
         <p id="finalScore"></p>
-        <button onclick="resetGame()">RESTART</button>
+        <button onclick="location.reload()">TRY AGAIN</button>
+    </div>
+
+    <div style="position: absolute; top: 10px; width: 100%; text-align: center; pointer-events: none;">
+        <h2 id="scoreDisplay">SCORE: 0</h2>
+        <p id="shieldStatus" class="shield-timer"></p>
     </div>
 
     <canvas id="raceCanvas"></canvas>
@@ -29,145 +41,23 @@
 <script>
     const canvas = document.getElementById('raceCanvas');
     const ctx = canvas.getContext('2d');
-    const scoreDisplay = document.getElementById('scoreDisplay');
-    const gameOverScreen = document.getElementById('gameOver');
-    const finalScoreText = document.getElementById('finalScore');
-
     canvas.width = 400;
     canvas.height = 600;
 
-    // Game Constants
-    const roadWidth = 300;
-    const laneWidth = roadWidth / 3;
-    const carW = 50;
-    const carH = 80;
+    let score = 0, gameSpeed = 5, gameActive = false, frameCount = 0;
+    let player = { x: 175, y: 500, w: 50, h: 80, color: '#00d4ff', shield: 0 };
+    let enemies = [], powerups = [], roadLines = [];
 
-    let score = 0;
-    let gameSpeed = 5;
-    let gameActive = true;
-    let frameCount = 0;
+    for (let i = 0; i < 10; i++) roadLines.push({ y: i * 80 });
 
-    let player = { x: canvas.width / 2 - carW / 2, y: canvas.height - 120, color: '#00ccff' };
-    let enemies = [];
-    let roadLines = [];
-
-    // Initialize road lines
-    for (let i = 0; i < 10; i++) {
-        roadLines.push({ x: canvas.width / 2, y: i * 80 });
-    }
-
-    // Input Handling
     window.addEventListener('mousemove', (e) => {
-        if (!gameActive) return;
         let rect = canvas.getBoundingClientRect();
-        let mouseX = e.clientX - rect.left;
-        // Keep car within road boundaries
-        player.x = Math.max(70, Math.min(mouseX - carW / 2, 280));
+        player.x = Math.max(70, Math.min(e.clientX - rect.left - 25, 280));
     });
 
-    function spawnEnemy() {
-        const lanes = [75, 175, 275];
-        let lane = lanes[Math.floor(Math.random() * lanes.length)];
-        enemies.push({ x: lane - carW/2, y: -100, color: '#ff4444', speed: Math.random() * 2 + gameSpeed });
-    }
-
-    function resetGame() {
-        score = 0;
-        gameSpeed = 5;
-        enemies = [];
+    function startGame(color) {
+        player.color = color;
         gameActive = true;
-        gameOverScreen.style.display = 'none';
+        document.getElementById('menu').style.display = 'none';
         loop();
     }
-
-    function update() {
-        if (!gameActive) return;
-
-        score++;
-        scoreDisplay.innerText = `SCORE: ${score}`;
-        if (score % 500 === 0) gameSpeed += 0.5; // Speed up over time
-
-        // Move Road
-        roadLines.forEach(line => {
-            line.y += gameSpeed;
-            if (line.y > canvas.height) line.y = -80;
-        });
-
-        // Move Enemies
-        if (frameCount % Math.max(20, 100 - Math.floor(gameSpeed * 5)) === 0) spawnEnemy();
-        
-        enemies.forEach((enemy, index) => {
-            enemy.y += enemy.speed;
-
-            // Collision Detection (Rectangle hit box)
-            if (player.x < enemy.x + carW &&
-                player.x + carW > enemy.x &&
-                player.y < enemy.y + carH &&
-                player.y + carH > enemy.y) {
-                gameActive = false;
-            }
-
-            if (enemy.y > canvas.height) enemies.splice(index, 1);
-        });
-
-        frameCount++;
-    }
-
-    function drawCar(x, y, color, isPlayer = false) {
-        // Body
-        ctx.fillStyle = color;
-        ctx.fillRect(x, y, carW, carH);
-        // Windows
-        ctx.fillStyle = 'rgba(255,255,255,0.5)';
-        ctx.fillRect(x + 5, y + 15, carW - 10, 20);
-        // Wheels
-        ctx.fillStyle = '#000';
-        ctx.fillRect(x - 5, y + 10, 5, 20);
-        ctx.fillRect(x + carW, y + 10, 5, 20);
-        ctx.fillRect(x - 5, y + 50, 5, 20);
-        ctx.fillRect(x + carW, y + 50, 5, 20);
-    }
-
-    function draw() {
-        // Draw Grass
-        ctx.fillStyle = '#2d5a27';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        // Draw Road
-        ctx.fillStyle = '#444';
-        ctx.fillRect(50, 0, roadWidth, canvas.height);
-
-        // Draw Road Lines
-        ctx.strokeStyle = '#fff';
-        ctx.setLineDash([20, 20]);
-        ctx.lineWidth = 4;
-        roadLines.forEach(line => {
-            ctx.beginPath();
-            ctx.moveTo(canvas.width / 2, 0);
-            ctx.lineTo(canvas.width / 2, canvas.height);
-            ctx.lineDashOffset = -line.y;
-            ctx.stroke();
-        });
-
-        // Draw Player and Enemies
-        drawCar(player.x, player.y, player.color, true);
-        enemies.forEach(enemy => drawCar(enemy.x, enemy.y, enemy.color));
-
-        if (!gameActive) {
-            finalScoreText.innerText = `You traveled ${score} meters!`;
-            gameOverScreen.style.display = 'block';
-            return;
-        }
-
-        requestAnimationFrame(loop);
-    }
-
-    function loop() {
-        update();
-        draw();
-    }
-
-    loop();
-</script>
-</body>
-</html>
