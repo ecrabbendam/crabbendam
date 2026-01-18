@@ -3,19 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Deep Sea Catcher</title>
+    <title>Deep Sea Catcher - Shark Attack!</title>
     <style>
         body { margin: 0; background: #001a33; display: flex; justify-content: center; align-items: center; height: 100vh; color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
         canvas { background: linear-gradient(#4db8ff, #001a33); border: 5px solid #003366; border-radius: 10px; cursor: none; }
         #ui { position: absolute; top: 20px; text-align: center; pointer-events: none; width: 100%; }
         .score-box { font-size: 24px; font-weight: bold; text-shadow: 2px 2px #000; }
+        .warning { color: #ff4444; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div id="ui">
-        <div class="score-box">FISH CAUGHT: <span id="score">0</span></div>
-        <p>Move mouse to move hook | Catch Gold Fish for +5!</p>
+        <div class="score-box">SCORE: <span id="score">0</span></div>
+        <p>Catch Fish for points | <span class="warning">AVOID SHARKS (-10)</span></p>
     </div>
 
     <canvas id="fishCanvas"></canvas>
@@ -33,22 +34,36 @@
     let fishes = [];
     let bubbles = [];
 
-    // Mouse Movement
     window.addEventListener('mousemove', (e) => {
         let rect = canvas.getBoundingClientRect();
-        hook.x = e.clientX - rect.left;
+        hook.x = e.clientX - rect.left - 10;
         hook.y = e.clientY - rect.top;
     });
 
     function spawnFish() {
-        const type = Math.random() > 0.8 ? 'gold' : 'normal';
+        const rand = Math.random();
+        let type = 'normal';
+        let color = '#ff8533';
+        let size = 30;
+        let speedMult = 1;
+
+        if (rand > 0.92) {
+            type = 'shark';
+            color = '#7f8c8d'; // Shark Gray
+            size = 60;
+            speedMult = 1.5; // Sharks are faster
+        } else if (rand > 0.8) {
+            type = 'gold';
+            color = '#FFD700';
+        }
+
         fishes.push({
-            x: Math.random() > 0.5 ? -50 : canvas.width + 50,
-            y: Math.random() * (canvas.height - 100) + 100,
-            speed: (Math.random() * 2 + 1) * (Math.random() > 0.5 ? 1 : -1),
-            size: 30,
+            x: Math.random() > 0.5 ? -100 : canvas.width + 100,
+            y: Math.random() * (canvas.height - 150) + 100,
+            speed: (Math.random() * 2 + 1) * speedMult * (Math.random() > 0.5 ? 1 : -1),
+            size: size,
             type: type,
-            color: type === 'gold' ? '#FFD700' : '#ff8533'
+            color: color
         });
     }
 
@@ -57,41 +72,45 @@
     }
 
     function update() {
-        // Update Bubbles
         bubbles.forEach((b, i) => {
             b.y -= b.speed;
             if (b.y < -10) bubbles.splice(i, 1);
         });
 
-        // Update Fish
         fishes.forEach((f, i) => {
             f.x += f.speed;
 
-            // Collision with Hook
-            if (f.x < hook.x + hook.w && f.x + f.size > hook.x && f.y < hook.y + hook.h && f.y + f.size > hook.y) {
-                score += f.type === 'gold' ? 5 : 1;
+            // Collision Detection
+            // We adjust the hitbox slightly for the larger shark
+            if (f.x < hook.x + hook.w && f.x + f.size > hook.x && f.y < hook.y + hook.h && f.y + (f.size/2) > hook.y) {
+                
+                if (f.type === 'shark') {
+                    score -= 10;
+                } else {
+                    score += f.type === 'gold' ? 5 : 1;
+                }
+                
                 scoreElement.innerText = score;
                 fishes.splice(i, 1);
             }
 
-            // Remove off-screen
-            if (f.x > canvas.width + 100 || f.x < -100) fishes.splice(i, 1);
+            if (f.x > canvas.width + 150 || f.x < -150) fishes.splice(i, 1);
         });
 
-        if (Math.random() < 0.03) spawnFish();
+        if (Math.random() < 0.04) spawnFish();
         if (Math.random() < 0.05) createBubble();
     }
 
     function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Draw Bubbles
+        // Bubbles
         ctx.fillStyle = "rgba(255, 255, 255, 0.3)";
         bubbles.forEach(b => {
             ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2); ctx.fill();
         });
 
-        // Draw Fishing Line
+        // Fishing Line
         ctx.strokeStyle = "#fff";
         ctx.lineWidth = 2;
         ctx.beginPath();
@@ -99,25 +118,37 @@
         ctx.lineTo(hook.x + hook.w/2, hook.y);
         ctx.stroke();
 
-        // Draw Hook
+        // Hook
         ctx.fillStyle = "#aaa";
         ctx.fillRect(hook.x, hook.y, hook.w, hook.h);
         ctx.beginPath();
         ctx.arc(hook.x + hook.w/2, hook.y + hook.h, 10, 0, Math.PI);
         ctx.stroke();
 
-        // Draw Fish
+        // Draw Creatures
         fishes.forEach(f => {
             ctx.fillStyle = f.color;
-            // Body
+            
+            // Draw Body
             ctx.beginPath();
             ctx.ellipse(f.x, f.y, f.size/1.5, f.size/2.5, 0, 0, Math.PI * 2);
             ctx.fill();
-            // Tail
+
+            // Draw Shark Fin
+            if (f.type === 'shark') {
+                ctx.beginPath();
+                ctx.moveTo(f.x, f.y - f.size/4);
+                ctx.lineTo(f.x - 10, f.y - f.size/1.5);
+                ctx.lineTo(f.x + 10, f.y - f.size/4);
+                ctx.fill();
+            }
+
+            // Draw Tail
             ctx.beginPath();
-            ctx.moveTo(f.x + (f.speed > 0 ? -15 : 15), f.y);
-            ctx.lineTo(f.x + (f.speed > 0 ? -25 : 25), f.y - 10);
-            ctx.lineTo(f.x + (f.speed > 0 ? -25 : 25), f.y + 10);
+            let tailDirection = f.speed > 0 ? -1 : 1;
+            ctx.moveTo(f.x + (f.size/2 * tailDirection), f.y);
+            ctx.lineTo(f.x + (f.size * 0.8 * tailDirection), f.y - (f.size/3));
+            ctx.lineTo(f.x + (f.size * 0.8 * tailDirection), f.y + (f.size/3));
             ctx.fill();
         });
 
