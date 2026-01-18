@@ -3,26 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Deep Sea Catcher - Stunned!</title>
+    <title>Deep Sea Catcher - Final Fixed</title>
     <style>
         body { margin: 0; background: #001a33; display: flex; justify-content: center; align-items: center; height: 100vh; color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
         canvas { background: linear-gradient(#4db8ff, #001a33); border: 5px solid #003366; border-radius: 10px; cursor: none; }
-        #ui { position: absolute; top: 20px; text-align: center; pointer-events: none; width: 100%; }
-        .score-box { font-size: 24px; font-weight: bold; text-shadow: 2px 2px #000; }
+        #ui { position: absolute; top: 20px; text-align: center; pointer-events: none; width: 100%; z-index: 5; }
+        .score-box { font-size: 28px; font-weight: bold; text-shadow: 2px 2px #000; color: #fff; }
         
         #gameOver {
             display: none; position: absolute; background: rgba(139, 0, 0, 0.9);
             width: 800px; height: 500px; flex-direction: column;
             justify-content: center; align-items: center; border-radius: 10px; z-index: 10;
         }
-        button { background: white; color: darkred; border: none; padding: 10px 20px; font-size: 18px; font-weight: bold; cursor: pointer; border-radius: 5px; margin-top: 20px; }
+        button { background: white; color: darkred; border: none; padding: 12px 25px; font-size: 18px; font-weight: bold; cursor: pointer; border-radius: 5px; margin-top: 20px; }
+        button:hover { background: #ddd; }
     </style>
 </head>
 <body>
 
     <div id="ui">
         <div class="score-box">SCORE: <span id="score">0</span></div>
-        <p>Avoid Sharks (Death) | Jellyfish (-10 & Freeze!)</p>
+        <p>Avoid <b>Sharks</b> (Insta-Loss) & <b>Jellyfish</b> (Stun + Penalty)</p>
     </div>
 
     <div id="gameOver">
@@ -42,9 +43,7 @@
     canvas.width = 800;
     canvas.height = 500;
 
-    let score, gameActive, hook, fishes, bubbles;
-    let isFrozen = false;
-    let freezeTimer = 0;
+    let score, gameActive, hook, fishes, bubbles, isFrozen, freezeTimer;
 
     function resetGame() {
         score = 0;
@@ -56,11 +55,13 @@
         bubbles = [];
         scoreElement.innerText = "0";
         gameOverScreen.style.display = 'none';
-        gameLoop();
+        
+        // Start the loop
+        requestAnimationFrame(gameLoop);
     }
 
     window.addEventListener('mousemove', (e) => {
-        if (!gameActive || isFrozen) return; // Prevent movement if frozen
+        if (!gameActive || isFrozen) return;
         let rect = canvas.getBoundingClientRect();
         hook.x = e.clientX - rect.left - 10;
         hook.y = e.clientY - rect.top;
@@ -73,7 +74,7 @@
 
         if (rand > 0.90) { 
             type = 'shark'; color = '#7f8c8d'; size = 65;
-        } else if (rand > 0.82) { // 8% chance for Jellyfish
+        } else if (rand > 0.82) { 
             type = 'jellyfish'; color = 'rgba(200, 100, 255, 0.7)'; size = 35;
         } else if (rand > 0.70) {
             type = 'gold'; color = '#FFD700';
@@ -82,7 +83,7 @@
         fishes.push({
             x: Math.random() > 0.5 ? -100 : canvas.width + 100,
             y: Math.random() * (canvas.height - 150) + 100,
-            speed: (Math.random() * 1.5 + 1) * (Math.random() > 0.5 ? 1 : -1),
+            speed: (Math.random() * 1.5 + 1.2) * (Math.random() > 0.5 ? 1 : -1),
             size: size,
             type: type,
             color: color
@@ -92,7 +93,6 @@
     function update() {
         if (!gameActive) return;
 
-        // Handle Freeze Logic
         if (isFrozen) {
             freezeTimer--;
             if (freezeTimer <= 0) isFrozen = false;
@@ -106,13 +106,15 @@
         fishes.forEach((f, i) => {
             f.x += f.speed;
 
+            // Collision logic
             if (f.x < hook.x + hook.w && f.x + f.size > hook.x && f.y < hook.y + hook.h && f.y + (f.size/2) > hook.y) {
                 if (f.type === 'shark') {
-                    endGame();
+                    gameActive = false;
+                    gameOverScreen.style.display = 'flex';
                 } else if (f.type === 'jellyfish') {
                     score = Math.max(0, score - 10);
                     isFrozen = true;
-                    freezeTimer = 60; // Approx 1 second at 60fps
+                    freezeTimer = 60; 
                     fishes.splice(i, 1);
                 } else {
                     score += f.type === 'gold' ? 5 : 1;
@@ -124,23 +126,15 @@
             if (f.x > canvas.width + 150 || f.x < -150) fishes.splice(i, 1);
         });
 
-        if (Math.random() < 0.04) spawnFish();
+        if (Math.random() < 0.03) spawnFish();
         if (Math.random() < 0.05) {
             bubbles.push({ x: Math.random() * canvas.width, y: canvas.height + 10, r: Math.random() * 5 + 2, speed: Math.random() * 1 + 1 });
         }
     }
 
-    function endGame() {
-        gameActive = false;
-        gameOverScreen.style.display = 'flex';
-    }
-
     function draw() {
-        if (!gameActive) return;
-
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Flash screen white if frozen
         if (isFrozen) {
             ctx.fillStyle = "rgba(255, 255, 255, 0.2)";
             ctx.fillRect(0,0, canvas.width, canvas.height);
@@ -152,34 +146,28 @@
             ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2); ctx.fill();
         });
 
-        // Line and Hook (Glows blue if frozen/shocked)
+        // Line and Hook
         ctx.strokeStyle = isFrozen ? "#00ffff" : "#fff";
         ctx.lineWidth = 2;
         ctx.beginPath(); ctx.moveTo(hook.x + hook.w/2, 0); ctx.lineTo(hook.x + hook.w/2, hook.y); ctx.stroke();
         ctx.fillStyle = isFrozen ? "#44ffff" : "#aaa"; 
         ctx.fillRect(hook.x, hook.y, hook.w, hook.h);
 
-        // Creatures
+        // Entities
         fishes.forEach(f => {
             ctx.fillStyle = f.color;
-            ctx.beginPath();
-            
             if (f.type === 'jellyfish') {
-                // Jellyfish Dome
-                ctx.arc(f.x, f.y, f.size/2, Math.PI, 0);
-                ctx.fill();
-                // Tentacles
-                ctx.fillRect(f.x - 10, f.y, 2, 15);
-                ctx.fillRect(f.x - 2, f.y, 2, 18);
-                ctx.fillRect(f.x + 6, f.y, 2, 15);
+                ctx.beginPath(); ctx.arc(f.x, f.y, f.size/2, Math.PI, 0); ctx.fill();
+                ctx.fillRect(f.x - 8, f.y, 2, 12); ctx.fillRect(f.x, f.y, 2, 15); ctx.fillRect(f.x + 8, f.y, 2, 12);
             } else {
+                ctx.beginPath();
                 ctx.ellipse(f.x, f.y, f.size/1.5, f.size/2.5, 0, 0, Math.PI * 2);
                 ctx.fill();
                 if (f.type === 'shark') {
-                    ctx.beginPath(); // Fin
+                    ctx.beginPath();
                     ctx.moveTo(f.x, f.y - f.size/4); ctx.lineTo(f.x - 12, f.y - f.size/1.4); ctx.lineTo(f.x + 12, f.y - f.size/4); ctx.fill();
                 }
-                ctx.beginPath(); // Tail
+                ctx.beginPath();
                 let tailDir = f.speed > 0 ? -1 : 1;
                 ctx.moveTo(f.x + (f.size/2 * tailDir), f.y);
                 ctx.lineTo(f.x + (f.size * 0.8 * tailDir), f.y - (f.size/3));
@@ -187,11 +175,14 @@
                 ctx.fill();
             }
         });
-
-        requestAnimationFrame(draw);
     }
 
-    function gameLoop() { update(); draw(); }
+    function gameLoop() {
+        update();
+        draw();
+        if (gameActive) requestAnimationFrame(gameLoop);
+    }
+
     resetGame();
 </script>
 </body>
