@@ -3,155 +3,133 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Turbo Racer - Fixed</title>
+    <title>Deep Sea Catcher</title>
     <style>
-        body { margin: 0; background: #111; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; color: white; font-family: sans-serif; overflow: hidden; }
-        canvas { border: 4px solid #333; background: #333; cursor: crosshair; }
-        #overlay { position: absolute; text-align: center; pointer-events: none; width: 100%; top: 20px; z-index: 5; }
-        #startScreen, #gameOver { position: absolute; background: rgba(0,0,0,0.9); padding: 40px; text-align: center; border-radius: 10px; border: 2px solid #00d4ff; z-index: 10; }
-        button { background: #00d4ff; border: none; color: black; padding: 12px 25px; cursor: pointer; font-weight: bold; border-radius: 5px; font-size: 16px; margin-top: 15px; }
+        body { margin: 0; background: #001a33; display: flex; justify-content: center; align-items: center; height: 100vh; color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
+        canvas { background: linear-gradient(#4db8ff, #001a33); border: 5px solid #003366; border-radius: 10px; cursor: none; }
+        #ui { position: absolute; top: 20px; text-align: center; pointer-events: none; width: 100%; }
+        .score-box { font-size: 24px; font-weight: bold; text-shadow: 2px 2px #000; }
     </style>
 </head>
 <body>
 
-    <div id="startScreen">
-        <h1>TURBO RACER</h1>
-        <p>Move mouse to steer. Collect blue orbs!</p>
-        <button onclick="startGame()">START RACE</button>
+    <div id="ui">
+        <div class="score-box">FISH CAUGHT: <span id="score">0</span></div>
+        <p>Move mouse to move hook | Catch Gold Fish for +5!</p>
     </div>
 
-    <div id="gameOver" style="display:none;">
-        <h1>WRECKED</h1>
-        <p id="finalScore"></p>
-        <button onclick="resetGame()">RETRY</button>
-    </div>
-
-    <div id="overlay">
-        <h2 id="scoreDisplay">SCORE: 0</h2>
-        <p id="shieldStatus" style="color: #00d4ff;"></p>
-    </div>
-
-    <canvas id="raceCanvas"></canvas>
+    <canvas id="fishCanvas"></canvas>
 
 <script>
-    const canvas = document.getElementById('raceCanvas');
+    const canvas = document.getElementById('fishCanvas');
     const ctx = canvas.getContext('2d');
-    canvas.width = 400;
-    canvas.height = 600;
+    const scoreElement = document.getElementById('score');
 
-    let score, gameSpeed, gameActive = false, frameCount;
-    let player = { x: 175, y: 500, w: 50, h: 80, shield: 0 };
-    let enemies = [], powerups = [], roadStrips = [];
+    canvas.width = 800;
+    canvas.height = 500;
 
-    function resetGame() {
-        score = 0; gameSpeed = 7; frameCount = 0;
-        enemies = []; powerups = []; roadStrips = [];
-        player.shield = 0; 
-        
-        // Create road markings that actually move down the screen
-        for (let i = 0; i < 8; i++) {
-            roadStrips.push({ x: 195, y: i * 100, w: 10, h: 50 });
-        }
-        
-        document.getElementById('gameOver').style.display = 'none';
-        document.getElementById('startScreen').style.display = 'none';
-        gameActive = true;
-        loop();
-    }
+    let score = 0;
+    let hook = { x: 400, y: 50, w: 20, h: 40 };
+    let fishes = [];
+    let bubbles = [];
 
-    function startGame() { resetGame(); }
-
+    // Mouse Movement
     window.addEventListener('mousemove', (e) => {
-        if (!gameActive) return;
         let rect = canvas.getBoundingClientRect();
-        player.x = Math.max(60, Math.min(e.clientX - rect.left - 25, 290));
+        hook.x = e.clientX - rect.left;
+        hook.y = e.clientY - rect.top;
     });
 
+    function spawnFish() {
+        const type = Math.random() > 0.8 ? 'gold' : 'normal';
+        fishes.push({
+            x: Math.random() > 0.5 ? -50 : canvas.width + 50,
+            y: Math.random() * (canvas.height - 100) + 100,
+            speed: (Math.random() * 2 + 1) * (Math.random() > 0.5 ? 1 : -1),
+            size: 30,
+            type: type,
+            color: type === 'gold' ? '#FFD700' : '#ff8533'
+        });
+    }
+
+    function createBubble() {
+        bubbles.push({ x: Math.random() * canvas.width, y: canvas.height + 10, r: Math.random() * 5 + 2, speed: Math.random() * 1 + 1 });
+    }
+
     function update() {
-        if (!gameActive) return;
-        score++;
-        if (score % 500 === 0) gameSpeed += 0.5;
-        if (player.shield > 0) player.shield--;
-
-        // MOVE THE ROAD
-        roadStrips.forEach(strip => {
-            strip.y += gameSpeed;
-            if (strip.y > canvas.height) strip.y = -100; // Reset to top
+        // Update Bubbles
+        bubbles.forEach((b, i) => {
+            b.y -= b.speed;
+            if (b.y < -10) bubbles.splice(i, 1);
         });
 
-        if (frameCount % 60 === 0) {
-            const lanes = [75, 175, 275];
-            let lane = lanes[Math.floor(Math.random() * lanes.length)];
-            if (Math.random() > 0.9) powerups.push({ x: lane, y: -50 });
-            else enemies.push({ x: lane - 25, y: -100, speed: gameSpeed + 1 });
-        }
+        // Update Fish
+        fishes.forEach((f, i) => {
+            f.x += f.speed;
 
-        powerups.forEach((p, i) => {
-            p.y += gameSpeed;
-            if (Math.hypot(player.x + 25 - p.x, player.y + 40 - p.y) < 40) {
-                player.shield = 300;
-                powerups.splice(i, 1);
+            // Collision with Hook
+            if (f.x < hook.x + hook.w && f.x + f.size > hook.x && f.y < hook.y + hook.h && f.y + f.size > hook.y) {
+                score += f.type === 'gold' ? 5 : 1;
+                scoreElement.innerText = score;
+                fishes.splice(i, 1);
             }
+
+            // Remove off-screen
+            if (f.x > canvas.width + 100 || f.x < -100) fishes.splice(i, 1);
         });
 
-        enemies.forEach((e, i) => {
-            e.y += e.speed;
-            if (player.x < e.x + 50 && player.x + 50 > e.x && player.y < e.y + 80 && player.y + 80 > e.y) {
-                if (player.shield > 0) { enemies.splice(i, 1); score += 500; } 
-                else { gameActive = false; }
-            }
-            if (e.y > canvas.height) enemies.splice(i, 1);
-        });
-
-        frameCount++;
-        document.getElementById('scoreDisplay').innerText = `SCORE: ${score}`;
-        document.getElementById('shieldStatus').innerText = player.shield > 0 ? "SHIELD ACTIVE" : "";
+        if (Math.random() < 0.03) spawnFish();
+        if (Math.random() < 0.05) createBubble();
     }
 
     function draw() {
-        // Draw Grass
-        ctx.fillStyle = '#1e3d1a';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Draw Road
-        ctx.fillStyle = '#333';
-        ctx.fillRect(50, 0, 300, canvas.height);
-
-        // DRAW MOVING ROAD STRIPS
-        ctx.fillStyle = '#fff';
-        roadStrips.forEach(strip => {
-            ctx.fillRect(strip.x, strip.y, strip.w, strip.h);
+        // Draw Bubbles
+        ctx.fillStyle = "rgba(255, 255, 255, 0.3)";
+        bubbles.forEach(b => {
+            ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2); ctx.fill();
         });
 
-        // Draw Powerups
-        powerups.forEach(p => {
-            ctx.fillStyle = '#00d4ff';
-            ctx.beginPath(); ctx.arc(p.x, p.y, 15, 0, Math.PI*2); ctx.fill();
+        // Draw Fishing Line
+        ctx.strokeStyle = "#fff";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(hook.x + hook.w/2, 0);
+        ctx.lineTo(hook.x + hook.w/2, hook.y);
+        ctx.stroke();
+
+        // Draw Hook
+        ctx.fillStyle = "#aaa";
+        ctx.fillRect(hook.x, hook.y, hook.w, hook.h);
+        ctx.beginPath();
+        ctx.arc(hook.x + hook.w/2, hook.y + hook.h, 10, 0, Math.PI);
+        ctx.stroke();
+
+        // Draw Fish
+        fishes.forEach(f => {
+            ctx.fillStyle = f.color;
+            // Body
+            ctx.beginPath();
+            ctx.ellipse(f.x, f.y, f.size/1.5, f.size/2.5, 0, 0, Math.PI * 2);
+            ctx.fill();
+            // Tail
+            ctx.beginPath();
+            ctx.moveTo(f.x + (f.speed > 0 ? -15 : 15), f.y);
+            ctx.lineTo(f.x + (f.speed > 0 ? -25 : 25), f.y - 10);
+            ctx.lineTo(f.x + (f.speed > 0 ? -25 : 25), f.y + 10);
+            ctx.fill();
         });
 
-        // Draw Enemies (Red)
-        enemies.forEach(e => {
-            ctx.fillStyle = '#e74c3c';
-            ctx.fillRect(e.x, e.y, 50, 80);
-        });
-
-        // Draw Player (Blue)
-        ctx.fillStyle = '#00d4ff';
-        if (player.shield > 0) {
-            ctx.shadowBlur = 20; ctx.shadowColor = '#00d4ff';
-        }
-        ctx.fillRect(player.x, player.y, 50, 80);
-        ctx.shadowBlur = 0;
-
-        if (!gameActive) {
-            document.getElementById('gameOver').style.display = 'block';
-            document.getElementById('finalScore').innerText = `Score: ${score}`;
-            return;
-        }
-        requestAnimationFrame(draw);
+        requestAnimationFrame(gameLoop);
     }
 
-    function loop() { update(); draw(); }
+    function gameLoop() {
+        update();
+        draw();
+    }
+
+    gameLoop();
 </script>
 </body>
 </html>
