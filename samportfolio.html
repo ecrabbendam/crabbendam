@@ -10,24 +10,50 @@
             --cream: #fdfcf8;
             --obsidian: #1d1d1f;
             --slate: #6e6e73;
-            --glass-bg: rgba(255, 255, 255, 0.5);
-            --glass-border: rgba(255, 255, 255, 0.8);
+            --glass-white: rgba(255, 255, 255, 0.5);
+            --glass-dark: rgba(29, 29, 31, 0.1);
+            --border-white: rgba(255, 255, 255, 0.8);
         }
+
+        /* High-End iOS Entrance Animation */
+        @keyframes revealUp {
+            from { 
+                opacity: 0; 
+                transform: translateY(50px); 
+                filter: blur(10px);
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
+                filter: blur(0);
+            }
+        }
+
+        html { scroll-behavior: smooth; }
 
         body, html {
             margin: 0;
             padding: 0;
-            background-color: var(--cream);
-            color: var(--obsidian);
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
             -webkit-font-smoothing: antialiased;
+            color: var(--obsidian);
         }
 
-        .header {
-            padding: 60px 8% 20px 8%;
+        /* Nav Bar */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding: 20px 8%;
+            box-sizing: border-box;
+            z-index: 100;
+            background: rgba(253, 252, 248, 0.8);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
         }
 
         .back-btn {
@@ -42,100 +68,148 @@
 
         .back-btn:hover { color: var(--obsidian); }
 
-        h1 { font-size: 3rem; letter-spacing: -0.04em; margin: 0; }
+        /* General Section Styling */
+        section {
+            padding: 120px 8% 100px 8%;
+            min-height: 60vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
 
+        .section-title {
+            font-size: 3rem;
+            letter-spacing: -0.04em;
+            margin-bottom: 50px;
+            animation: revealUp 1.1s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+        }
+
+        /* Color Themes */
+        .theme-cream { background-color: var(--cream); color: var(--obsidian); }
+        .theme-dark { background-color: #f2f2f7; color: var(--obsidian); } /* Light Gray Contrast */
+        .theme-slate { background-color: #1d1d1f; color: #f5f5f7; } /* Stark Obsidian Contrast */
+
+        /* Grid Layout */
         .portfolio-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 25px;
-            padding: 40px 8%;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
         }
 
         /* Glass Project Card */
         .project-card {
-            background: var(--glass-bg);
+            background: var(--glass-white);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
+            border: 1px solid var(--border-white);
             border-radius: 24px;
-            padding: 30px;
+            padding: 35px;
             display: flex;
             flex-direction: column;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.4s ease;
+            opacity: 0;
+            animation: revealUp 1.1s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+        }
+
+        /* Dark Theme Card Adjustment */
+        .theme-slate .project-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.1);
+            color: #f5f5f7;
         }
 
         .project-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.1);
         }
 
         .icon-circle {
-            width: 50px;
-            height: 50px;
+            width: 55px;
+            height: 55px;
             background: white;
-            border-radius: 14px;
+            border-radius: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 20px;
-            font-size: 1.2rem;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+            margin-bottom: 25px;
+            font-size: 1.3rem;
+            color: var(--obsidian);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
 
-        h3 { margin: 0 0 10px 0; font-size: 1.5rem; }
-        p { color: var(--slate); line-height: 1.5; margin-bottom: 25px; flex-grow: 1; }
+        h3 { font-size: 1.6rem; margin: 0 0 15px 0; letter-spacing: -0.02em; }
+        p { line-height: 1.6; margin-bottom: 30px; flex-grow: 1; opacity: 0.9; }
 
         .view-btn {
             text-decoration: none;
-            color: var(--obsidian);
+            color: inherit;
             font-weight: 600;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             display: flex;
             align-items: center;
-            gap: 5px;
-            border-bottom: 1px solid transparent;
-            width: fit-content;
-            transition: border 0.3s;
+            gap: 8px;
+            opacity: 0.8;
+            transition: opacity 0.3s;
         }
 
-        .view-btn:hover { border-bottom: 1px solid var(--obsidian); }
+        .view-btn:hover { opacity: 1; text-decoration: underline; }
+
+        /* Animation Delays */
+        .project-card:nth-child(1) { animation-delay: 0.2s; }
+        .project-card:nth-child(2) { animation-delay: 0.4s; }
+        .project-card:nth-child(3) { animation-delay: 0.6s; }
 
         @media (max-width: 768px) {
-            .header { padding: 40px 20px 10px 20px; flex-direction: column; align-items: flex-start; gap: 20px; }
-            h1 { font-size: 2.5rem; }
-            .portfolio-grid { padding: 20px; }
+            .section-title { font-size: 2.2rem; }
+            section { padding: 100px 20px 60px 20px; }
         }
     </style>
 </head>
 <body>
 
-    <nav class="header">
-        <h1>Engineering Portfolio</h1>
-        <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i> Back to Home</a>
+    <nav>
+        <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i> Home</a>
+        <div class="social-links">
+            <a href="https://www.linkedin.com/in/samuel-crabbendam-93ab33349" target="_blank" style="color:var(--slate); margin-right:15px;"><i class="fab fa-linkedin"></i></a>
+            <a href="https://instagram.com/samm_crabb" target="_blank" style="color:var(--slate);"><i class="fab fa-instagram"></i></a>
+        </div>
     </nav>
 
-    <main class="portfolio-grid">
-        <div class="project-card">
-            <div class="icon-circle"><i class="fas fa-certificate"></i></div>
-            <h3>CSWA Certification</h3>
-            <p>Certified SolidWorks Associate in Mechanical Design. Proficient in complex part modeling, assemblies, and drawing analysis.</p>
-            <a href="images/solidworks-cert.pdf" target="_blank" class="btn-link view-btn">View Certificate <i class="fas fa-chevron-right"></i></a>
-        </div>
+    <section class="theme-cream">
+        <h2 class="section-title">Certifications</h2>
+        <div class="portfolio-grid">
+            <div class="project-card">
+                <div class="icon-circle"><i class="fas fa-certificate"></i></div>
+                <h3>CSWA Certification</h3>
+                <p>Certified SolidWorks Associate in Mechanical Design. Proficient in complex part modeling, assemblies, and drawing analysis for aerospace applications.</p>
+                <a href="images/solidworks-cert.pdf" target="_blank" class="view-btn">View Certificate <i class="fas fa-chevron-right"></i></a>
+            </div>
+            </div>
+    </section>
 
-        <div class="project-card">
-            <div class="icon-circle"><i class="fas fa-file-alt"></i></div>
-            <h3>Aerodynamics Research</h3>
-            <p>A technical paper analyzing wing tip vortex reduction and its impact on fuel efficiency in commercial aviation.</p>
-            <a href="images/research-paper.pdf" target="_blank" class="btn-link view-btn">Read Paper <i class="fas fa-chevron-right"></i></a>
+    <section class="theme-dark">
+        <h2 class="section-title">Academic Research</h2>
+        <div class="portfolio-grid">
+            <div class="project-card">
+                <div class="icon-circle"><i class="fas fa-file-alt"></i></div>
+                <h3>Aerodynamics Research</h3>
+                <p>A technical analysis paper focused on aerospace systems, research findings, and structural engineering principles in modern flight.</p>
+                <a href="images/research-paper.pdf" target="_blank" class="view-btn">Read Paper <i class="fas fa-chevron-right"></i></a>
+            </div>
         </div>
+    </section>
 
-        <div class="project-card">
-            <div class="icon-circle"><i class="fas fa-tools"></i></div>
-            <h3>Technical Project</h3>
-            <p>Summary of a hands-on aerospace project involving structural analysis or prototype design.</p>
-            <a href="#" class="btn-link view-btn">View Project <i class="fas fa-chevron-right"></i></a>
+    <section class="theme-slate">
+        <h2 class="section-title">Engineering Projects</h2>
+        <div class="portfolio-grid">
+            <div class="project-card">
+                <div class="icon-circle"><i class="fas fa-tools"></i></div>
+                <h3>Technical Design Project</h3>
+                <p>A comprehensive overview of a hands-on project, covering technical implementation, prototype design, and problem-solving metrics.</p>
+                <a href="#" class="view-btn">View Details <i class="fas fa-chevron-right"></i></a>
+            </div>
         </div>
-    </main>
+    </section>
 
 </body>
 </html>
