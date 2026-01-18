@@ -3,20 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Deep Sea Catcher - Shark Attack!</title>
+    <title>Deep Sea Catcher - Danger!</title>
     <style>
         body { margin: 0; background: #001a33; display: flex; justify-content: center; align-items: center; height: 100vh; color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
         canvas { background: linear-gradient(#4db8ff, #001a33); border: 5px solid #003366; border-radius: 10px; cursor: none; }
         #ui { position: absolute; top: 20px; text-align: center; pointer-events: none; width: 100%; }
         .score-box { font-size: 24px; font-weight: bold; text-shadow: 2px 2px #000; }
-        .warning { color: #ff4444; font-weight: bold; }
+        
+        /* Game Over Overlay */
+        #gameOver {
+            display: none;
+            position: absolute;
+            background: rgba(139, 0, 0, 0.9);
+            width: 800px;
+            height: 500px;
+            display: none; /* Controlled by JS */
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 10px;
+            z-index: 10;
+        }
+        button {
+            background: white;
+            color: darkred;
+            border: none;
+            padding: 10px 20px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        button:hover { background: #eee; }
     </style>
 </head>
 <body>
 
     <div id="ui">
         <div class="score-box">SCORE: <span id="score">0</span></div>
-        <p>Catch Fish for points | <span class="warning">AVOID SHARKS (-10)</span></p>
+    </div>
+
+    <div id="gameOver">
+        <h1 style="font-size: 48px;">GAME OVER</h1>
+        <p style="font-size: 24px;">A shark destroyed your line!</p>
+        <button onclick="resetGame()">RESTART FISHING</button>
     </div>
 
     <canvas id="fishCanvas"></canvas>
@@ -25,34 +56,43 @@
     const canvas = document.getElementById('fishCanvas');
     const ctx = canvas.getContext('2d');
     const scoreElement = document.getElementById('score');
+    const gameOverScreen = document.getElementById('gameOver');
 
     canvas.width = 800;
     canvas.height = 500;
 
-    let score = 0;
-    let hook = { x: 400, y: 50, w: 20, h: 40 };
-    let fishes = [];
-    let bubbles = [];
+    let score, gameActive, hook, fishes, bubbles;
+
+    function resetGame() {
+        score = 0;
+        gameActive = true;
+        hook = { x: 400, y: 50, w: 20, h: 40 };
+        fishes = [];
+        bubbles = [];
+        scoreElement.innerText = "0";
+        gameOverScreen.style.display = 'none';
+        gameLoop();
+    }
 
     window.addEventListener('mousemove', (e) => {
+        if (!gameActive) return;
         let rect = canvas.getBoundingClientRect();
         hook.x = e.clientX - rect.left - 10;
         hook.y = e.clientY - rect.top;
     });
 
     function spawnFish() {
+        if (!gameActive) return;
         const rand = Math.random();
         let type = 'normal';
         let color = '#ff8533';
         let size = 30;
-        let speedMult = 1;
 
-        if (rand > 0.92) {
+        if (rand > 0.90) { // 10% chance for shark
             type = 'shark';
-            color = '#7f8c8d'; // Shark Gray
-            size = 60;
-            speedMult = 1.5; // Sharks are faster
-        } else if (rand > 0.8) {
+            color = '#7f8c8d';
+            size = 65;
+        } else if (rand > 0.75) {
             type = 'gold';
             color = '#FFD700';
         }
@@ -60,18 +100,16 @@
         fishes.push({
             x: Math.random() > 0.5 ? -100 : canvas.width + 100,
             y: Math.random() * (canvas.height - 150) + 100,
-            speed: (Math.random() * 2 + 1) * speedMult * (Math.random() > 0.5 ? 1 : -1),
+            speed: (Math.random() * 2 + 1.5) * (Math.random() > 0.5 ? 1 : -1),
             size: size,
             type: type,
             color: color
         });
     }
 
-    function createBubble() {
-        bubbles.push({ x: Math.random() * canvas.width, y: canvas.height + 10, r: Math.random() * 5 + 2, speed: Math.random() * 1 + 1 });
-    }
-
     function update() {
+        if (!gameActive) return;
+
         bubbles.forEach((b, i) => {
             b.y -= b.speed;
             if (b.y < -10) bubbles.splice(i, 1);
@@ -80,28 +118,34 @@
         fishes.forEach((f, i) => {
             f.x += f.speed;
 
-            // Collision Detection
-            // We adjust the hitbox slightly for the larger shark
+            // Hitbox check
             if (f.x < hook.x + hook.w && f.x + f.size > hook.x && f.y < hook.y + hook.h && f.y + (f.size/2) > hook.y) {
-                
                 if (f.type === 'shark') {
-                    score -= 10;
+                    endGame();
                 } else {
                     score += f.type === 'gold' ? 5 : 1;
+                    scoreElement.innerText = score;
+                    fishes.splice(i, 1);
                 }
-                
-                scoreElement.innerText = score;
-                fishes.splice(i, 1);
             }
 
             if (f.x > canvas.width + 150 || f.x < -150) fishes.splice(i, 1);
         });
 
         if (Math.random() < 0.04) spawnFish();
-        if (Math.random() < 0.05) createBubble();
+        if (Math.random() < 0.05) {
+            bubbles.push({ x: Math.random() * canvas.width, y: canvas.height + 10, r: Math.random() * 5 + 2, speed: Math.random() * 1 + 1 });
+        }
+    }
+
+    function endGame() {
+        gameActive = false;
+        gameOverScreen.style.display = 'flex';
     }
 
     function draw() {
+        if (!gameActive) return;
+
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         // Bubbles
@@ -110,45 +154,33 @@
             ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2); ctx.fill();
         });
 
-        // Fishing Line
+        // Line and Hook
         ctx.strokeStyle = "#fff";
         ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(hook.x + hook.w/2, 0);
-        ctx.lineTo(hook.x + hook.w/2, hook.y);
-        ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(hook.x + hook.w/2, 0); ctx.lineTo(hook.x + hook.w/2, hook.y); ctx.stroke();
+        ctx.fillStyle = "#aaa"; ctx.fillRect(hook.x, hook.y, hook.w, hook.h);
+        ctx.beginPath(); ctx.arc(hook.x + hook.w/2, hook.y + hook.h, 10, 0, Math.PI); ctx.stroke();
 
-        // Hook
-        ctx.fillStyle = "#aaa";
-        ctx.fillRect(hook.x, hook.y, hook.w, hook.h);
-        ctx.beginPath();
-        ctx.arc(hook.x + hook.w/2, hook.y + hook.h, 10, 0, Math.PI);
-        ctx.stroke();
-
-        // Draw Creatures
+        // Creatures
         fishes.forEach(f => {
             ctx.fillStyle = f.color;
-            
-            // Draw Body
             ctx.beginPath();
             ctx.ellipse(f.x, f.y, f.size/1.5, f.size/2.5, 0, 0, Math.PI * 2);
             ctx.fill();
 
-            // Draw Shark Fin
             if (f.type === 'shark') {
-                ctx.beginPath();
+                ctx.beginPath(); // Fin
                 ctx.moveTo(f.x, f.y - f.size/4);
-                ctx.lineTo(f.x - 10, f.y - f.size/1.5);
-                ctx.lineTo(f.x + 10, f.y - f.size/4);
+                ctx.lineTo(f.x - 12, f.y - f.size/1.4);
+                ctx.lineTo(f.x + 12, f.y - f.size/4);
                 ctx.fill();
             }
 
-            // Draw Tail
-            ctx.beginPath();
-            let tailDirection = f.speed > 0 ? -1 : 1;
-            ctx.moveTo(f.x + (f.size/2 * tailDirection), f.y);
-            ctx.lineTo(f.x + (f.size * 0.8 * tailDirection), f.y - (f.size/3));
-            ctx.lineTo(f.x + (f.size * 0.8 * tailDirection), f.y + (f.size/3));
+            ctx.beginPath(); // Tail
+            let tailDir = f.speed > 0 ? -1 : 1;
+            ctx.moveTo(f.x + (f.size/2 * tailDir), f.y);
+            ctx.lineTo(f.x + (f.size * 0.8 * tailDir), f.y - (f.size/3));
+            ctx.lineTo(f.x + (f.size * 0.8 * tailDir), f.y + (f.size/3));
             ctx.fill();
         });
 
@@ -160,7 +192,7 @@
         draw();
     }
 
-    gameLoop();
+    resetGame();
 </script>
 </body>
 </html>
