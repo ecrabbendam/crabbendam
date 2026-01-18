@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Portfolio | Home</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2d3436;
+            --accent: #0984e3;
+            --text: #636e72;
+            --bg: #f5f6fa;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--primary);
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+            flex-wrap: wrap;
+        }
+
+        /* Left side - The Photo */
+        .image-section {
+            flex: 1;
+            min-width: 300px;
+            background: url('your-photo.jpg') no-repeat center center;
+            background-size: cover;
+            min-height: 50vh;
+        }
+
+        /* Right side - The Content */
+        .content-section {
+            flex: 1;
+            min-width: 300px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            text-align: center;
+        }
+
+        h1 { margin-bottom: 10px; font-size: 2.5rem; }
+        p { color: var(--text); margin-bottom: 30px; font-size: 1.1rem; }
+
+        .links-container {
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .btn {
+            display: block;
+            text-decoration: none;
+            background: white;
+            color: var(--primary);
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border: 1px solid #dfe6e9;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .socials {
+            margin-top: 20px;
+        }
+
+        .socials a {
+            color: var(--text);
+            font-size: 1.5rem;
+            margin: 0 10px;
+            transition: color 0.3s;
+        }
+
+        .socials a:hover { color: var(--accent); }
+
+        @media (max-width: 768px) {
+            .container { flex-direction: column; }
+            .image-section { min-height: 400px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="image-section"></div>
+
+        <div class="content-section">
+            <h1>Hi, I'm [Your Name]</h1>
+            <p>Developer | Designer | Lifelong Learner</p>
+
+            <div class="links-container">
+                <a href="resume.pdf" class="btn"><i class="far fa-file-pdf"></i> View Resume</a>
+                <a href="https://github.com/yourusername" class="btn"><i class="fab fa-github"></i> Portfolio Projects</a>
+                <a href="mailto:yourname@email.com" class="btn"><i class="far fa-envelope"></i> Get In Touch</a>
+            </div>
+
+            <div class="socials">
+                <a href="#"><i class="fab fa-linkedin"></i></a>
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
