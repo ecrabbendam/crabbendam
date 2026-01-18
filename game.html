@@ -53,4 +53,121 @@
 
     // Initialize road lines
     for (let i = 0; i < 10; i++) {
-        roadLines.
+        roadLines.push({ x: canvas.width / 2, y: i * 80 });
+    }
+
+    // Input Handling
+    window.addEventListener('mousemove', (e) => {
+        if (!gameActive) return;
+        let rect = canvas.getBoundingClientRect();
+        let mouseX = e.clientX - rect.left;
+        // Keep car within road boundaries
+        player.x = Math.max(70, Math.min(mouseX - carW / 2, 280));
+    });
+
+    function spawnEnemy() {
+        const lanes = [75, 175, 275];
+        let lane = lanes[Math.floor(Math.random() * lanes.length)];
+        enemies.push({ x: lane - carW/2, y: -100, color: '#ff4444', speed: Math.random() * 2 + gameSpeed });
+    }
+
+    function resetGame() {
+        score = 0;
+        gameSpeed = 5;
+        enemies = [];
+        gameActive = true;
+        gameOverScreen.style.display = 'none';
+        loop();
+    }
+
+    function update() {
+        if (!gameActive) return;
+
+        score++;
+        scoreDisplay.innerText = `SCORE: ${score}`;
+        if (score % 500 === 0) gameSpeed += 0.5; // Speed up over time
+
+        // Move Road
+        roadLines.forEach(line => {
+            line.y += gameSpeed;
+            if (line.y > canvas.height) line.y = -80;
+        });
+
+        // Move Enemies
+        if (frameCount % Math.max(20, 100 - Math.floor(gameSpeed * 5)) === 0) spawnEnemy();
+        
+        enemies.forEach((enemy, index) => {
+            enemy.y += enemy.speed;
+
+            // Collision Detection (Rectangle hit box)
+            if (player.x < enemy.x + carW &&
+                player.x + carW > enemy.x &&
+                player.y < enemy.y + carH &&
+                player.y + carH > enemy.y) {
+                gameActive = false;
+            }
+
+            if (enemy.y > canvas.height) enemies.splice(index, 1);
+        });
+
+        frameCount++;
+    }
+
+    function drawCar(x, y, color, isPlayer = false) {
+        // Body
+        ctx.fillStyle = color;
+        ctx.fillRect(x, y, carW, carH);
+        // Windows
+        ctx.fillStyle = 'rgba(255,255,255,0.5)';
+        ctx.fillRect(x + 5, y + 15, carW - 10, 20);
+        // Wheels
+        ctx.fillStyle = '#000';
+        ctx.fillRect(x - 5, y + 10, 5, 20);
+        ctx.fillRect(x + carW, y + 10, 5, 20);
+        ctx.fillRect(x - 5, y + 50, 5, 20);
+        ctx.fillRect(x + carW, y + 50, 5, 20);
+    }
+
+    function draw() {
+        // Draw Grass
+        ctx.fillStyle = '#2d5a27';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Draw Road
+        ctx.fillStyle = '#444';
+        ctx.fillRect(50, 0, roadWidth, canvas.height);
+
+        // Draw Road Lines
+        ctx.strokeStyle = '#fff';
+        ctx.setLineDash([20, 20]);
+        ctx.lineWidth = 4;
+        roadLines.forEach(line => {
+            ctx.beginPath();
+            ctx.moveTo(canvas.width / 2, 0);
+            ctx.lineTo(canvas.width / 2, canvas.height);
+            ctx.lineDashOffset = -line.y;
+            ctx.stroke();
+        });
+
+        // Draw Player and Enemies
+        drawCar(player.x, player.y, player.color, true);
+        enemies.forEach(enemy => drawCar(enemy.x, enemy.y, enemy.color));
+
+        if (!gameActive) {
+            finalScoreText.innerText = `You traveled ${score} meters!`;
+            gameOverScreen.style.display = 'block';
+            return;
+        }
+
+        requestAnimationFrame(loop);
+    }
+
+    function loop() {
+        update();
+        draw();
+    }
+
+    loop();
+</script>
+</body>
+</html>
