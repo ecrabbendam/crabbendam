@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Side-Scroller Adventure</title>
+    <style>
+        body { margin: 0; background: #222; overflow: hidden; font-family: sans-serif; }
+        #ui { position: absolute; top: 10px; left: 10px; color: white; font-size: 20px; text-shadow: 2px 2px #000; }
+        canvas { display: block; background: #131313; }
+    </style>
+</head>
+<body>
+
+    <div id="ui">Use Arrows to Move & Jump</div>
+    <canvas id="gameCanvas"></canvas>
+
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    // Game Constants
+    const gravity = 0.8;
+    const friction = 0.8;
+    
+    const player = {
+        x: 100,
+        y: 100,
+        w: 40,
+        h: 40,
+        velX: 0,
+        velY: 0,
+        speed: 5,
+        jumpStrength: -15,
+        grounded: false,
+        color: '#ffcc00'
+    };
+
+    // Level Design (x, y, width, height)
+    const platforms = [
+        { x: 0, y: canvas.height - 50, w: 600, h: 50 },
+        { x: 700, y: canvas.height - 150, w: 400, h: 50 },
+        { x: 1200, y: canvas.height - 250, w: 400, h: 50 },
+        { x: 1700, y: canvas.height - 100, w: 800, h: 100 },
+        { x: 2000, y: canvas.height - 300, w: 200, h: 40 }
+    ];
+
+    const keys = {};
+    let cameraX = 0;
+
+    window.addEventListener('keydown', e => keys[e.code] = true);
+    window.addEventListener('keyup', e => keys[e.code] = false);
+
+    function update() {
+        // Player Movement
+        if (keys['ArrowRight']) {
+            if (player.velX < player.speed) player.velX++;
+        }
+        if (keys['ArrowLeft']) {
+            if (player.velX > -player.speed) player.velX--;
+        }
+        if (keys['ArrowUp'] || keys['Space']) {
+            if (player.grounded) {
+                player.velY = player.jumpStrength;
+                player.grounded = false;
+            }
+        }
+
+        player.velX *= friction;
+        player.velY += gravity;
+
+        player.grounded = false;
+
+        // Platform Collision
+        for (let p of platforms) {
+            if (player.x < p.x + p.w &&
+                player.x + player.w > p.x &&
+                player.y < p.y + p.h &&
+                player.y + player.h > p.y) {
+                
+                // Only collide if falling onto the top
+                if (player.velY > 0 && player.y + player.h - player.velY <= p.y) {
+                    player.grounded = true;
+                    player.velY = 0;
+                    player.y = p.y - player.h;
+                }
+            }
+        }
+
+        player.x += player.velX;
+        player.y += player.velY;
+
+        // Camera Follow (Centering the player)
+        cameraX = player.x - canvas.width / 4;
+
+        // Fall off screen reset
+        if (player.y > canvas.height) {
+            player.x = 100;
+            player.y = 100;
+            player.velY = 0;
+        }
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        ctx.save();
+        // Move the context to simulate camera movement
+        ctx.translate(-cameraX, 0);
+
+        // Draw Platforms
+        ctx.fillStyle = '#4a4a4a';
+        for (let p of platforms) {
+            ctx.fillRect(p.x, p.y, p.w, p.h);
+        }
+
+        // Draw Player
+        ctx.fillStyle = player.color;
+        ctx.fillRect(player.x, player.y, player.w, player.h);
+
+        ctx.restore();
+
+        requestAnimationFrame(gameLoop);
+    }
+
+    function gameLoop() {
+        update();
+        draw();
+    }
+
+    gameLoop();
+</script>
+</body>
+</html>
