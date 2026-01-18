@@ -19,26 +19,35 @@ p {
     font-size: 1.2rem;
 }
 /* Navigation Bar Styling */
-navbar {
-    display: flex;
-    justify-content: space-between; /* Pushes logo to the left, links to the right */
-    align-items: center;
-    background-color: #333;
-    padding: 10px 20px;
-    color: white;
+.navbar {
+    width: 100%;
+    background-color: #2b6cb0;
+    padding: 15px 0;
+    position: fixed;
+    top: 0;
 }
 
 .nav-links {
+    list-style: none;
     display: flex;
-    gap: 15px; /* Adds space between the links */
+    justify-content: center;
+    margin: 0;
+    padding: 0;
 }
 
-.navbar a {
+.nav-links li {
+    margin: 0 20px;
+}
+
+.nav-links a {
     color: white;
     text-decoration: none;
-    padding: 5px 10px;
+    font-weight: bold;
 }
 
+.nav-links a:hover {
+    text-decoration: underline;
+}
 /* Adjusting the content so it doesn't hide behind the navbar */
 .content {
     margin-top: 80px;
