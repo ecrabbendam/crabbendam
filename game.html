@@ -3,21 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Turbo Racer</title>
+    <title>Turbo Racer - Fixed</title>
     <style>
-        body { margin: 0; background: #111; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
-        canvas { border: 4px solid #333; background: #333; cursor: crosshair; box-shadow: 0 0 30px rgba(0,212,255,0.2); }
-        #overlay { position: absolute; text-align: center; pointer-events: none; width: 100%; top: 20px; }
-        #startScreen, #gameOver { position: absolute; background: rgba(0,0,0,0.85); padding: 40px; text-align: center; border-radius: 10px; border: 2px solid #00d4ff; z-index: 10; cursor: default; }
+        body { margin: 0; background: #111; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; color: white; font-family: sans-serif; overflow: hidden; }
+        canvas { border: 4px solid #333; background: #333; cursor: crosshair; }
+        #overlay { position: absolute; text-align: center; pointer-events: none; width: 100%; top: 20px; z-index: 5; }
+        #startScreen, #gameOver { position: absolute; background: rgba(0,0,0,0.9); padding: 40px; text-align: center; border-radius: 10px; border: 2px solid #00d4ff; z-index: 10; }
         button { background: #00d4ff; border: none; color: black; padding: 12px 25px; cursor: pointer; font-weight: bold; border-radius: 5px; font-size: 16px; margin-top: 15px; }
-        .shield-ui { color: #00d4ff; font-weight: bold; text-shadow: 0 0 10px #00d4ff; }
     </style>
 </head>
 <body>
 
     <div id="startScreen">
         <h1>TURBO RACER</h1>
-        <p>Dodge traffic and collect <b>Blue Orbs</b> for Shields!</p>
+        <p>Move mouse to steer. Collect blue orbs!</p>
         <button onclick="startGame()">START RACE</button>
     </div>
 
@@ -29,7 +28,7 @@
 
     <div id="overlay">
         <h2 id="scoreDisplay">SCORE: 0</h2>
-        <p id="shieldStatus" class="shield-ui"></p>
+        <p id="shieldStatus" style="color: #00d4ff;"></p>
     </div>
 
     <canvas id="raceCanvas"></canvas>
@@ -41,15 +40,19 @@
     canvas.height = 600;
 
     let score, gameSpeed, gameActive = false, frameCount;
-    let player = { x: 175, y: 500, w: 50, h: 80, color: '#00d4ff', shield: 0 };
-    let enemies = [], powerups = [], roadLines = [];
+    let player = { x: 175, y: 500, w: 50, h: 80, shield: 0 };
+    let enemies = [], powerups = [], roadStrips = [];
 
-    // Initialize/Reset Game State
     function resetGame() {
-        score = 0; gameSpeed = 5; frameCount = 0;
-        enemies = []; powerups = []; roadLines = [];
-        player.shield = 0; player.x = 175;
-        for (let i = 0; i < 10; i++) roadLines.push({ y: i * 80 });
+        score = 0; gameSpeed = 7; frameCount = 0;
+        enemies = []; powerups = []; roadStrips = [];
+        player.shield = 0; 
+        
+        // Create road markings that actually move down the screen
+        for (let i = 0; i < 8; i++) {
+            roadStrips.push({ x: 195, y: i * 100, w: 10, h: 50 });
+        }
+        
         document.getElementById('gameOver').style.display = 'none';
         document.getElementById('startScreen').style.display = 'none';
         gameActive = true;
@@ -61,33 +64,32 @@
     window.addEventListener('mousemove', (e) => {
         if (!gameActive) return;
         let rect = canvas.getBoundingClientRect();
-        player.x = Math.max(65, Math.min(e.clientX - rect.left - 25, 285));
+        player.x = Math.max(60, Math.min(e.clientX - rect.left - 25, 290));
     });
-
-    function spawnEntity() {
-        const lanes = [75, 175, 275];
-        let lane = lanes[Math.floor(Math.random() * lanes.length)];
-        if (Math.random() > 0.92) {
-            powerups.push({ x: lane, y: -50 });
-        } else {
-            enemies.push({ x: lane - 25, y: -100, speed: gameSpeed + (Math.random() * 2) });
-        }
-    }
 
     function update() {
         if (!gameActive) return;
         score++;
-        if (score % 500 === 0) gameSpeed += 0.4;
+        if (score % 500 === 0) gameSpeed += 0.5;
         if (player.shield > 0) player.shield--;
 
-        roadLines.forEach(l => { l.y += gameSpeed; if (l.y > 600) l.y = -80; });
+        // MOVE THE ROAD
+        roadStrips.forEach(strip => {
+            strip.y += gameSpeed;
+            if (strip.y > canvas.height) strip.y = -100; // Reset to top
+        });
 
-        if (frameCount % 50 === 0) spawnEntity();
+        if (frameCount % 60 === 0) {
+            const lanes = [75, 175, 275];
+            let lane = lanes[Math.floor(Math.random() * lanes.length)];
+            if (Math.random() > 0.9) powerups.push({ x: lane, y: -50 });
+            else enemies.push({ x: lane - 25, y: -100, speed: gameSpeed + 1 });
+        }
 
         powerups.forEach((p, i) => {
             p.y += gameSpeed;
             if (Math.hypot(player.x + 25 - p.x, player.y + 40 - p.y) < 40) {
-                player.shield = 300; // ~5 seconds
+                player.shield = 300;
                 powerups.splice(i, 1);
             }
         });
@@ -95,61 +97,55 @@
         enemies.forEach((e, i) => {
             e.y += e.speed;
             if (player.x < e.x + 50 && player.x + 50 > e.x && player.y < e.y + 80 && player.y + 80 > e.y) {
-                if (player.shield > 0) {
-                    enemies.splice(i, 1);
-                    score += 500; // Bonus for smashing while shielded
-                } else {
-                    gameActive = false;
-                }
+                if (player.shield > 0) { enemies.splice(i, 1); score += 500; } 
+                else { gameActive = false; }
             }
-            if (e.y > 600) enemies.splice(i, 1);
+            if (e.y > canvas.height) enemies.splice(i, 1);
         });
 
         frameCount++;
         document.getElementById('scoreDisplay').innerText = `SCORE: ${score}`;
-        document.getElementById('shieldStatus').innerText = player.shield > 0 ? `SHIELD: ${Math.ceil(player.shield/60)}s` : "";
-    }
-
-    function drawCar(x, y, color, isShielded) {
-        if (isShielded) {
-            ctx.shadowBlur = 20;
-            ctx.shadowColor = '#00d4ff';
-            ctx.strokeStyle = '#00d4ff';
-            ctx.lineWidth = 3;
-            ctx.strokeRect(x - 4, y - 4, 58, 88);
-        }
-        // Main Body
-        ctx.fillStyle = color;
-        ctx.fillRect(x, y, 50, 80);
-        // Roof/Windows
-        ctx.fillStyle = '#111';
-        ctx.fillRect(x + 8, y + 20, 34, 30);
-        ctx.fillStyle = '#444';
-        ctx.fillRect(x + 10, y + 22, 30, 26);
-        // Reset Shadow
-        ctx.shadowBlur = 0;
+        document.getElementById('shieldStatus').innerText = player.shield > 0 ? "SHIELD ACTIVE" : "";
     }
 
     function draw() {
-        ctx.fillStyle = '#222'; ctx.fillRect(0, 0, 400, 600); // Grass/Dirt
-        ctx.fillStyle = '#333'; ctx.fillRect(50, 0, 300, 600); // Road
-        
-        ctx.fillStyle = 'rgba(255,255,255,0.3)';
-        roadLines.forEach(l => ctx.fillRect(198, l.y, 4, 40));
+        // Draw Grass
+        ctx.fillStyle = '#1e3d1a';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        powerups.forEach(p => {
-            ctx.fillStyle = '#00d4ff';
-            ctx.shadowBlur = 15; ctx.shadowColor = '#00d4ff';
-            ctx.beginPath(); ctx.arc(p.x, p.y, 12, 0, Math.PI*2); ctx.fill();
-            ctx.shadowBlur = 0;
+        // Draw Road
+        ctx.fillStyle = '#333';
+        ctx.fillRect(50, 0, 300, canvas.height);
+
+        // DRAW MOVING ROAD STRIPS
+        ctx.fillStyle = '#fff';
+        roadStrips.forEach(strip => {
+            ctx.fillRect(strip.x, strip.y, strip.w, strip.h);
         });
 
-        enemies.forEach(e => drawCar(e.x, e.y, '#e74c3c', false));
-        drawCar(player.x, player.y, player.color, player.shield > 0);
+        // Draw Powerups
+        powerups.forEach(p => {
+            ctx.fillStyle = '#00d4ff';
+            ctx.beginPath(); ctx.arc(p.x, p.y, 15, 0, Math.PI*2); ctx.fill();
+        });
+
+        // Draw Enemies (Red)
+        enemies.forEach(e => {
+            ctx.fillStyle = '#e74c3c';
+            ctx.fillRect(e.x, e.y, 50, 80);
+        });
+
+        // Draw Player (Blue)
+        ctx.fillStyle = '#00d4ff';
+        if (player.shield > 0) {
+            ctx.shadowBlur = 20; ctx.shadowColor = '#00d4ff';
+        }
+        ctx.fillRect(player.x, player.y, 50, 80);
+        ctx.shadowBlur = 0;
 
         if (!gameActive) {
             document.getElementById('gameOver').style.display = 'block';
-            document.getElementById('finalScore').innerText = `You reached ${score} points!`;
+            document.getElementById('finalScore').innerText = `Score: ${score}`;
             return;
         }
         requestAnimationFrame(draw);
