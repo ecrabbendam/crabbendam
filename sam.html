@@ -36,7 +36,8 @@
             background-color: var(--cream);
             color: var(--obsidian);
             -webkit-font-smoothing: antialiased;
-            overflow: hidden;
+            /* Allow scrolling by default, lock it only for desktop later */
+            overflow-x: hidden;
         }
 
         .container {
@@ -77,7 +78,6 @@
             line-height: 1.1;
             letter-spacing: -0.04em;
             margin: 0 0 10px 0;
-            /* Animation */
             animation: fadeUp 1.1s cubic-bezier(0.23, 1, 0.32, 1) forwards;
         }
 
@@ -86,7 +86,6 @@
             color: var(--slate);
             margin-bottom: 40px;
             font-weight: 400;
-            /* Staggered Animation */
             opacity: 0;
             animation: fadeUp 1.1s cubic-bezier(0.23, 1, 0.32, 1) 0.15s forwards;
         }
@@ -96,7 +95,6 @@
             grid-template-columns: repeat(2, 1fr);
             gap: 15px;
             max-width: 450px;
-            /* Staggered Animation */
             opacity: 0;
             animation: fadeUp 1.1s cubic-bezier(0.23, 1, 0.32, 1) 0.3s forwards;
         }
@@ -127,14 +125,26 @@
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
         }
 
+        /* Desktop specific: Lock the scroll here */
+        @media (min-width: 1025px) {
+            body, html { overflow: hidden; }
+        }
+
+        /* Mobile specific: Fix scrolling and stacking */
         @media (max-width: 1024px) {
+            body, html { overflow-y: auto; height: auto; }
             .container { flex-direction: column-reverse; }
             .image-side { height: 45vh; min-height: 45vh; flex: none; }
             .image-overlay {
                 width: 100%; height: 50%; top: auto; bottom: 0;
                 background: linear-gradient(to top, var(--cream) 10%, transparent 100%);
             }
-            .content-side { padding: 40px 20px; text-align: center; align-items: center; }
+            .content-side { 
+                padding: 40px 24px 80px 24px; 
+                text-align: center; 
+                align-items: center; 
+                min-height: auto;
+            }
             .button-grid { grid-template-columns: 1fr; width: 100%; }
         }
     </style>
