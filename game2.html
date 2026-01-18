@@ -26,19 +26,19 @@
     const gravity = 0.8;
     const friction = 0.8;
     
-    const player = {
-        x: 100,
-        y: 100,
-        w: 40,
-        h: 40,
-        velX: 0,
-        velY: 0,
-        speed: 5,
-        jumpStrength: -15,
-        grounded: false,
-        color: '#ffcc00'
-    };
-
+const player = {
+    x: 100,
+    y: 100,
+    w: 30,      // Slightly slimmer
+    h: 50,      // Slightly taller (more humanoid)
+    velX: 0,
+    velY: 0,
+    speed: 5,
+    jumpStrength: -15,
+    grounded: false,
+    facing: 'right', // Added to track direction
+    color: '#00ffcc' // Neon Teal
+};
     // Level Design (x, y, width, height)
     const platforms = [
         { x: 0, y: canvas.height - 50, w: 600, h: 50 },
@@ -57,11 +57,13 @@
     function update() {
         // Player Movement
         if (keys['ArrowRight']) {
-            if (player.velX < player.speed) player.velX++;
-        }
-        if (keys['ArrowLeft']) {
-            if (player.velX > -player.speed) player.velX--;
-        }
+    if (player.velX < player.speed) player.velX++;
+    player.facing = 'right';
+}
+if (keys['ArrowLeft']) {
+    if (player.velX > -player.speed) player.velX--;
+    player.facing = 'left';
+}
         if (keys['ArrowUp'] || keys['Space']) {
             if (player.grounded) {
                 player.velY = player.jumpStrength;
@@ -104,27 +106,21 @@
         }
     }
 
-    function draw() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+ function drawPlayer() {
+    ctx.fillStyle = player.color;
+    
+    // Draw Body
+    ctx.fillRect(player.x, player.y, player.w, player.h);
 
-        ctx.save();
-        // Move the context to simulate camera movement
-        ctx.translate(-cameraX, 0);
-
-        // Draw Platforms
-        ctx.fillStyle = '#4a4a4a';
-        for (let p of platforms) {
-            ctx.fillRect(p.x, p.y, p.w, p.h);
-        }
-
-        // Draw Player
-        ctx.fillStyle = player.color;
-        ctx.fillRect(player.x, player.y, player.w, player.h);
-
-        ctx.restore();
-
-        requestAnimationFrame(gameLoop);
-    }
+    // Draw "Eyes" based on direction
+    ctx.fillStyle = "white";
+    let eyeOffset = player.facing === 'right' ? 15 : 5;
+    
+    // Left eye
+    ctx.fillRect(player.x + eyeOffset, player.y + 10, 5, 5);
+    // Right eye
+    ctx.fillRect(player.x + eyeOffset + 8, player.y + 10, 5, 5);
+}
 
     function gameLoop() {
         update();
