@@ -1,80 +1,131 @@
-<style>
-  :root {
-    --board-bg: #222;
-    --pedal-pm: #d32f2f; /* Classic Red Box */
-    --pedal-music: #1976d2; /* Blue Overdrive */
-    --pedal-future: #388e3c; /* Green Delay */
-  }
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>www.crabbendam.net</title>
+    <style>
+        /* Navbar Styles from your original style.css/index.html logic */
+        .navbar {
+            background-color: #333;
+            padding: 10px;
+            text-align: center;
+        }
+        .nav-links {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        .nav-links li a {
+            color: white;
+            text-decoration: none;
+            font-family: Arial, sans-serif;
+        }
 
-  body { background: #111; color: white; font-family: 'Helvetica Neue', sans-serif; }
+        /* Pedalboard Styles */
+        :root {
+            --board-bg: #222;
+            --pedal-pm: #d32f2f; /* Classic Red Box */
+            --pedal-music: #1976d2; /* Blue Overdrive */
+            --pedal-future: #388e3c; /* Green Delay */
+        }
 
-  .pedalboard {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 30px;
-    padding: 100px 20px;
-    background: var(--board-bg);
-    border-radius: 20px;
-    margin: 50px auto;
-    max-width: 900px;
-    border-bottom: 10px solid #000;
-  }
+        body { 
+            background: #111; 
+            color: white; 
+            font-family: 'Helvetica Neue', sans-serif; 
+            margin: 0;
+        }
 
-  .pedal {
-    width: 180px;
-    height: 280px;
-    border-radius: 10px;
-    position: relative;
-    cursor: pointer;
-    transition: transform 0.2s;
-    text-align: center;
-    padding: 20px;
-    box-shadow: 5px 5px 0px #000;
-  }
+        .pedalboard {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+            padding: 100px 20px;
+            background: var(--board-bg);
+            border-radius: 20px;
+            margin: 50px auto;
+            max-width: 900px;
+            border-bottom: 10px solid #000;
+        }
 
-  .pedal:hover { transform: translateY(-10px); }
+        .pedal {
+            width: 180px;
+            height: 280px;
+            border-radius: 10px;
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.2s;
+            text-align: center;
+            padding: 20px;
+            box-shadow: 5px 5px 0px #000;
+        }
 
-  /* Style Individual Pedals */
-  .pm-box { background: var(--pedal-pm); }
-  .music-box { background: var(--pedal-music); }
-  .future-box { background: var(--pedal-future); }
+        .pedal:hover { transform: translateY(-10px); }
+        .pm-box { background: var(--pedal-pm); }
+        .music-box { background: var(--pedal-music); }
+        .future-box { background: var(--pedal-future); }
 
-  .stomp-button {
-    width: 40px;
-    height: 40px;
-    background: silver;
-    border-radius: 50%;
-    margin: 40px auto 10px;
-    border: 4px solid #888;
-    box-shadow: 0 4px 0 #444;
-  }
+        .stomp-button {
+            width: 40px;
+            height: 40px;
+            background: silver;
+            border-radius: 50%;
+            margin: 40px auto 10px;
+            border: 4px solid #888;
+            box-shadow: 0 4px 0 #444;
+        }
 
-  .label { font-weight: bold; text-transform: uppercase; letter-spacing: 2px; margin-top: 10px; }
-  .knobs { display: flex; justify-content: space-around; margin-bottom: 20px; }
-  .knob { width: 30px; height: 30px; background: #333; border-radius: 50%; border: 2px dashed #666; }
+        .label { font-weight: bold; text-transform: uppercase; letter-spacing: 2px; margin-top: 10px; }
+        .knobs { display: flex; justify-content: space-around; margin-bottom: 20px; }
+        .knob { width: 30px; height: 30px; background: #333; border-radius: 50%; border: 2px dashed #666; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="about.html">About</a></li>
+            <li><a href="Rolex24.html">Rolex24</a></li>
+            <li><a href="https://sites.google.com/site/ericcrabbendam/eric/recipes">Recipes</a></li>
+            <li><a href="https://sites.google.com/site/ericcrabbendam/samuelportfolio">Samuel Portfolio</a></li>
+            <li><a href="https://drive.google.com/file/d/1gTVssuoQsUcF5n1-qPHQHMymzRRxKoIu/view?usp=drive_link">Samuel Resume</a></li>
+            <li><a href="https://www.linkedin.com/in/samuel-crabbendam-93ab33349/">Samuel LinkedIn</a></li>
+            <li><a href="Beatles.html">Beatles</a></li>
+            <li><a href="#">Contact</a></li>
+        </ul>
+    </nav>
 
-</style>
+    <div class="content" style="text-align: center; padding: 20px;">
+        <h1>Welcome to Crabbendam.net</h1>
+        
+        <div class="pedalboard">
+            <div class="pedal pm-box" onclick="location.href='#pm'">
+                <div class="knobs"><div class="knob"></div><div class="knob"></div></div>
+                <div class="label">The Manager</div>
+                <p><small>Strategy & Flow</small></p>
+                <div class="stomp-button"></div>
+            </div>
 
-<div class="pedalboard">
-  <div class="pedal pm-box" onclick="location.href='#pm'">
-    <div class="knobs"><div class="knob"></div><div class="knob"></div></div>
-    <div class="label">The Manager</div>
-    <p><small>Strategy & Flow</small></p>
-    <div class="stomp-button"></div>
-  </div>
+            <div class="pedal music-box" onclick="location.href='#music'">
+                <div class="knobs"><div class="knob"></div><div class="knob"></div></div>
+                <div class="label">The Guitarist</div>
+                <p><small>Tone & Rhythm</small></p>
+                <div class="stomp-button"></div>
+            </div>
 
-  <div class="pedal music-box" onclick="location.href='#music'">
-    <div class="knobs"><div class="knob"></div><div class="knob"></div></div>
-    <div class="label">The Guitarist</div>
-    <p><small>Tone & Rhythm</small></p>
-    <div class="stomp-button"></div>
-  </div>
+            <div class="pedal future-box" onclick="location.href='#contact'">
+                <div class="knobs"><div class="knob"></div><div class="knob"></div></div>
+                <div class="label">The Output</div>
+                <p><small>Contact & Resume</small></p>
+                <div class="stomp-button"></div>
+            </div>
+        </div>
 
-  <div class="pedal future-box" onclick="location.href='#contact'">
-    <div class="knobs"><div class="knob"></div><div class="knob"></div></div>
-    <div class="label">The Output</div>
-    <p><small>Contact & Resume</small></p>
-    <div class="stomp-button"></div>
-  </div>
-</div>
+        <p>Use the links above to explore!</p>
+    </div>
+</body>
+</html>
