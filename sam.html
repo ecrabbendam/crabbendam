@@ -26,7 +26,6 @@
             justify-content: center;
             align-items: center;
             overflow: hidden;
-            /* Wipe Effect */
             clip-path: inset(0 0 0 0);
             transition: clip-path 1.4s cubic-bezier(0.65, 0, 0.35, 1);
         }
@@ -40,10 +39,11 @@
             height: 200px;
         }
 
-        /* GREEN CIRCLE & WHITE DISK */
-        .visual-elements {
+        /* ELEMENTS THAT FADE OUT */
+        .fading-elements {
             position: absolute;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             transition: opacity 0.5s ease;
@@ -68,8 +68,19 @@
             stroke-width: 6;
             stroke-linecap: round;
             stroke-dasharray: 365;
-            stroke-dashoffset: 365; /* Starts empty */
+            stroke-dashoffset: 365;
             transition: stroke-dashoffset 1.2s ease-out;
+        }
+
+        .pun-text {
+            position: absolute;
+            top: 140px;
+            white-space: nowrap;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 0.7rem;
+            color: var(--obsidian);
         }
 
         /* PLANE ICON */
@@ -78,37 +89,24 @@
             color: var(--obsidian);
             font-size: 2.5rem;
             z-index: 10001;
-            /* START: Facing UP (-90deg) */
             transform: rotate(-90deg) translateX(0);
             transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
-        .pun-text {
-            margin-top: 20px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            font-size: 0.7rem;
-            color: var(--obsidian);
-        }
-
         /* --- ANIMATION TRIGGERS --- */
 
-        /* 1. Circle reaches 100% (Set via JS) */
-
-        /* 2. Rotate Plane to Right (0deg) */
+        /* 1. Rotate Plane to Right */
         .takeoff-ready #flying-plane {
             transform: rotate(0deg);
         }
 
-        /* 3. Hide Circle */
-        .elements-fade .visual-elements {
+        /* 2. Hide Circle and Text */
+        .elements-fade .fading-elements {
             opacity: 0;
         }
 
-        /* 4. Takeoff and Wipe */
+        /* 3. Takeoff and Wipe */
         .takeoff-active #flying-plane {
-            /* Slower, more visible travel across screen */
             transform: rotate(0deg) translateX(150vw);
             transition: transform 1.6s cubic-bezier(0.65, 0, 0.35, 1);
         }
@@ -134,8 +132,10 @@
         .content-side { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 60px 8%; z-index: 10; }
         .image-side { flex: 1.2; position: relative; background: url('images/DSCF2893.JPG') no-repeat center center; background-size: cover; }
         .image-overlay { position: absolute; top: 0; left: 0; width: 30%; height: 100%; background: linear-gradient(to right, var(--cream), transparent); }
+        
         h1 { font-size: clamp(3rem, 8vw, 6rem); font-weight: 900; line-height: 0.9; text-transform: uppercase; letter-spacing: -3px; margin: 0 0 15px 0; }
         .subtitle { font-size: 1.1rem; color: var(--slate); margin-bottom: 50px; text-transform: uppercase; letter-spacing: 1px; }
+        
         .button-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; max-width: 500px; }
         .btn { text-decoration: none; color: var(--obsidian); padding: 20px; background: white; border: 2px solid var(--obsidian); font-weight: 800; text-transform: uppercase; font-size: 0.75rem; display: flex; align-items: center; justify-content: center; gap: 12px; transition: 0.2s; box-shadow: 4px 4px 0px var(--obsidian); }
         .btn-primary { background: var(--obsidian); color: white; }
@@ -155,22 +155,23 @@
 
     <div id="preloader">
         <div class="loader-wrap">
-            <div class="visual-elements">
+            <div class="fading-elements">
                 <svg class="loader-svg">
                     <circle id="progress-circle" cx="65" cy="65" r="58"></circle>
                 </svg>
                 <div class="white-disk"></div>
+                <div class="pun-text">Preparing for departure</div>
             </div>
             <i id="flying-plane" class="fas fa-plane"></i>
         </div>
-        <div class="pun-text">Preparing for departure</div>
     </div>
 
     <div id="main-wrapper">
         <div class="container">
             <section class="content-side">
                 <h1>Samuel <br>Crabbendam</h1>
-                <p class="subtitle">Aerospace Engineering <br>& Private Pilot</p>
+                <p class="subtitle">Aerospace Engineering Student <br>& Private Pilot</p>
+                
                 <div class="button-grid">
                     <a href="samportfolio.html" class="btn btn-primary"><i class="fas fa-rocket"></i><span>View Portfolio</span></a>
                     <a href="images/resumesc.pdf" download class="btn"><i class="fas fa-file-pdf"></i><span>Resume</span></a>
@@ -187,35 +188,31 @@
         const body = document.body;
 
         window.addEventListener('load', () => {
-            // 1. Fill Circle to 100% (offset 0)
             circle.style.strokeDashoffset = "0";
 
-            // Give the bar time to finish
             setTimeout(() => {
-                // 2. Rotate plane to face Right
+                // Rotate plane to face Right
                 body.classList.add('takeoff-ready');
 
                 setTimeout(() => {
-                    // 3. Fade out the circle background
+                    // Fade out the circle AND the text
                     body.classList.add('elements-fade');
 
                     setTimeout(() => {
-                        // 4. Accelerate plane and Wipe background
+                        // Launch plane and wipe background
                         body.classList.add('takeoff-active');
                         
-                        // 5. Reveal content
                         setTimeout(() => {
                             body.classList.add('loaded');
                         }, 600);
 
-                        // 6. Final Clean up
                         setTimeout(() => {
                             document.getElementById('preloader').style.display = 'none';
                         }, 2500);
 
-                    }, 500); // Time with plane by itself
-                }, 900); // Time for rotation
-            }, 1300); // Time for green circle completion
+                    }, 500); 
+                }, 900); 
+            }, 1300); 
         });
     </script>
 </body>
