@@ -86,8 +86,8 @@
 
         /* Color Themes */
         .theme-cream { background-color: var(--cream); color: var(--obsidian); }
-        .theme-dark { background-color: #f2f2f7; color: var(--obsidian); } /* Light Gray Contrast */
-        .theme-slate { background-color: #1d1d1f; color: #f5f5f7; } /* Stark Obsidian Contrast */
+        .theme-dark { background-color: #f2f2f7; color: var(--obsidian); }
+        .theme-slate { background-color: #1d1d1f; color: #f5f5f7; }
 
         /* Grid Layout */
         .portfolio-grid {
@@ -157,7 +157,6 @@
         /* Animation Delays */
         .project-card:nth-child(1) { animation-delay: 0.2s; }
         .project-card:nth-child(2) { animation-delay: 0.4s; }
-        .project-card:nth-child(3) { animation-delay: 0.6s; }
 
         @media (max-width: 768px) {
             .section-title { font-size: 2.2rem; }
@@ -184,29 +183,24 @@
                 <p>Certified SolidWorks Associate in Mechanical Design. Proficient in complex part modeling, assemblies, and drawing analysis for aerospace applications.</p>
                 <a href="images/SolidWorks Certification.pdf" target="_blank" class="view-btn">View Certificate <i class="fas fa-chevron-right"></i></a>
             </div>
-            </div>
-    </section>
-
-    <section class="theme-dark">
-        <h2 class="section-title">Academic Research</h2>
-        <div class="portfolio-grid">
-            <div class="project-card">
-                <div class="icon-circle"><i class="fas fa-file-alt"></i></div>
-                <h3>Aerodynamics Research</h3>
-                <p>A technical analysis paper focused on aerospace systems, research findings, and structural engineering principles in modern flight.</p>
-                <a href="images/SamuelCrabbendam_FailureAnalysisPaper.pdf" target="_blank" class="view-btn">Read Paper <i class="fas fa-chevron-right"></i></a>
-            </div>
         </div>
     </section>
 
     <section class="theme-slate">
-        <h2 class="section-title">Engineering Projects</h2>
+        <h2 class="section-title">Aerospace Analysis</h2>
         <div class="portfolio-grid">
             <div class="project-card">
-                <div class="icon-circle"><i class="fas fa-tools"></i></div>
-                <h3>Technical Design Project</h3>
-                <p>A comprehensive overview of a hands-on project, covering technical implementation, prototype design, and problem-solving metrics.</p>
-                <a href="images/EAS2011 Project.pdf" class="view-btn">View Details <i class="fas fa-chevron-right"></i></a>
+                <div class="icon-circle"><i class="fas fa-exclamation-triangle"></i></div>
+                <h3>Failure Analysis Paper</h3>
+                <p>A technical investigation into the Apollo 1 cabin fire, examining the root causes and determining its long-standing impact on airspace regulations and modern safety measures.</p>
+                <a href="images/SamuelCrabbendam_FailureAnalysisPaper.pdf" target="_blank" class="view-btn">Read Paper <i class="fas fa-chevron-right"></i></a>
+            </div>
+
+            <div class="project-card">
+                <div class="icon-circle"><i class="fas fa-plane"></i></div>
+                <h3>Single Engine Fixed Wing Aircraft Performance Analysis</h3>
+                <p>An in-depth performance evaluation covering aerodynamic efficiency, flight envelopes, and structural data for single-engine aeronautical systems.</p>
+                <a href="images/EAS2011 Project.pdf" target="_blank" class="view-btn">View Details <i class="fas fa-chevron-right"></i></a>
             </div>
         </div>
     </section>
