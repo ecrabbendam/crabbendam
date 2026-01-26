@@ -14,58 +14,51 @@
             --accent-green: #28a745;
         }
 
-        /* --- PRELOADER & WIPE --- */
+        /* --- PRELOADER BOX --- */
         #preloader {
             position: fixed;
             top: 0; left: 0;
-            width: 100%; height: 100%;
+            width: 100vw; height: 100vh;
             background: var(--cream);
             z-index: 10000;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
+            overflow: hidden;
+            /* Wipe Effect */
             clip-path: inset(0 0 0 0);
-            /* Slower curtain wipe */
-            transition: clip-path 1.6s cubic-bezier(0.65, 0, 0.35, 1);
+            transition: clip-path 1.4s cubic-bezier(0.65, 0, 0.35, 1);
         }
 
-        .loader-container {
+        .loader-wrap {
             position: relative;
-            width: 150px; height: 150px;
-            display: flex; justify-content: center; align-items: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 200px;
+            height: 200px;
         }
 
-        /* The white circle background and green ring */
+        /* GREEN CIRCLE & WHITE DISK */
         .visual-elements {
             position: absolute;
-            width: 100%; height: 100%;
-            display: flex; justify-content: center; align-items: center;
-            transition: opacity 0.4s ease; /* For fading out before flight */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.5s ease;
         }
 
-        .loader-circle-static {
+        .white-disk {
             position: absolute;
             width: 100px; height: 100px;
-            background-color: white;
+            background: white;
             border-radius: 50%;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        }
-
-        /* PLANE ICON: Starts facing UP */
-        #flying-plane {
-            position: absolute;
-            color: var(--obsidian);
-            font-size: 2.2rem;
-            z-index: 10001;
-            transform: rotate(0deg); 
-            transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), 
-                        left 1.6s cubic-bezier(0.65, 0, 0.35, 1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
         }
 
         .loader-svg {
-            position: absolute;
-            width: 125px; height: 125px;
+            width: 130px; height: 130px;
             transform: rotate(-90deg);
         }
 
@@ -74,47 +67,61 @@
             stroke: var(--accent-green);
             stroke-width: 6;
             stroke-linecap: round;
-            stroke-dasharray: 365; /* Matches circumference */
-            stroke-dashoffset: 365;
-            transition: stroke-dashoffset 1s ease-out;
+            stroke-dasharray: 365;
+            stroke-dashoffset: 365; /* Starts empty */
+            transition: stroke-dashoffset 1.2s ease-out;
+        }
+
+        /* PLANE ICON */
+        #flying-plane {
+            position: absolute;
+            color: var(--obsidian);
+            font-size: 2.5rem;
+            z-index: 10001;
+            /* START: Facing UP (-90deg) */
+            transform: rotate(-90deg) translateX(0);
+            transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
         .pun-text {
-            margin-top: 25px;
+            margin-top: 20px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 2px;
             font-size: 0.7rem;
             color: var(--obsidian);
-            transition: opacity 0.3s;
         }
 
-        /* --- ANIMATION STATES --- */
+        /* --- ANIMATION TRIGGERS --- */
 
-        /* 1. Rotate to face RIGHT */
+        /* 1. Circle reaches 100% (Set via JS) */
+
+        /* 2. Rotate Plane to Right (0deg) */
         .takeoff-ready #flying-plane {
-            transform: rotate(90deg); 
+            transform: rotate(0deg);
         }
 
-        /* 2. Fade out the circle elements */
+        /* 3. Hide Circle */
         .elements-fade .visual-elements {
             opacity: 0;
         }
 
-        /* 3. The Flight and Wipe */
+        /* 4. Takeoff and Wipe */
         .takeoff-active #flying-plane {
-            left: 120vw;
+            /* Slower, more visible travel across screen */
+            transform: rotate(0deg) translateX(150vw);
+            transition: transform 1.6s cubic-bezier(0.65, 0, 0.35, 1);
         }
+
         .takeoff-active #preloader {
             clip-path: inset(0 0 0 100%);
         }
-        .takeoff-active .pun-text { opacity: 0; }
 
-        /* --- CONTENT REVEAL --- */
+        /* --- MAIN SITE REVEAL --- */
         #main-wrapper {
             opacity: 0;
-            filter: blur(15px);
-            transition: opacity 1.2s ease, filter 1.4s ease;
+            filter: blur(20px);
+            transition: opacity 1.2s ease, filter 1.5s ease;
         }
         .loaded #main-wrapper {
             opacity: 1;
@@ -122,14 +129,7 @@
         }
 
         /* --- LAYOUT --- */
-        body, html {
-            margin: 0; padding: 0;
-            height: 100%;
-            font-family: 'Inter', sans-serif;
-            background-color: var(--cream);
-            color: var(--obsidian);
-            overflow: hidden;
-        }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Inter', sans-serif; background-color: var(--cream); color: var(--obsidian); overflow: hidden; }
         .container { display: flex; height: 100vh; width: 100%; }
         .content-side { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 60px 8%; z-index: 10; }
         .image-side { flex: 1.2; position: relative; background: url('images/DSCF2893.JPG') no-repeat center center; background-size: cover; }
@@ -137,7 +137,7 @@
         h1 { font-size: clamp(3rem, 8vw, 6rem); font-weight: 900; line-height: 0.9; text-transform: uppercase; letter-spacing: -3px; margin: 0 0 15px 0; }
         .subtitle { font-size: 1.1rem; color: var(--slate); margin-bottom: 50px; text-transform: uppercase; letter-spacing: 1px; }
         .button-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; max-width: 500px; }
-        .btn { text-decoration: none; color: var(--obsidian); padding: 20px; background: white; border: 2px solid var(--obsidian); font-weight: 800; text-transform: uppercase; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; gap: 12px; transition: 0.2s; box-shadow: 4px 4px 0px var(--obsidian); }
+        .btn { text-decoration: none; color: var(--obsidian); padding: 20px; background: white; border: 2px solid var(--obsidian); font-weight: 800; text-transform: uppercase; font-size: 0.75rem; display: flex; align-items: center; justify-content: center; gap: 12px; transition: 0.2s; box-shadow: 4px 4px 0px var(--obsidian); }
         .btn-primary { background: var(--obsidian); color: white; }
         .btn:hover { transform: translate(-2px, -2px); box-shadow: 8px 8px 0px var(--obsidian); }
 
@@ -154,16 +154,16 @@
 <body>
 
     <div id="preloader">
-        <div class="loader-container">
+        <div class="loader-wrap">
             <div class="visual-elements">
                 <svg class="loader-svg">
-                    <circle id="progress-circle" cx="62.5" cy="62.5" r="58"></circle>
+                    <circle id="progress-circle" cx="65" cy="65" r="58"></circle>
                 </svg>
-                <div class="loader-circle-static"></div>
+                <div class="white-disk"></div>
             </div>
             <i id="flying-plane" class="fas fa-plane"></i>
         </div>
-        <div class="pun-text">Clearing for takeoff...</div>
+        <div class="pun-text">Preparing for departure</div>
     </div>
 
     <div id="main-wrapper">
@@ -187,11 +187,12 @@
         const body = document.body;
 
         window.addEventListener('load', () => {
-            // 1. Complete circle to 100% (0 offset)
+            // 1. Fill Circle to 100% (offset 0)
             circle.style.strokeDashoffset = "0";
 
+            // Give the bar time to finish
             setTimeout(() => {
-                // 2. Rotate plane to Right
+                // 2. Rotate plane to face Right
                 body.classList.add('takeoff-ready');
 
                 setTimeout(() => {
@@ -199,20 +200,22 @@
                     body.classList.add('elements-fade');
 
                     setTimeout(() => {
-                        // 4. Launch plane and Wipe curtain
+                        // 4. Accelerate plane and Wipe background
                         body.classList.add('takeoff-active');
                         
+                        // 5. Reveal content
                         setTimeout(() => {
                             body.classList.add('loaded');
-                        }, 500);
+                        }, 600);
 
+                        // 6. Final Clean up
                         setTimeout(() => {
                             document.getElementById('preloader').style.display = 'none';
-                        }, 2000);
+                        }, 2500);
 
-                    }, 400); // Wait for fade
-                }, 700); // Wait for rotation
-            }, 1100); // Wait for green circle 100%
+                    }, 500); // Time with plane by itself
+                }, 900); // Time for rotation
+            }, 1300); // Time for green circle completion
         });
     </script>
 </body>
