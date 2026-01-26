@@ -11,96 +11,86 @@
             --cream: #f9f9f7;
             --obsidian: #1a1a1a;
             --slate: #5a5a5e;
-            --accent-blue: #007aff; /* Color for the circular loader line */
+            --accent-blue: #007aff;
             --border-width: 3px;
         }
 
-        /* --- AVIATION PRELOADER --- */
+        /* --- BLUR/FOCUS LOADER LOGIC --- */
         #preloader {
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            background-color: var(--obsidian);
             z-index: 9999;
             display: flex;
             justify-content: center;
             align-items: center;
-            transition: opacity 0.6s ease, visibility 0.6s;
+            transition: opacity 0.8s ease, visibility 0.8s;
+            background: rgba(249, 249, 247, 0.4); /* Very light tint to keep circle visible */
+        }
+
+        /* The Main Content Blur */
+        #main-content {
+            filter: blur(15px);
+            transition: filter 1.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .loader-container {
             position: relative;
-            width: 120px;
-            height: 120px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            width: 120px; height: 120px;
+            display: flex; justify-content: center; align-items: center;
         }
 
-        /* The White Circle Base */
         .loader-circle-static {
             position: absolute;
-            width: 100px;
-            height: 100px;
+            width: 100px; height: 100px;
             background-color: white;
             border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            box-shadow: 0 0 20px rgba(255,255,255,0.2);
+            display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         }
 
         .loader-circle-static i {
             color: var(--obsidian);
-            font-size: 2.5rem;
-            z-index: 2;
+            font-size: 2.2rem;
         }
 
-        /* The Animated Circumference Line */
         .loader-svg {
             position: absolute;
-            width: 120px;
-            height: 120px;
-            transform: rotate(-90deg); /* Start from the top */
+            width: 120px; height: 120px;
+            transform: rotate(-90deg);
         }
 
         .loader-svg circle {
             fill: none;
             stroke: var(--accent-blue);
-            stroke-width: 4;
+            stroke-width: 5;
             stroke-linecap: round;
-            stroke-dasharray: 345; /* Circumference of 110px diameter circle */
+            stroke-dasharray: 345;
             stroke-dashoffset: 345;
-            animation: loadProgress 1.2s ease-in-out forwards;
+            animation: loadProgress 1.4s ease-in-out forwards;
         }
 
-        @keyframes loadProgress {
-            to { stroke-dashoffset: 0; }
-        }
+        @keyframes loadProgress { to { stroke-dashoffset: 0; } }
 
-        /* Fade out class triggered by JS */
-        .loaded #preloader {
-            opacity: 0;
-            visibility: hidden;
-        }
-        /* ------------------------- */
+        /* Removal States */
+        .loaded #preloader { opacity: 0; visibility: hidden; }
+        .loaded #main-content { filter: blur(0px); }
 
+        /* --- BASE STYLES --- */
         body, html {
-            margin: 0;
-            padding: 0;
+            margin: 0; padding: 0;
             font-family: 'Inter', sans-serif;
             background-color: var(--cream);
             color: var(--obsidian);
             line-height: 1.6;
             -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
         }
 
         nav {
             position: fixed;
             top: 0; width: 100%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            display: flex; justify-content: space-between; align-items: center;
             padding: 18px 8%;
             box-sizing: border-box;
             z-index: 100;
@@ -111,15 +101,10 @@
         }
 
         .back-btn {
-            text-decoration: none;
-            color: var(--obsidian);
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            text-decoration: none; color: var(--obsidian);
+            font-weight: 700; text-transform: uppercase;
+            letter-spacing: 1px; font-size: 0.9rem;
+            display: flex; align-items: center; gap: 10px;
         }
 
         section {
@@ -128,121 +113,103 @@
         }
 
         .section-title {
-            font-size: 2.5rem;
-            font-weight: 900;
-            text-transform: uppercase;
-            margin-bottom: 60px;
+            font-size: 2.5rem; font-weight: 900;
+            text-transform: uppercase; margin-bottom: 60px;
             letter-spacing: -1px;
         }
 
+        /* Unified Certifications Grid */
         .cert-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 30px;
-            margin-bottom: 80px;
+            margin-bottom: 40px;
         }
 
         .cert-card {
             border: 2px solid var(--obsidian);
-            padding: 30px;
+            padding: 35px;
             background: #fff;
             box-shadow: 6px 6px 0px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
 
         .cert-card i {
-            font-size: 1.5rem;
-            margin-bottom: 15px;
+            font-size: 1.6rem;
+            margin-bottom: 20px;
             display: block;
+            color: var(--obsidian);
         }
 
         .cert-card h4 {
-            margin: 0 0 10px 0;
+            margin: 0 0 12px 0;
             text-transform: uppercase;
             font-weight: 800;
             font-size: 1.1rem;
+            letter-spacing: 0.5px;
         }
 
         .cert-card p {
             font-size: 0.95rem;
-            margin: 0;
+            margin: 0 0 25px 0;
             color: var(--slate);
             font-weight: 400;
         }
 
+        /* Mini view link for the CSWA card */
+        .cert-link {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--obsidian);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+
+        .cert-link:hover { color: var(--accent-blue); }
+
+        /* Project Blocks for Previews */
         .project-block {
-            display: flex;
-            gap: 80px;
+            display: flex; gap: 80px;
             margin-bottom: 120px;
             align-items: flex-start;
         }
 
         @media (max-width: 1100px) {
-            .project-block { flex-direction: column; gap: 60px; }
+            .project-block { flex-direction: column; gap: 40px; }
         }
 
-        .project-info {
-            flex: 1;
-            max-width: 400px;
-            /* Removed position:sticky to fix mobile scrolling issues */
-        }
+        .project-info { flex: 1; max-width: 400px; }
 
-        h3 {
-            font-size: 1.6rem;
-            font-weight: 800;
-            margin-bottom: 20px;
-            line-height: 1.2;
-        }
-
-        .project-info p {
-            font-size: 1.05rem;
-            font-weight: 400;
-            color: var(--slate);
-            margin-bottom: 40px;
-        }
-
-        .preview-container {
-            flex: 2;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            width: 100%;
-            max-width: 700px;
-        }
+        h3 { font-size: 1.6rem; font-weight: 800; margin-bottom: 20px; line-height: 1.2; }
 
         .view-btn {
             align-self: flex-start;
-            display: inline-flex;
-            align-items: center;
+            display: inline-flex; align-items: center;
             padding: 14px 24px;
-            background-color: var(--obsidian);
-            color: white;
-            text-decoration: none;
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            letter-spacing: 1px;
-            border: 2px solid var(--obsidian);
+            background-color: var(--obsidian); color: white;
+            text-decoration: none; font-weight: 600;
+            text-transform: uppercase; font-size: 0.75rem;
+            letter-spacing: 1px; border: 2px solid var(--obsidian);
             transition: all 0.3s ease;
         }
 
-        .view-btn:hover {
-            background-color: transparent;
-            color: var(--obsidian);
-        }
+        .view-btn:hover { background-color: transparent; color: var(--obsidian); }
 
         .preview-window {
-            width: 100%;
-            height: 900px;
-            background: #fff;
-            border: 1px solid rgba(0,0,0,0.1);
+            width: 100%; height: 900px;
+            background: #fff; border: 1px solid rgba(0,0,0,0.1);
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            flex: 2; max-width: 700px;
         }
 
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
+        iframe { width: 100%; height: 100%; border: none; }
 
     </style>
 </head>
@@ -259,93 +226,85 @@
         </div>
     </div>
 
-    <nav>
-        <a href="https://crabbendam.net/sam" class="back-btn"><i class="fas fa-arrow-left"></i> Home</a>
-        <div class="social-links">
-            <a href="https://www.linkedin.com/in/samuel-crabbendam-93ab33349" target="_blank" style="color:var(--obsidian); margin-right:20px;"><i class="fab fa-linkedin"></i></a>
-            <a href="https://instagram.com/samm_crabb" target="_blank" style="color:var(--obsidian);"><i class="fab fa-instagram"></i></a>
-        </div>
-    </nav>
+    <div id="main-content">
+        <nav>
+            <a href="https://crabbendam.net/sam" class="back-btn"><i class="fas fa-arrow-left"></i> Home</a>
+            <div class="social-links">
+                <a href="https://www.linkedin.com/in/samuel-crabbendam-93ab33349" target="_blank" style="color:var(--obsidian); margin-right:20px;"><i class="fab fa-linkedin"></i></a>
+                <a href="https://instagram.com/samm_crabb" target="_blank" style="color:var(--obsidian);"><i class="fab fa-instagram"></i></a>
+            </div>
+        </nav>
 
-    <section>
-        <h2 class="section-title">Certifications</h2>
+        <section>
+            <h2 class="section-title">Certifications</h2>
+            <div class="cert-grid">
+                <div class="cert-card">
+                    <i class="fas fa-paper-plane"></i>
+                    <h4>Private Pilot</h4>
+                    <p>Licensed Private Pilot (PPL). Proficient in VFR navigation, cross-country planning, and cockpit resource management.</p>
+                </div>
+                
+                <div class="cert-card">
+                    <i class="fas fa-id-card"></i>
+                    <h4>Commercial Drone Pilot</h4>
+                    <p>FAA Part 107 certified remote pilot for commercial small Unmanned Aircraft Systems (sUAS) operations.</p>
+                </div>
 
-        <div class="cert-grid">
-            <div class="cert-card">
-                <i class="fas fa-plane"></i>
-                <h4>Private Pilot</h4>
-                <p>Licensed Private Pilot (PPL) with proficiency in VFR navigation, cross-country flight, and aircraft systems management.</p>
-            </div>
-            <div class="cert-card">
-                <i class="fas fa-helicopter"></i>
-                <h4>Part 107 Commercial Drone Pilot</h4>
-                <p>FAA certified commercial remote pilot for small Unmanned Aircraft Systems (sUAS) operations.</p>
-            </div>
-            <div class="cert-card">
-                <i class="fas fa-heartbeat"></i>
-                <h4>First Aid / AED / CPR</h4>
-                <p>Certified in emergency medical response, including adult and pediatric First Aid, CPR, and AED operation.</p>
-            </div>
-        </div>
+                <div class="cert-card">
+                    <i class="fas fa-cube"></i>
+                    <h4>CSWA SolidWorks</h4>
+                    <p>Certified SolidWorks Associate in Mechanical Design. Expert in complex part modeling and assembly analysis.</p>
+                    <a href="images/SolidWorks Certification.pdf" target="_blank" class="cert-link">
+                        View Certificate <i class="fas fa-external-link-alt"></i>
+                    </a>
+                </div>
 
-        <div class="project-block">
-            <div class="project-info">
-                <h3>CSWA Certification</h3>
-                <p>Certified SolidWorks Associate in Mechanical Design. Proficient in complex part modeling, assemblies, and drawing analysis for aerospace applications.</p>
-                <a href="images/SolidWorks Certification.pdf" target="_blank" class="view-btn">
-                    Open Full Document <i class="fas fa-external-link-alt" style="margin-left:10px;"></i>
-                </a>
-            </div>
-            <div class="preview-container">
-                <div class="preview-window">
-                    <iframe src="images/SolidWorks Certification.pdf#toolbar=0" title="CSWA Preview"></iframe>
+                <div class="cert-card">
+                    <i class="fas fa-first-aid"></i>
+                    <h4>First Aid / AED / CPR</h4>
+                    <p>Certified in emergency medical response and life-saving AED/CPR procedures for adults and children.</p>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <section>
-        <h2 class="section-title">Aerospace Analysis</h2>
-        
-        <div class="project-block">
-            <div class="project-info">
-                <h3>Failure Analysis Paper</h3>
-                <p>A technical investigation into the Apollo 1 cabin fire, examining the root causes and determining its impact on airspace regulations and future safety measures.</p>
-                <a href="images/SamuelCrabbendam_FailureAnalysisPaper.pdf" target="_blank" class="view-btn">
-                    Open Full Document <i class="fas fa-external-link-alt" style="margin-left:10px;"></i>
-                </a>
-            </div>
-            <div class="preview-container">
+        <section>
+            <h2 class="section-title">Aerospace Analysis</h2>
+            
+            <div class="project-block">
+                <div class="project-info">
+                    <h3>Failure Analysis Paper</h3>
+                    <p>A technical investigation into the Apollo 1 cabin fire, examining the root causes and its impact on modern airspace safety regulations.</p>
+                    <a href="images/SamuelCrabbendam_FailureAnalysisPaper.pdf" target="_blank" class="view-btn">
+                        Open Full Document <i class="fas fa-external-link-alt" style="margin-left:10px;"></i>
+                    </a>
+                </div>
                 <div class="preview-window">
-                    <iframe src="images/SamuelCrabbendam_FailureAnalysisPaper.pdf#toolbar=0" title="Failure Analysis Preview"></iframe>
+                    <iframe src="images/SamuelCrabbendam_FailureAnalysisPaper.pdf#toolbar=0" title="Failure Analysis"></iframe>
                 </div>
             </div>
-        </div>
 
-        <div class="project-block">
-            <div class="project-info">
-                <h3>Aircraft Performance Analysis</h3>
-                <p>An in-depth performance evaluation covering aerodynamic efficiency, flight envelopes, and structural data for single-engine fixed-wing aeronautical systems.</p>
-                <a href="images/EAS2011 Project.pdf" target="_blank" class="view-btn">
-                    Open Full Document <i class="fas fa-external-link-alt" style="margin-left:10px;"></i>
-                </a>
-            </div>
-            <div class="preview-container">
+            <div class="project-block">
+                <div class="project-info">
+                    <h3>Aircraft Performance Analysis</h3>
+                    <p>An in-depth performance evaluation covering aerodynamic efficiency, flight envelopes, and structural data for fixed-wing systems.</p>
+                    <a href="images/EAS2011 Project.pdf" target="_blank" class="view-btn">
+                        Open Full Document <i class="fas fa-external-link-alt" style="margin-left:10px;"></i>
+                    </a>
+                </div>
                 <div class="preview-window">
-                    <iframe src="images/EAS2011 Project.pdf#toolbar=0" title="Performance Analysis Preview"></iframe>
+                    <iframe src="images/EAS2011 Project.pdf#toolbar=0" title="Performance Analysis"></iframe>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
+    </div>
 
     <script>
-        // Trigger the exit animation after the page loads
         window.addEventListener('load', function() {
+            // Slight delay to ensure circle completes before snap-to-focus
             setTimeout(function() {
                 document.body.classList.add('loaded');
-            }, 1500); // 1.5 seconds allows the 1.2s circle animation to finish smoothly
+            }, 1600); 
         });
     </script>
-
 </body>
 </html>
