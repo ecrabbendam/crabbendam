@@ -29,22 +29,14 @@
             backdrop-filter: blur(10px);
         }
 
-        /* --- MAIN WRAPPER BLUR --- */
         #main-wrapper {
             filter: blur(25px);
             transition: filter 1.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .loaded #main-wrapper {
-            filter: blur(0px);
-        }
+        .loaded #main-wrapper { filter: blur(0px); }
+        .loaded #preloader { opacity: 0; visibility: hidden; }
 
-        .loaded #preloader {
-            opacity: 0;
-            visibility: hidden;
-        }
-
-        /* --- LOADER ICON --- */
         .loader-container {
             position: relative;
             width: 120px; height: 120px;
@@ -97,26 +89,36 @@
             color: var(--obsidian);
         }
 
-        /* --- FIXED HERO IMAGE --- */
+        /* --- HERO IMAGE FIX --- */
         .hero-reveal-container {
             position: relative;
-            height: 65vh;
+            height: 65vh; /* Desktop height */
             width: 100%;
+            overflow: hidden;
         }
 
         .hero-image {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 65vh;
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             background-image: url('images/flowviz.jpg');
             background-size: cover;
-            /* SHIFTED DOWN: This anchors the image to the bottom pixels */
-            background-position: bottom; 
+            background-position: center; /* Center focus */
             background-repeat: no-repeat;
-            z-index: -5; 
-            background-attachment: fixed;
+            background-attachment: fixed; /* Parallax for PC */
+            z-index: -1;
+        }
+
+        /* --- MOBILE IMAGE ADJUSTMENTS --- */
+        @media (max-width: 768px) {
+            .hero-reveal-container {
+                height: 40vh; /* Shorter for mobile */
+            }
+            .hero-image {
+                /* Disabling fixed attachment as it causes the "weird crop" on mobile */
+                background-attachment: scroll; 
+                background-position: center;
+            }
         }
 
         /* --- CONTENT ROLL UP --- */
@@ -154,63 +156,55 @@
         }
 
         section {
-            padding: 100px 8% 80px 8%;
+            padding: 80px 8%;
             border-bottom: 1px solid rgba(0,0,0,0.05);
         }
 
         .section-title {
-            font-size: 2.5rem; font-weight: 900;
-            text-transform: uppercase; margin-bottom: 60px;
+            font-size: clamp(1.8rem, 5vw, 2.5rem); 
+            font-weight: 900;
+            text-transform: uppercase; margin-bottom: 40px;
         }
 
         .cert-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
         }
 
         .cert-card {
             border: 2px solid var(--obsidian);
-            padding: 35px;
+            padding: 30px;
             background: #fff;
             box-shadow: 4px 4px 0px rgba(0,0,0,0.05);
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            transition: transform 0.3s ease;
         }
 
-        .cert-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        .cert-card:hover { transform: translateY(-5px); }
+        .cert-card i { font-size: 1.5rem; margin-bottom: 15px; color: var(--obsidian); }
+        .cert-card h4 { margin: 0 0 10px 0; text-transform: uppercase; font-weight: 800; }
+        .cert-card p { font-size: 0.9rem; color: var(--slate); margin-bottom: 20px; }
+
+        .project-block { display: flex; gap: 40px; margin-bottom: 80px; align-items: flex-start; }
+        @media (max-width: 1100px) { 
+            .project-block { flex-direction: column; gap: 20px; } 
+            .preview-window { height: 500px !important; }
         }
-
-        .cert-card i { font-size: 1.6rem; margin-bottom: 20px; display: block; color: var(--obsidian); }
-        .cert-card h4 { margin: 0 0 12px 0; text-transform: uppercase; font-weight: 800; }
-        .cert-card p { font-size: 0.95rem; color: var(--slate); margin-bottom: 20px; }
-
-        .cert-link {
-            font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
-            color: var(--obsidian); text-decoration: none;
-            display: inline-flex; align-items: center; gap: 8px;
-            border-top: 1px solid #eee; padding-top: 15px;
-        }
-
-        .project-block { display: flex; gap: 80px; margin-bottom: 120px; align-items: flex-start; }
-        @media (max-width: 1100px) { .project-block { flex-direction: column; gap: 40px; } }
-        .preview-window { width: 100%; height: 800px; background: #fff; border: 1px solid rgba(0,0,0,0.1); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); flex: 2; }
+        
+        .preview-window { width: 100%; height: 600px; background: #fff; border: 1px solid rgba(0,0,0,0.1); flex: 2; }
         iframe { width: 100%; height: 100%; border: none; }
 
         .view-btn {
-            display: inline-flex; padding: 14px 24px;
+            display: inline-flex; padding: 12px 20px;
             background-color: var(--obsidian); color: white;
             text-decoration: none; font-weight: 600;
-            text-transform: uppercase; font-size: 0.75rem;
+            text-transform: uppercase; font-size: 0.7rem;
             border: 2px solid var(--obsidian);
             transition: 0.3s;
         }
-        .view-btn:hover { background: transparent; color: var(--obsidian); }
-
     </style>
 </head>
 <body>
@@ -248,23 +242,20 @@
                         <i class="fas fa-cube"></i>
                         <h4>CSWA SolidWorks</h4>
                         <p>Certified SolidWorks Associate in Mechanical Design. Expert in complex part modeling and assembly analysis.</p>
-                        <a href="images/SolidWorks Certification.pdf" target="_blank" class="cert-link">
-                            View Certificate <i class="fas fa-external-link-alt"></i>
+                        <a href="images/SolidWorks Certification.pdf" target="_blank" class="cert-link" style="text-decoration:none; color:inherit; font-weight:bold; font-size:0.8rem;">
+                            VIEW CERTIFICATE <i class="fas fa-external-link-alt"></i>
                         </a>
                     </div>
-
                     <div class="cert-card">
                         <i class="fas fa-id-card"></i>
                         <h4>Private Pilot</h4>
                         <p>Licensed Private Pilot (PPL). Proficient in VFR navigation, cross-country planning, and cockpit resource management.</p>
                     </div>
-                    
                     <div class="cert-card">
                         <i class="fas fa-id-badge"></i>
                         <h4>Commercial Drone Pilot</h4>
                         <p>FAA Part 107 certified remote pilot for commercial small Unmanned Aircraft Systems (sUAS) operations.</p>
                     </div>
-
                     <div class="cert-card">
                         <i class="fas fa-first-aid"></i>
                         <h4>First Aid / AED / CPR</h4>
@@ -309,9 +300,8 @@
                 document.body.classList.add('loaded');
             }, 600);
         }
-
         window.addEventListener('load', finishLoading);
-        setTimeout(finishLoading, 6000); 
+        setTimeout(finishLoading, 4000); 
     </script>
 </body>
 </html>
