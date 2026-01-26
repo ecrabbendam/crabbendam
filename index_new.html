@@ -1,241 +1,261 @@
 <!DOCTYPE html>
-<html lang="en">
+
+<html>
+
 <head>
-    <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crabbendam.net | Hub</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
+
+    <title>www.crabbendam.net</title>
+
     <style>
-        :root {
-            --cream: #f9f9f7;
-            --obsidian: #1a1a1a;
-            --slate: #5a5a5e;
-            --accent-green: #28a745;
-            --pedal-red: #b22222;
-            --pedal-blue: #1e3a5f;
-            --pedal-green: #2d4c2d;
-        }
 
-        /* --- PRELOADER (Aviation Style) --- */
-        #preloader {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100vw; height: 100vh;
-            background: var(--cream);
-            z-index: 10000;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-            clip-path: inset(0 0 0 0);
-            transition: clip-path 1.4s cubic-bezier(0.65, 0, 0.35, 1);
-        }
+        /* Navbar Styles from your original style.css/index.html logic */
 
-        .loader-wrap { position: relative; display: flex; justify-content: center; align-items: center; width: 200px; height: 200px; }
-        .fading-elements { position: absolute; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 0.5s ease; }
-        .white-disk { position: absolute; width: 100px; height: 100px; background: white; border-radius: 50%; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
-        .loader-svg { width: 130px; height: 130px; transform: rotate(-90deg); }
-        .loader-svg circle { fill: none; stroke: var(--accent-green); stroke-width: 6; stroke-linecap: round; stroke-dasharray: 365; stroke-dashoffset: 365; transition: stroke-dashoffset 1.2s ease-out; }
-        #flying-plane { position: absolute; color: var(--obsidian); font-size: 2.5rem; z-index: 10001; transform: rotate(-90deg); transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1); }
-        .pun-text { position: absolute; top: 140px; white-space: nowrap; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; font-size: 0.7rem; color: var(--obsidian); }
+        .navbar {
 
-        .takeoff-ready #flying-plane { transform: rotate(0deg); }
-        .elements-fade .fading-elements { opacity: 0; }
-        .takeoff-active #flying-plane { transform: rotate(0deg) translateX(150vw); transition: transform 1.6s cubic-bezier(0.65, 0, 0.35, 1); }
-        .takeoff-active #preloader { clip-path: inset(0 0 0 100%); }
+            background-color: #333;
 
-        /* --- BASE STYLES --- */
-        body { 
-            background: var(--cream); 
-            color: var(--obsidian); 
-            font-family: 'Inter', sans-serif; 
-            margin: 0; 
-            overflow-x: hidden;
-        }
+            padding: 10px;
 
-        #main-wrapper {
-            opacity: 0;
-            filter: blur(20px);
-            transition: opacity 1.2s ease, filter 1.5s ease;
-        }
-        .loaded #main-wrapper { opacity: 1; filter: blur(0px); }
-
-        /* --- NAVIGATION --- */
-        nav {
-            background: white;
-            padding: 20px 5%;
-            border-bottom: 2px solid var(--obsidian);
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 15px;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-        nav a {
-            text-decoration: none;
-            color: var(--obsidian);
-            font-weight: 700;
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            letter-spacing: 1px;
-            padding: 8px 12px;
-            transition: 0.2s;
-        }
-        nav a:hover { color: var(--accent-green); }
-
-        /* --- PEDALBOARD SECTION --- */
-        .hero {
             text-align: center;
-            padding: 80px 20px 40px;
-        }
-        .hero h1 {
-            font-size: clamp(2rem, 8vw, 4rem);
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: -2px;
-            margin: 0;
+
         }
 
-        .pedalboard-container {
-            background: #222;
-            max-width: 900px;
-            margin: 40px auto;
-            padding: 60px 20px;
-            border-radius: 12px;
-            border-bottom: 15px solid #000;
+        .nav-links {
+
+            list-style: none;
+
+            padding: 0;
+
+            margin: 0;
+
             display: flex;
+
             justify-content: center;
-            flex-wrap: wrap;
-            gap: 40px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+
+            gap: 20px;
+
         }
+
+        .nav-links li a {
+
+            color: white;
+
+            text-decoration: none;
+
+            font-family: Arial, sans-serif;
+
+        }
+
+
+
+        /* Pedalboard Styles */
+
+        :root {
+
+            --board-bg: #222;
+
+            --pedal-pm: #d32f2f; /* Classic Red Box */
+
+            --pedal-music: #1976d2; /* Blue Overdrive */
+
+            --pedal-future: #388e3c; /* Green Delay */
+
+        }
+
+
+
+        body { 
+
+            background: #111; 
+
+            color: white; 
+
+            font-family: 'Helvetica Neue', sans-serif; 
+
+            margin: 0;
+
+        }
+
+
+
+        .pedalboard {
+
+            display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+
+            gap: 30px;
+
+            padding: 100px 20px;
+
+            background: var(--board-bg);
+
+            border-radius: 20px;
+
+            margin: 50px auto;
+
+            max-width: 900px;
+
+            border-bottom: 10px solid #000;
+
+        }
+
+
 
         .pedal {
-            width: 200px;
-            height: 320px;
-            border-radius: 8px;
-            padding: 25px 15px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            cursor: pointer;
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 8px 8px 0px #000;
-            border: 2px solid rgba(255,255,255,0.1);
+
+            width: 180px;
+
+            height: 280px;
+
+            border-radius: 10px;
+
             position: relative;
-            color: white;
+
+            cursor: pointer;
+
+            transition: transform 0.2s;
+
             text-align: center;
+
+            padding: 20px;
+
+            box-shadow: 5px 5px 0px #000;
+
         }
-        .pedal:hover { transform: translateY(-12px) scale(1.02); }
 
-        .pm-box { background: var(--pedal-red); }
-        .music-box { background: var(--pedal-blue); }
-        .future-box { background: var(--pedal-green); }
 
-        .knobs { display: flex; gap: 15px; margin-bottom: 30px; }
-        .knob { width: 35px; height: 35px; background: #111; border-radius: 50%; border: 3px dashed #444; position: relative; }
-        .knob::after { content: ''; position: absolute; top: 5px; left: 50%; width: 3px; height: 10px; background: white; transform: translateX(-50%); }
 
-        .label { font-weight: 900; text-transform: uppercase; font-size: 1.1rem; letter-spacing: 1px; margin-top: 20px; }
-        .sub-label { font-size: 0.7rem; text-transform: uppercase; opacity: 0.8; letter-spacing: 1px; margin-top: 5px; }
+        .pedal:hover { transform: translateY(-10px); }
 
-        .stomp {
-            margin-top: auto;
-            width: 50px; height: 50px;
-            background: linear-gradient(145deg, #ddd, #999);
+        .pm-box { background: var(--pedal-pm); }
+
+        .music-box { background: var(--pedal-music); }
+
+        .future-box { background: var(--pedal-future); }
+
+
+
+        .stomp-button {
+
+            width: 40px;
+
+            height: 40px;
+
+            background: silver;
+
             border-radius: 50%;
-            border: 4px solid #444;
-            box-shadow: 0 6px 0 #222;
+
+            margin: 40px auto 10px;
+
+            border: 4px solid #888;
+
+            box-shadow: 0 4px 0 #444;
+
         }
 
-        @media (max-width: 600px) {
-            .pedal { width: 80%; height: auto; padding-bottom: 40px; }
-        }
+
+
+        .label { font-weight: bold; text-transform: uppercase; letter-spacing: 2px; margin-top: 10px; }
+
+        .knobs { display: flex; justify-content: space-around; margin-bottom: 20px; }
+
+        .knob { width: 30px; height: 30px; background: #333; border-radius: 50%; border: 2px dashed #666; }
+
     </style>
+
 </head>
+
 <body>
 
-    <div id="preloader">
-        <div class="loader-wrap">
-            <div class="fading-elements">
-                <svg class="loader-svg">
-                    <circle id="progress-circle" cx="65" cy="65" r="58"></circle>
-                </svg>
-                <div class="white-disk"></div>
-                <div class="pun-text">Connecting Patch Cables</div>
+    <nav class="navbar">
+
+        <ul class="nav-links">
+
+            <li><a href="index.html">Home</a></li>
+
+            <li><a href="about.html">About</a></li>
+
+            <li><a href="Rolex24.html">Rolex24</a></li>
+
+            <li><a href="https://sites.google.com/site/ericcrabbendam/eric/recipes">Recipes</a></li>
+
+            <li><a href="https://sites.google.com/site/ericcrabbendam/samuelportfolio">Samuel Portfolio</a></li>
+
+            <li><a href="https://drive.google.com/file/d/1gTVssuoQsUcF5n1-qPHQHMymzRRxKoIu/view?usp=drive_link">Samuel Resume</a></li>
+
+            <li><a href="https://www.linkedin.com/in/samuel-crabbendam-93ab33349/">Samuel LinkedIn</a></li>
+
+            <li><a href="Beatles.html">Beatles</a></li>
+
+            <li><a href="#">Contact</a></li>
+
+        </ul>
+
+    </nav>
+
+
+
+    <div class="content" style="text-align: center; padding: 20px;">
+
+        <h1>Welcome to Crabbendam.net</h1>
+
+        
+
+        <div class="pedalboard">
+
+            <div class="pedal pm-box" onclick="location.href='#pm'">
+
+                <div class="knobs"><div class="knob"></div><div class="knob"></div></div>
+
+                <div class="label">The Manager</div>
+
+                <p><small>Strategy & Flow</small></p>
+
+                <div class="stomp-button"></div>
+
             </div>
-            <i id="flying-plane" class="fas fa-plane"></i>
+
+
+
+            <div class="pedal music-box" onclick="location.href='#music'">
+
+                <div class="knobs"><div class="knob"></div><div class="knob"></div></div>
+
+                <div class="label">The Guitarist</div>
+
+                <p><small>Tone & Rhythm</small></p>
+
+                <div class="stomp-button"></div>
+
+            </div>
+
+
+
+            <div class="pedal future-box" onclick="location.href='#contact'">
+
+                <div class="knobs"><div class="knob"></div><div class="knob"></div></div>
+
+                <div class="label">The Output</div>
+
+                <p><small>Contact & Resume</small></p>
+
+                <div class="stomp-button"></div>
+
+            </div>
+
         </div>
+
+
+
+        <p>Use the links above to explore!</p>
+
     </div>
 
-    <div id="main-wrapper">
-        <nav>
-            <a href="index.html">Home</a>
-            <a href="about.html">About</a>
-            <a href="Rolex24.html">Rolex24</a>
-            <a href="https://sites.google.com/site/ericcrabbendam/eric/recipes">Recipes</a>
-            <a href="https://crabbendam.net/sam">Samuel Portfolio</a>
-            <a href="Beatles.html">Beatles</a>
-            <a href="mailto:eric@crabbendam.net">Contact</a>
-        </nav>
-
-        <section class="hero">
-            <h1>Crabbendam.net</h1>
-            <p style="text-transform: uppercase; letter-spacing: 3px; font-size: 0.8rem; color: var(--slate);">The Central Hub</p>
-            
-            <div class="pedalboard-container">
-                <div class="pedal pm-box" onclick="window.open('https://sites.google.com/site/ericcrabbendam/eric/recipes', '_blank')">
-                    <div class="knobs"><div class="knob"></div><div class="knob"></div></div>
-                    <div class="label">The Manager</div>
-                    <div class="sub-label">Strategy & Flow</div>
-                    <div class="stomp"></div>
-                </div>
-
-                <div class="pedal music-box" onclick="location.href='Beatles.html'">
-                    <div class="knobs"><div class="knob"></div><div class="knob"></div></div>
-                    <div class="label">The Guitarist</div>
-                    <div class="sub-label">Tone & Rhythm</div>
-                    <div class="stomp"></div>
-                </div>
-
-                <div class="pedal future-box" onclick="location.href='https://crabbendam.net/sam'">
-                    <div class="knobs"><div class="knob"></div><div class="knob"></div></div>
-                    <div class="label">The Engineer</div>
-                    <div class="sub-label">Samuel Portfolio</div>
-                    <div class="stomp"></div>
-                </div>
-            </div>
-
-            <p style="color: var(--slate); font-size: 0.75rem; margin-top: 40px;">SELECT A CHANNEL TO BEGIN</p>
-        </section>
-    </div>
-
-    <script>
-        const circle = document.getElementById('progress-circle');
-        const body = document.body;
-
-        window.addEventListener('load', () => {
-            circle.style.strokeDashoffset = "0";
-            setTimeout(() => {
-                body.classList.add('takeoff-ready');
-                setTimeout(() => {
-                    body.classList.add('elements-fade');
-                    setTimeout(() => {
-                        body.classList.add('takeoff-active');
-                        setTimeout(() => {
-                            body.classList.add('loaded');
-                        }, 600);
-                        setTimeout(() => {
-                            document.getElementById('preloader').style.display = 'none';
-                        }, 2500);
-                    }, 500); 
-                }, 900); 
-            }, 1300); 
-        });
-    </script>
 </body>
+
 </html>
