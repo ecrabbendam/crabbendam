@@ -1,30 +1,247 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>www.crabbendam.net</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Crabbendam.net | Home</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --cream: #f9f9f7;
+            --obsidian: #1a1a1a;
+            --slate: #5a5a5e;
+            --accent-green: #28a745;
+        }
+
+        /* --- PRELOADER (Crab Style) --- */
+        #preloader {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background: var(--cream);
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            clip-path: inset(0 0 0 0);
+            transition: clip-path 1.4s cubic-bezier(0.65, 0, 0.35, 1);
+        }
+
+        .loader-wrap { position: relative; display: flex; justify-content: center; align-items: center; width: 200px; height: 200px; }
+        
+        .fading-elements { 
+            position: absolute; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center; 
+            transition: opacity 0.5s ease; 
+        }
+
+        .white-disk { 
+            position: absolute; 
+            width: 100px; height: 100px; 
+            background: white; 
+            border-radius: 50%; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05); 
+        }
+
+        .loader-svg { width: 130px; height: 130px; transform: rotate(-90deg); }
+        .loader-svg circle { 
+            fill: none; 
+            stroke: var(--accent-green); 
+            stroke-width: 6; 
+            stroke-linecap: round; 
+            stroke-dasharray: 365; 
+            stroke-dashoffset: 365; 
+            transition: stroke-dashoffset 1.2s ease-out; 
+        }
+
+        /* CRAB ICON */
+        #crab-logo { 
+            position: absolute; 
+            color: var(--obsidian); 
+            font-size: 3rem; 
+            z-index: 10001; 
+            transform: scale(1);
+            transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1); 
+        }
+
+        .pun-text { 
+            position: absolute; 
+            top: 140px; 
+            white-space: nowrap; 
+            font-weight: 700; 
+            text-transform: uppercase; 
+            letter-spacing: 2px; 
+            font-size: 0.7rem; 
+            color: var(--obsidian); 
+        }
+
+        /* Animation Triggers */
+        .scuttle-active #crab-logo { transform: scale(1.5); } /* Crab "pops" before wipe */
+        .elements-fade .fading-elements { opacity: 0; }
+        .takeoff-active #preloader { clip-path: inset(0 0 0 100%); }
+
+        /* --- BASE STYLES --- */
+        body { 
+            background: var(--cream); 
+            color: var(--obsidian); 
+            font-family: 'Inter', sans-serif; 
+            margin: 0; 
+            text-align: center;
+        }
+
+        #main-wrapper {
+            opacity: 0;
+            filter: blur(20px);
+            transition: opacity 1.2s ease, filter 1.5s ease;
+        }
+        .loaded #main-wrapper { opacity: 1; filter: blur(0px); }
+
+        /* --- NAVIGATION --- */
+        .navbar {
+            background: white;
+            padding: 20px 5%;
+            border-bottom: 2px solid var(--obsidian);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .nav-links {
+            list-style: none;
+            padding: 0; margin: 0;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .nav-links li a {
+            text-decoration: none;
+            color: var(--obsidian);
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            letter-spacing: 1px;
+            transition: 0.2s;
+        }
+        .nav-links li a:hover { color: var(--accent-green); }
+
+        /* --- CONTENT --- */
+        .content { padding: 60px 20px; }
+        h1 { 
+            font-size: clamp(2rem, 8vw, 3.5rem); 
+            font-weight: 900; 
+            text-transform: uppercase; 
+            letter-spacing: -2px; 
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-size: 0.8rem;
+            color: var(--slate);
+            margin-bottom: 40px;
+        }
+
+        /* GAME IFRAME CONTAINER */
+        .game-container {
+            margin: 0 auto;
+            max-width: 450px;
+            border: 10px solid var(--obsidian);
+            background: #000;
+            box-shadow: 15px 15px 0px rgba(0,0,0,0.1);
+            line-height: 0; /* Removes bottom whitespace */
+        }
+        iframe { border: none; display: block; }
+
+        .explore-text {
+            margin-top: 40px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--slate);
+        }
+    </style>
 </head>
 <body>
-    <nav class="navbar">
-        <ul class="nav-links">
-            <li><a href="index.html">Home</a></li>
-            <li><a href="about.html">About</a></li>
-            <li><a href="Rolex24.html">Rolex24</a></li>
-            <li><a href="https://sites.google.com/site/ericcrabbendam/eric/recipes">Recipes</a></li>
-            <li><a href="https://sites.google.com/site/ericcrabbendam/samuelportfolio">Samuel Portfolio</a></li>
-            <li><a href="https://drive.google.com/file/d/1gTVssuoQsUcF5n1-qPHQHMymzRRxKoIu/view?usp=drive_link">Samuel Resume</a></li>
-            <li><a href="https://www.linkedin.com/in/samuel-crabbendam-93ab33349/">Samuel LinkedIn</a></li>
-            <li><a href="Beatles.html">Beatles</a></li>
-            <li><a href="#">Contact</a></li>
-        </ul>
-    </nav>
 
-    <div class="content">
-        <h1>Welcome to Crabbendam.net</h1>
-        <iframe src="game.html" width="450" height="650"></iframe>.
-        <p>Use the links above to explore!</p>
+    <div id="preloader">
+        <div class="loader-wrap">
+            <div class="fading-elements">
+                <svg class="loader-svg">
+                    <circle id="progress-circle" cx="65" cy="65" r="58"></circle>
+                </svg>
+                <div class="white-disk"></div>
+                <div class="pun-text">Gathering the crew</div>
+            </div>
+            <i id="crab-logo" class="fas fa-hand-cramp"></i> 
+            <i id="crab-logo" class="fas fa-crab"></i> 
+        </div>
     </div>
+
+    <div id="main-wrapper">
+        <nav class="navbar">
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="about.html">About</a></li>
+                <li><a href="Rolex24.html">Rolex24</a></li>
+                <li><a href="https://sites.google.com/site/ericcrabbendam/eric/recipes">Recipes</a></li>
+                <li><a href="https://crabbendam.net/sam">Samuel Portfolio</a></li>
+                <li><a href="https://drive.google.com/file/d/1gTVssuoQsUcF5n1-qPHQHMymzRRxKoIu/view?usp=drive_link">Samuel Resume</a></li>
+                <li><a href="https://www.linkedin.com/in/samuel-crabbendam-93ab33349/">Samuel LinkedIn</a></li>
+                <li><a href="Beatles.html">Beatles</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+
+        <div class="content">
+            <h1>Crabbendam.net</h1>
+            <p class="subtitle">Welcome to the central hub</p>
+            
+            <div class="game-container">
+                <iframe src="game.html" width="450" height="650"></iframe>
+            </div>
+
+            <p class="explore-text">Use the links above to explore the site</p>
+        </div>
+    </div>
+
+    <script>
+        const circle = document.getElementById('progress-circle');
+        const body = document.body;
+
+        window.addEventListener('load', () => {
+            // Fill the green circle
+            circle.style.strokeDashoffset = "0";
+
+            setTimeout(() => {
+                // Crab "Pops" or scales up
+                body.classList.add('scuttle-active');
+
+                setTimeout(() => {
+                    // Fade out the loading elements
+                    body.classList.add('elements-fade');
+
+                    setTimeout(() => {
+                        // Final Wipe
+                        body.classList.add('takeoff-active');
+                        
+                        setTimeout(() => {
+                            body.classList.add('loaded');
+                        }, 600);
+
+                        setTimeout(() => {
+                            document.getElementById('preloader').style.display = 'none';
+                        }, 2500);
+
+                    }, 500); 
+                }, 900); 
+            }, 1300); 
+        });
+    </script>
 </body>
 </html>
-
