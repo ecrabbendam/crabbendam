@@ -5,129 +5,137 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portfolio | Samuel Crabbendam</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
             --cream: #f9f9f7;
             --obsidian: #1a1a1a;
-            --slate: #4a4a4a;
-            --border-width: 3px; /* Slightly thicker for more "firm" look */
+            --slate: #5a5a5e;
+            --border-width: 3px;
         }
 
         body, html {
             margin: 0;
             padding: 0;
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-family: 'Inter', sans-serif;
             background-color: var(--cream);
             color: var(--obsidian);
-            line-height: 1.5;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* Standout Top Bar */
+        /* Nav Bar - Refined Shadow */
         nav {
             position: fixed;
             top: 0; width: 100%;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 20px 5%;
+            padding: 18px 8%;
             box-sizing: border-box;
             z-index: 100;
-            background: var(--cream);
-            border-bottom: 4px solid var(--obsidian); /* Heavier border */
-            box-shadow: 0 4px 0px rgba(0,0,0,0.05); /* Solid shadow feel */
+            background: rgba(249, 249, 247, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 2px solid rgba(0,0,0,0.1);
+            /* More natural, soft multi-layered shadow */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
         }
 
         .back-btn {
             text-decoration: none;
             color: var(--obsidian);
-            font-weight: 900;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 1.5px;
-            font-size: 1rem;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
             display: flex;
             align-items: center;
-            gap: 12px;
-            transition: transform 0.2s ease;
-        }
-
-        .back-btn:hover {
-            transform: translateX(-5px);
+            gap: 10px;
         }
 
         section {
-            padding: 140px 5% 80px 5%;
-            border-bottom: var(--border-width) solid var(--obsidian);
+            padding: 140px 8% 80px 8%;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
         }
 
         .section-title {
-            font-size: 3rem;
+            font-size: 2.5rem;
             font-weight: 900;
             text-transform: uppercase;
-            margin-bottom: 50px;
-            letter-spacing: -1.5px;
-            border-left: 10px solid var(--obsidian);
-            padding-left: 20px;
+            margin-bottom: 60px;
+            letter-spacing: -1px;
         }
 
-        /* Project Block Styling */
+        /* Technical Document Layout */
         .project-block {
-            display: grid;
-            grid-template-columns: 350px 1fr; /* Defined text width, expansive preview */
-            gap: 50px;
-            margin-bottom: 100px;
+            display: flex;
+            gap: 60px;
+            margin-bottom: 120px;
+            align-items: flex-start;
         }
 
         @media (max-width: 1100px) {
-            .project-block { grid-template-columns: 1fr; }
+            .project-block { flex-direction: column; align-items: center; }
+        }
+
+        .project-info {
+            flex: 1;
+            max-width: 400px;
+            position: sticky;
+            top: 140px; /* Text stays visible while scrolling the long PDF */
         }
 
         h3 {
-            font-size: 1.8rem;
-            margin-top: 0;
+            font-size: 1.6rem;
             font-weight: 800;
-            text-transform: uppercase;
-            line-height: 1.1;
+            margin-bottom: 20px;
+            line-height: 1.2;
         }
 
         p {
             font-size: 1.05rem;
+            font-weight: 300; /* Lighter weight for modern feel */
             color: var(--slate);
-            margin-bottom: 30px;
+            margin-bottom: 40px;
         }
 
-        /* Preview Container & Integrated Button */
+        /* Vertical Document Preview */
         .preview-container {
+            flex: 2;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 20px;
+            width: 100%;
+            max-width: 700px; /* Thinner for vertical orientation */
         }
 
         .view-btn {
             align-self: flex-start;
             display: inline-flex;
             align-items: center;
-            padding: 12px 20px;
+            padding: 14px 24px;
             background-color: var(--obsidian);
             color: white;
             text-decoration: none;
-            font-weight: 700;
+            font-weight: 600;
             text-transform: uppercase;
-            font-size: 0.8rem;
-            border: var(--border-width) solid var(--obsidian);
-            transition: all 0.2s ease;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+            border: 2px solid var(--obsidian);
+            transition: all 0.3s ease;
         }
 
         .view-btn:hover {
-            background-color: white;
+            background-color: transparent;
             color: var(--obsidian);
         }
 
         .preview-window {
             width: 100%;
-            height: 700px; /* Lengthened as requested */
+            height: 900px; /* Extra verticality */
             background: #fff;
-            border: var(--border-width) solid var(--obsidian);
-            box-shadow: 12px 12px 0px rgba(0,0,0,0.1);
+            border: 1px solid rgba(0,0,0,0.1);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
         }
 
         iframe {
@@ -141,10 +149,10 @@
 <body>
 
     <nav>
-        <a href="https://crabbendam.net/sam" class="back-btn"><i class="fas fa-arrow-left"></i> Home / Samuel Crabbendam</a>
+        <a href="https://crabbendam.net/sam" class="back-btn"><i class="fas fa-arrow-left"></i> Home</a>
         <div class="social-links">
-            <a href="https://www.linkedin.com/in/samuel-crabbendam-93ab33349" target="_blank" style="color:var(--obsidian); margin-right:20px; font-size: 1.2rem;"><i class="fab fa-linkedin"></i></a>
-            <a href="https://instagram.com/samm_crabb" target="_blank" style="color:var(--obsidian); font-size: 1.2rem;"><i class="fab fa-instagram"></i></a>
+            <a href="https://www.linkedin.com/in/samuel-crabbendam-93ab33349" target="_blank" style="color:var(--obsidian); margin-right:20px;"><i class="fab fa-linkedin"></i></a>
+            <a href="https://instagram.com/samm_crabb" target="_blank" style="color:var(--obsidian);"><i class="fab fa-instagram"></i></a>
         </div>
     </nav>
 
@@ -154,11 +162,11 @@
             <div class="project-info">
                 <h3>CSWA Certification</h3>
                 <p>Certified SolidWorks Associate in Mechanical Design. Proficient in complex part modeling, assemblies, and drawing analysis for aerospace applications.</p>
+                <a href="images/SolidWorks Certification.pdf" target="_blank" class="view-btn">
+                    Open Full Document <i class="fas fa-external-link-alt" style="margin-left:10px;"></i>
+                </a>
             </div>
             <div class="preview-container">
-                <a href="images/SolidWorks Certification.pdf" target="_blank" class="view-btn">
-                    <i class="fas fa-expand"></i> &nbsp; Open Full Screen (New Tab)
-                </a>
                 <div class="preview-window">
                     <iframe src="images/SolidWorks Certification.pdf#toolbar=0" title="CSWA Preview"></iframe>
                 </div>
@@ -173,11 +181,11 @@
             <div class="project-info">
                 <h3>Failure Analysis Paper</h3>
                 <p>A technical investigation into the Apollo 1 cabin fire, examining the root causes and determining its impact on airspace regulations and future safety measures.</p>
+                <a href="images/SamuelCrabbendam_FailureAnalysisPaper.pdf" target="_blank" class="view-btn">
+                    Open Full Document <i class="fas fa-external-link-alt" style="margin-left:10px;"></i>
+                </a>
             </div>
             <div class="preview-container">
-                <a href="images/SamuelCrabbendam_FailureAnalysisPaper.pdf" target="_blank" class="view-btn">
-                    <i class="fas fa-expand"></i> &nbsp; Open Full Screen (New Tab)
-                </a>
                 <div class="preview-window">
                     <iframe src="images/SamuelCrabbendam_FailureAnalysisPaper.pdf#toolbar=0" title="Failure Analysis Preview"></iframe>
                 </div>
@@ -188,11 +196,11 @@
             <div class="project-info">
                 <h3>Aircraft Performance Analysis</h3>
                 <p>An in-depth performance evaluation covering aerodynamic efficiency, flight envelopes, and structural data for single-engine fixed-wing aeronautical systems.</p>
+                <a href="images/EAS2011 Project.pdf" target="_blank" class="view-btn">
+                    Open Full Document <i class="fas fa-external-link-alt" style="margin-left:10px;"></i>
+                </a>
             </div>
             <div class="preview-container">
-                <a href="images/EAS2011 Project.pdf" target="_blank" class="view-btn">
-                    <i class="fas fa-expand"></i> &nbsp; Open Full Screen (New Tab)
-                </a>
                 <div class="preview-window">
                     <iframe src="images/EAS2011 Project.pdf#toolbar=0" title="Performance Analysis Preview"></iframe>
                 </div>
