@@ -11,8 +11,79 @@
             --cream: #f9f9f7;
             --obsidian: #1a1a1a;
             --slate: #5a5a5e;
+            --accent-blue: #007aff; /* Color for the circular loader line */
             --border-width: 3px;
         }
+
+        /* --- AVIATION PRELOADER --- */
+        #preloader {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: var(--obsidian);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.6s ease, visibility 0.6s;
+        }
+
+        .loader-container {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* The White Circle Base */
+        .loader-circle-static {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            background-color: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 0 20px rgba(255,255,255,0.2);
+        }
+
+        .loader-circle-static i {
+            color: var(--obsidian);
+            font-size: 2.5rem;
+            z-index: 2;
+        }
+
+        /* The Animated Circumference Line */
+        .loader-svg {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            transform: rotate(-90deg); /* Start from the top */
+        }
+
+        .loader-svg circle {
+            fill: none;
+            stroke: var(--accent-blue);
+            stroke-width: 4;
+            stroke-linecap: round;
+            stroke-dasharray: 345; /* Circumference of 110px diameter circle */
+            stroke-dashoffset: 345;
+            animation: loadProgress 1.2s ease-in-out forwards;
+        }
+
+        @keyframes loadProgress {
+            to { stroke-dashoffset: 0; }
+        }
+
+        /* Fade out class triggered by JS */
+        .loaded #preloader {
+            opacity: 0;
+            visibility: hidden;
+        }
+        /* ------------------------- */
 
         body, html {
             margin: 0;
@@ -64,7 +135,6 @@
             letter-spacing: -1px;
         }
 
-        /* Grid for Certifications without Files */
         .cert-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -99,22 +169,21 @@
             font-weight: 400;
         }
 
-        /* Layout for Documents with Previews */
         .project-block {
             display: flex;
-            gap: 80px; /* Increased gap */
+            gap: 80px;
             margin-bottom: 120px;
             align-items: flex-start;
         }
 
         @media (max-width: 1100px) {
-            .project-block { flex-direction: column; gap: 40px; }
+            .project-block { flex-direction: column; gap: 60px; }
         }
 
         .project-info {
             flex: 1;
             max-width: 400px;
-            margin-bottom: 20px; /* Buffer for mobile */
+            /* Removed position:sticky to fix mobile scrolling issues */
         }
 
         h3 {
@@ -178,6 +247,17 @@
     </style>
 </head>
 <body>
+
+    <div id="preloader">
+        <div class="loader-container">
+            <svg class="loader-svg">
+                <circle cx="60" cy="60" r="55"></circle>
+            </svg>
+            <div class="loader-circle-static">
+                <i class="fas fa-plane"></i>
+            </div>
+        </div>
+    </div>
 
     <nav>
         <a href="https://crabbendam.net/sam" class="back-btn"><i class="fas fa-arrow-left"></i> Home</a>
@@ -257,6 +337,15 @@
             </div>
         </div>
     </section>
+
+    <script>
+        // Trigger the exit animation after the page loads
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                document.body.classList.add('loaded');
+            }, 1500); // 1.5 seconds allows the 1.2s circle animation to finish smoothly
+        });
+    </script>
 
 </body>
 </html>
