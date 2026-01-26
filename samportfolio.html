@@ -24,15 +24,28 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            transition: opacity 0.4s ease, visibility 0.4s;
-            background: rgba(249, 249, 247, 0.4);
+            /* Semi-transparent so you see the blurred site behind it */
+            background: rgba(249, 249, 247, 0.7); 
+            transition: opacity 0.8s ease, visibility 0.8s;
         }
 
+        /* --- MAIN WRAPPER BLUR LOGIC --- */
         #main-wrapper {
-            filter: blur(15px);
-            transition: filter 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            filter: blur(25px); /* Starts heavily blurred */
+            transition: filter 1.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
+        /* When 'loaded' class is added, the site focuses */
+        .loaded #main-wrapper {
+            filter: blur(0px);
+        }
+
+        .loaded #preloader {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        /* --- AVIATION LOADER ICON & GREEN LINE --- */
         .loader-container {
             position: relative;
             width: 120px; height: 120px;
@@ -46,12 +59,19 @@
             border-radius: 50%;
             display: flex; justify-content: center; align-items: center;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            z-index: 2;
+        }
+
+        .loader-circle-static i {
+            color: var(--obsidian);
+            font-size: 2rem;
         }
 
         .loader-svg {
             position: absolute;
             width: 120px; height: 120px;
             transform: rotate(-90deg);
+            z-index: 1;
         }
 
         .loader-svg circle {
@@ -61,7 +81,17 @@
             stroke-linecap: round;
             stroke-dasharray: 345;
             stroke-dashoffset: 345;
-            animation: loadProgress 1.2s ease-in-out forwards;
+            animation: simulateLoad 2.5s ease-out forwards;
+        }
+
+        @keyframes simulateLoad {
+            0% { stroke-dashoffset: 345; }
+            100% { stroke-dashoffset: 45; } 
+        }
+
+        .finish-load .loader-svg circle {
+            stroke-dashoffset: 0 !important;
+            transition: stroke-dashoffset 0.5s ease-in;
         }
 
         .pun-text {
@@ -69,41 +99,33 @@
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 2px;
-            font-size: 0.7rem;
+            font-size: 0.75rem;
             color: var(--obsidian);
         }
-
-        @keyframes loadProgress { to { stroke-dashoffset: 0; } }
-
-        .loaded #preloader { opacity: 0; visibility: hidden; }
-        .loaded #main-wrapper { filter: blur(0px); }
 
         /* --- PARALLAX HERO SECTION --- */
         .hero-reveal-container {
             position: relative;
-            height: 60vh; /* Adjust height of the airfoil image here */
+            height: 60vh;
             width: 100%;
             overflow: hidden;
             background-color: var(--obsidian);
         }
 
         .hero-image {
-            position: fixed; /* This keeps the image stationary */
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 60vh;
-            background-image: url('images/flowviz.jpg'); /* REPLACE WITH YOUR IMAGE PATH */
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 60vh;
+            background-image: url('images/flowviz.jpg'); 
             background-size: cover;
             background-position: center;
             z-index: -1;
         }
 
-        /* --- CONTENT WRAPPER (The part that rolls up) --- */
         .content-roll-up {
             position: relative;
             z-index: 1;
-            background-color: var(--cream); /* Covers the image as it slides up */
+            background-color: var(--cream);
             box-shadow: 0 -10px 30px rgba(0,0,0,0.1);
         }
 
@@ -111,9 +133,9 @@
         body, html {
             margin: 0; padding: 0;
             font-family: 'Inter', sans-serif;
-            background-color: var(--obsidian); /* Match dark airfoil background */
+            background-color: var(--obsidian);
             color: var(--obsidian);
-            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
         }
 
         nav {
@@ -142,15 +164,13 @@
         .section-title {
             font-size: 2.5rem; font-weight: 900;
             text-transform: uppercase; margin-bottom: 60px;
-            letter-spacing: -1px;
         }
 
-        /* CERTIFICATION CARDS */
+        /* CERTIFICATION CARDS WITH ELEVATION */
         .cert-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 30px;
-            margin-bottom: 40px;
         }
 
         .cert-card {
@@ -161,65 +181,28 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
         .cert-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 15px 30px rgba(0,0,0,0.08);
+            transform: translateY(-10px); /* Card elevates on hover */
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
         }
 
-        .cert-card i {
-            font-size: 1.6rem;
-            margin-bottom: 20px;
-            display: block;
-            color: var(--obsidian);
-        }
-
-        .cert-card h4 {
-            margin: 0 0 12px 0;
-            text-transform: uppercase;
-            font-weight: 800;
-            font-size: 1.1rem;
-        }
-
-        .cert-card p {
-            font-size: 0.95rem;
-            color: var(--slate);
-            margin-bottom: 20px;
-        }
+        .cert-card i { font-size: 1.6rem; margin-bottom: 20px; display: block; color: var(--obsidian); }
+        .cert-card h4 { margin: 0 0 12px 0; text-transform: uppercase; font-weight: 800; }
+        .cert-card p { font-size: 0.95rem; color: var(--slate); margin-bottom: 20px; }
 
         .cert-link {
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            color: var(--obsidian);
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            border-top: 1px solid #eee;
-            padding-top: 15px;
+            font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+            color: var(--obsidian); text-decoration: none;
+            display: inline-flex; align-items: center; gap: 8px;
+            border-top: 1px solid #eee; padding-top: 15px;
         }
 
-        /* PROJECT BLOCKS */
-        .project-block {
-            display: flex; gap: 80px;
-            margin-bottom: 120px;
-            align-items: flex-start;
-        }
-
-        @media (max-width: 1100px) {
-            .project-block { flex-direction: column; gap: 40px; }
-        }
-
-        .preview-window {
-            width: 100%; height: 800px;
-            background: #fff; border: 1px solid rgba(0,0,0,0.1);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-            flex: 2;
-        }
-
+        .project-block { display: flex; gap: 80px; margin-bottom: 120px; align-items: flex-start; }
+        @media (max-width: 1100px) { .project-block { flex-direction: column; gap: 40px; } }
+        .preview-window { width: 100%; height: 800px; background: #fff; border: 1px solid rgba(0,0,0,0.1); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); flex: 2; }
         iframe { width: 100%; height: 100%; border: none; }
 
         .view-btn {
@@ -230,7 +213,6 @@
             border: 2px solid var(--obsidian);
             transition: 0.3s;
         }
-
         .view-btn:hover { background: transparent; color: var(--obsidian); }
 
     </style>
@@ -266,7 +248,6 @@
             <section>
                 <h2 class="section-title">Certifications</h2>
                 <div class="cert-grid">
-                    
                     <div class="cert-card">
                         <i class="fas fa-cube"></i>
                         <h4>CSWA SolidWorks</h4>
@@ -277,13 +258,13 @@
                     </div>
 
                     <div class="cert-card">
-                        <i class="fas fa-address-card"></i>
+                        <i class="fas fa-id-card"></i>
                         <h4>Private Pilot</h4>
                         <p>Licensed Private Pilot (PPL). Proficient in VFR navigation, cross-country planning, and cockpit resource management.</p>
                     </div>
                     
                     <div class="cert-card">
-                        <i class="fas fa-id-card"></i>
+                        <i class="fas fa-id-badge"></i>
                         <h4>Commercial Drone Pilot</h4>
                         <p>FAA Part 107 certified remote pilot for commercial small Unmanned Aircraft Systems (sUAS) operations.</p>
                     </div>
@@ -301,7 +282,7 @@
                 <div class="project-block">
                     <div class="project-info">
                         <h3>Failure Analysis Paper</h3>
-                        <p>A technical investigation into the Apollo 1 cabin fire, examining the root causes and its impact on modern safety regulations.</p>
+                        <p>A technical investigation into the Apollo 1 cabin fire, examining root causes and safety impact.</p>
                         <a href="images/SamuelCrabbendam_FailureAnalysisPaper.pdf" target="_blank" class="view-btn">Open Full Document</a>
                     </div>
                     <div class="preview-window">
@@ -312,7 +293,7 @@
                 <div class="project-block">
                     <div class="project-info">
                         <h3>Aircraft Performance Analysis</h3>
-                        <p>An in-depth performance evaluation covering aerodynamic efficiency, flight envelopes, and structural data.</p>
+                        <p>Detailed evaluation of aerodynamic efficiency, flight envelopes, and structural data.</p>
                         <a href="images/EAS2011 Project.pdf" target="_blank" class="view-btn">Open Full Document</a>
                     </div>
                     <div class="preview-window">
@@ -324,11 +305,20 @@
     </div>
 
     <script>
-        window.addEventListener('load', function() {
+        function finishLoading() {
+            if (document.body.classList.contains('loaded')) return;
+
+            const preloader = document.getElementById('preloader');
+            preloader.classList.add('finish-load'); 
+            
             setTimeout(function() {
                 document.body.classList.add('loaded');
-            }, 1300); 
-        });
+            }, 600);
+        }
+
+        window.addEventListener('load', finishLoading);
+        // Safety takeoff if loading hangs
+        setTimeout(finishLoading, 8000);
     </script>
 </body>
 </html>
