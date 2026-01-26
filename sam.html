@@ -14,7 +14,7 @@
             --accent-green: #28a745;
         }
 
-        /* --- PRELOADER & WIPE COMBINED --- */
+        /* --- PRELOADER & WIPE --- */
         #preloader {
             position: fixed;
             top: 0; left: 0;
@@ -25,16 +25,23 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            /* The curtain effect */
             clip-path: inset(0 0 0 0);
-            transition: clip-path 1.2s cubic-bezier(0.65, 0, 0.35, 1);
+            /* Slower curtain wipe */
+            transition: clip-path 1.6s cubic-bezier(0.65, 0, 0.35, 1);
         }
 
         .loader-container {
             position: relative;
             width: 150px; height: 150px;
             display: flex; justify-content: center; align-items: center;
-            transition: transform 0.5s ease;
+        }
+
+        /* The white circle background and green ring */
+        .visual-elements {
+            position: absolute;
+            width: 100%; height: 100%;
+            display: flex; justify-content: center; align-items: center;
+            transition: opacity 0.4s ease; /* For fading out before flight */
         }
 
         .loader-circle-static {
@@ -42,23 +49,24 @@
             width: 100px; height: 100px;
             background-color: white;
             border-radius: 50%;
-            display: flex; justify-content: center; align-items: center;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            z-index: 2;
         }
 
-        /* PLANE ICON: Facing Up initially, then rotates Right */
+        /* PLANE ICON: Starts facing UP */
         #flying-plane {
+            position: absolute;
             color: var(--obsidian);
             font-size: 2.2rem;
-            transition: transform 0.4s ease;
+            z-index: 10001;
+            transform: rotate(0deg); 
+            transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), 
+                        left 1.6s cubic-bezier(0.65, 0, 0.35, 1);
         }
 
         .loader-svg {
             position: absolute;
             width: 125px; height: 125px;
             transform: rotate(-90deg);
-            z-index: 1;
         }
 
         .loader-svg circle {
@@ -66,9 +74,9 @@
             stroke: var(--accent-green);
             stroke-width: 6;
             stroke-linecap: round;
-            stroke-dasharray: 345;
-            stroke-dashoffset: 345;
-            transition: stroke-dashoffset 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            stroke-dasharray: 365; /* Matches circumference */
+            stroke-dashoffset: 365;
+            transition: stroke-dashoffset 1s ease-out;
         }
 
         .pun-text {
@@ -81,37 +89,39 @@
             transition: opacity 0.3s;
         }
 
-        /* --- THE TAKEOFF ANIMATION --- */
-        /* 1. Rotate the plane to face right */
+        /* --- ANIMATION STATES --- */
+
+        /* 1. Rotate to face RIGHT */
         .takeoff-ready #flying-plane {
             transform: rotate(90deg); 
         }
 
-        /* 2. Fly the whole container across the screen */
-        .takeoff-active .loader-container {
-            transform: translateX(120vw);
-            transition: transform 1.1s cubic-bezier(0.65, 0, 0.35, 1);
+        /* 2. Fade out the circle elements */
+        .elements-fade .visual-elements {
+            opacity: 0;
         }
 
-        /* 3. Pull the curtain */
+        /* 3. The Flight and Wipe */
+        .takeoff-active #flying-plane {
+            left: 120vw;
+        }
         .takeoff-active #preloader {
             clip-path: inset(0 0 0 100%);
         }
-
         .takeoff-active .pun-text { opacity: 0; }
 
-        /* --- MAIN CONTENT --- */
+        /* --- CONTENT REVEAL --- */
         #main-wrapper {
             opacity: 0;
             filter: blur(15px);
-            transition: opacity 1s ease, filter 1.2s ease;
+            transition: opacity 1.2s ease, filter 1.4s ease;
         }
         .loaded #main-wrapper {
             opacity: 1;
             filter: blur(0px);
         }
 
-        /* --- REST OF STYLES (MATCHING PORTFOLIO) --- */
+        /* --- LAYOUT --- */
         body, html {
             margin: 0; padding: 0;
             height: 100%;
@@ -120,7 +130,6 @@
             color: var(--obsidian);
             overflow: hidden;
         }
-
         .container { display: flex; height: 100vh; width: 100%; }
         .content-side { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 60px 8%; z-index: 10; }
         .image-side { flex: 1.2; position: relative; background: url('images/DSCF2893.JPG') no-repeat center center; background-size: cover; }
@@ -137,7 +146,7 @@
             .container { flex-direction: column-reverse; height: auto; }
             .image-side { height: 40vh; flex: none; }
             .content-side { padding: 50px 24px; text-align: center; align-items: center; }
-            h1 { font-size: 3rem; }
+            h1 { font-size: 2.8rem; }
             .button-grid { grid-template-columns: 1fr; width: 100%; }
         }
     </style>
@@ -146,14 +155,15 @@
 
     <div id="preloader">
         <div class="loader-container">
-            <svg class="loader-svg">
-                <circle id="progress-circle" cx="62.5" cy="62.5" r="58"></circle>
-            </svg>
-            <div class="loader-circle-static">
-                <i id="flying-plane" class="fas fa-plane"></i>
+            <div class="visual-elements">
+                <svg class="loader-svg">
+                    <circle id="progress-circle" cx="62.5" cy="62.5" r="58"></circle>
+                </svg>
+                <div class="loader-circle-static"></div>
             </div>
+            <i id="flying-plane" class="fas fa-plane"></i>
         </div>
-        <div class="pun-text">Preparing for departure...</div>
+        <div class="pun-text">Clearing for takeoff...</div>
     </div>
 
     <div id="main-wrapper">
@@ -164,8 +174,8 @@
                 <div class="button-grid">
                     <a href="samportfolio.html" class="btn btn-primary"><i class="fas fa-rocket"></i><span>View Portfolio</span></a>
                     <a href="images/resumesc.pdf" download class="btn"><i class="fas fa-file-pdf"></i><span>Resume</span></a>
-                    <a href="https://www.linkedin.com" target="_blank" class="btn"><i class="fab fa-linkedin"></i><span>LinkedIn</span></a>
-                    <a href="https://instagram.com" target="_blank" class="btn"><i class="fab fa-instagram"></i><span>Instagram</span></a>
+                    <a href="https://www.linkedin.com/in/samuel-crabbendam-93ab33349" target="_blank" class="btn"><i class="fab fa-linkedin"></i><span>LinkedIn</span></a>
+                    <a href="https://instagram.com/samm_crabb" target="_blank" class="btn"><i class="fab fa-instagram"></i><span>Instagram</span></a>
                 </div>
             </section>
             <div class="image-side"><div class="image-overlay"></div></div>
@@ -176,33 +186,33 @@
         const circle = document.getElementById('progress-circle');
         const body = document.body;
 
-        // Start initial crawl
-        setTimeout(() => { circle.style.strokeDashoffset = "100"; }, 100);
-
         window.addEventListener('load', () => {
-            // 1. Complete the green circle
+            // 1. Complete circle to 100% (0 offset)
             circle.style.strokeDashoffset = "0";
 
             setTimeout(() => {
-                // 2. Rotate the plane
+                // 2. Rotate plane to Right
                 body.classList.add('takeoff-ready');
 
                 setTimeout(() => {
-                    // 3. Launch the plane and pull the curtain
-                    body.classList.add('takeoff-active');
-                    
-                    // 4. Fade in content while plane is flying
-                    setTimeout(() => {
-                        body.classList.add('loaded');
-                    }, 400);
+                    // 3. Fade out the circle background
+                    body.classList.add('elements-fade');
 
-                    // Clean up DOM
                     setTimeout(() => {
-                        document.getElementById('preloader').style.display = 'none';
-                    }, 1500);
+                        // 4. Launch plane and Wipe curtain
+                        body.classList.add('takeoff-active');
+                        
+                        setTimeout(() => {
+                            body.classList.add('loaded');
+                        }, 500);
 
-                }, 500); // Wait for rotation to finish
-            }, 800); // Wait for green circle to finish
+                        setTimeout(() => {
+                            document.getElementById('preloader').style.display = 'none';
+                        }, 2000);
+
+                    }, 400); // Wait for fade
+                }, 700); // Wait for rotation
+            }, 1100); // Wait for green circle 100%
         });
     </script>
 </body>
