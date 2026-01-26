@@ -97,12 +97,11 @@
             color: var(--obsidian);
         }
 
-        /* --- FIXED HERO IMAGE FIX --- */
+        /* --- FIXED HERO IMAGE --- */
         .hero-reveal-container {
             position: relative;
             height: 65vh;
             width: 100%;
-            /* Removed overflow:hidden to prevent clipping fixed children */
         }
 
         .hero-image {
@@ -113,11 +112,10 @@
             height: 65vh;
             background-image: url('images/flowviz.jpg');
             background-size: cover;
-            background-position: center;
+            /* SHIFTED DOWN: This anchors the image to the bottom pixels */
+            background-position: bottom; 
             background-repeat: no-repeat;
-            /* Force the image to the very back of the stack */
             z-index: -5; 
-            /* Added background attachment as a fallback */
             background-attachment: fixed;
         }
 
