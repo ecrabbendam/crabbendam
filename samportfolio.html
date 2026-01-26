@@ -11,7 +11,7 @@
             --cream: #f9f9f7;
             --obsidian: #1a1a1a;
             --slate: #5a5a5e;
-            --accent-blue: #007aff;
+            --accent-green: #28a745; /* Updated to green */
             --border-width: 3px;
         }
 
@@ -31,7 +31,6 @@
 
         #main-content {
             filter: blur(15px);
-            /* Half-speed deblur (0.6s) */
             transition: filter 0.6s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
@@ -63,7 +62,7 @@
 
         .loader-svg circle {
             fill: none;
-            stroke: var(--accent-blue);
+            stroke: var(--accent-green); /* Green loader line */
             stroke-width: 5;
             stroke-linecap: round;
             stroke-dasharray: 345;
@@ -128,6 +127,7 @@
             letter-spacing: -1px;
         }
 
+        /* CERTIFICATION CARDS */
         .cert-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -139,10 +139,19 @@
             border: 2px solid var(--obsidian);
             padding: 35px;
             background: #fff;
-            box-shadow: 6px 6px 0px rgba(0,0,0,0.05);
+            box-shadow: 4px 4px 0px rgba(0,0,0,0.05);
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            cursor: default;
+        }
+
+        /* Elevation Effect on Hover/Active */
+        .cert-card:hover, .cert-card:active {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 30px rgba(0,0,0,0.1);
+            border-color: var(--accent-green);
         }
 
         .cert-card i {
@@ -150,6 +159,11 @@
             margin-bottom: 20px;
             display: block;
             color: var(--obsidian);
+            transition: color 0.3s ease;
+        }
+
+        .cert-card:hover i {
+            color: var(--accent-green);
         }
 
         .cert-card h4 {
@@ -178,8 +192,12 @@
             gap: 8px;
             border-top: 1px solid #eee;
             padding-top: 15px;
+            transition: color 0.3s ease;
         }
 
+        .cert-link:hover { color: var(--accent-green); }
+
+        /* PROJECT BLOCKS */
         .project-block {
             display: flex; gap: 80px;
             margin-bottom: 120px;
@@ -229,7 +247,7 @@
                 <i class="fas fa-plane"></i>
             </div>
         </div>
-        <div class="pun-text">Descending...</div>
+        <div class="pun-text">Initializing takeoff...</div>
     </div>
 
     <div id="main-content">
@@ -244,8 +262,18 @@
         <section>
             <h2 class="section-title">Certifications</h2>
             <div class="cert-grid">
+                
                 <div class="cert-card">
-                    <i class="fas fa-paper-plane"></i>
+                    <i class="fas fa-cube"></i>
+                    <h4>CSWA SolidWorks</h4>
+                    <p>Certified SolidWorks Associate in Mechanical Design. Expert in complex part modeling and assembly analysis for aeronautical components.</p>
+                    <a href="images/SolidWorks Certification.pdf" target="_blank" class="cert-link">
+                        View Certificate <i class="fas fa-external-link-alt"></i>
+                    </a>
+                </div>
+
+                <div class="cert-card">
+                    <i class="fas fa-address-card"></i>
                     <h4>Private Pilot</h4>
                     <p>Licensed Private Pilot (PPL). Proficient in VFR navigation, cross-country planning, and cockpit resource management.</p>
                 </div>
@@ -254,15 +282,6 @@
                     <i class="fas fa-id-card"></i>
                     <h4>Commercial Drone Pilot</h4>
                     <p>FAA Part 107 certified remote pilot for commercial small Unmanned Aircraft Systems (sUAS) operations.</p>
-                </div>
-
-                <div class="cert-card">
-                    <i class="fas fa-cube"></i>
-                    <h4>CSWA SolidWorks</h4>
-                    <p>Certified SolidWorks Associate in Mechanical Design. Expert in complex part modeling and assembly analysis.</p>
-                    <a href="images/SolidWorks Certification.pdf" target="_blank" class="cert-link">
-                        View Certificate <i class="fas fa-external-link-alt"></i>
-                    </a>
                 </div>
 
                 <div class="cert-card">
@@ -306,7 +325,6 @@
 
     <script>
         window.addEventListener('load', function() {
-            // Trigger load-out after 1.3 seconds
             setTimeout(function() {
                 document.body.classList.add('loaded');
             }, 1300); 
