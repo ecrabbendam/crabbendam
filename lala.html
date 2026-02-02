@@ -6,7 +6,7 @@
     <title>For Sav ❤️</title>
     <style>
         body {
-            background-color: #ffdae0; /* Solid pink background */
+            background-color: #ffdae0;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -14,8 +14,10 @@
             margin: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             overflow: hidden;
+            position: relative;
         }
 
+        /* The Card */
         .card {
             background-color: white;
             width: 85%;
@@ -23,14 +25,14 @@
             min-height: 450px;
             padding: 50px;
             border-radius: 40px;
-            box-shadow: 0 20px 50px rgba(255, 20, 147, 0.15);
+            box-shadow: 0 20px 50px rgba(255, 20, 147, 0.2);
             text-align: center;
             border: 5px solid #ff80ab;
             display: flex;
             flex-direction: column;
             justify-content: center;
             position: relative;
-            z-index: 10;
+            z-index: 10; /* Ensures card stays above the background hearts */
         }
 
         h1 {
@@ -39,12 +41,11 @@
             margin-bottom: 50px;
         }
 
-        /* Button Container to prevent overlapping */
         .btn-container {
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 50px; /* Large gap so they are clearly separated */
+            gap: 60px; 
             width: 100%;
             position: relative;
         }
@@ -73,28 +74,28 @@
         #noBtn {
             background-color: #eeeeee;
             color: #777;
-            /* Smooth sliding transition */
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             position: relative; 
             z-index: 20;
         }
 
-        /* Decorative Background Hearts */
+        /* Background Heart Styling */
         .heart-decor {
             position: absolute;
-            font-size: 50px;
             color: #ff80ab;
-            opacity: 0.4;
+            opacity: 0.5;
             user-select: none;
+            z-index: 1;
+            animation: float 6s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
         }
     </style>
 </head>
 <body>
-
-    <div class="heart-decor" style="top: 10%; left: 10%;">❤️</div>
-    <div class="heart-decor" style="top: 15%; right: 12%;">💖</div>
-    <div class="heart-decor" style="bottom: 12%; left: 15%;">💗</div>
-    <div class="heart-decor" style="bottom: 8%; right: 8%;">❤️</div>
 
     <div class="card" id="mainCard">
         <h1>Sav, will you be my Valentine? ❤️</h1>
@@ -105,15 +106,27 @@
     </div>
 
     <script>
+        // Create "a lot" of background hearts automatically
+        const heartCount = 40;
+        const heartEmojis = ['❤️', '💖', '💗', '💓', '💕'];
+        
+        for (let i = 0; i < heartCount; i++) {
+            const heart = document.createElement('div');
+            heart.className = 'heart-decor';
+            heart.innerText = heartEmojis[Math.floor(Math.random() * heartEmojis.length)];
+            heart.style.left = Math.random() * 100 + 'vw';
+            heart.style.top = Math.random() * 100 + 'vh';
+            heart.style.fontSize = (Math.random() * 30 + 20) + 'px';
+            heart.style.animationDelay = (Math.random() * 5) + 's';
+            document.body.appendChild(heart);
+        }
+
         const noBtn = document.getElementById('noBtn');
 
         function moveNo() {
-            // Calculate random coordinates
-            // Subtracting 150-200px ensures it doesn't slide off the very edge
             const x = Math.random() * (window.innerWidth - 200);
             const y = Math.random() * (window.innerHeight - 100);
 
-            // Once it moves the first time, we set it to fixed so it can go anywhere
             noBtn.style.position = 'fixed';
             noBtn.style.left = `${x}px`;
             noBtn.style.top = `${y}px`;
@@ -121,14 +134,14 @@
 
         function celebrate() {
             const card = document.getElementById('mainCard');
-            noBtn.style.display = 'none'; // Get rid of the no button
+            noBtn.style.display = 'none';
             
             card.innerHTML = `
                 <h1 style="font-size: 5rem; color: #ff4081; margin-bottom: 20px;">SCORE!!!</h1>
                 <p style="font-size: 1.8rem; color: #d81b60; font-weight: bold;">
                     I love you baby, Happy Valentine's Day!
                 </p>
-                <div style="font-size: 80px; margin-top: 20px;">🌹💑✨</div>
+                <div style="font-size: 80px; margin-top: 20px;">❤️❤️💐🌸🌹💓</div>
             `;
             
             document.body.style.backgroundColor = "#ff80ab";
