@@ -3,99 +3,142 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Be My Valentine?</title>
+    <title>For Sav ❤️</title>
     <style>
-        /* General Page Styling */
+        /* Romantic Background with Hearts */
         body {
-            background-color: #ffebee; /* Soft Pink Background */
+            background-color: #ffdae0;
+            background-image: radial-gradient(#ffb7c5 1px, transparent 1px);
+            background-size: 40px 40px; /* Small heart-like pattern */
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
-            font-family: 'Arial', sans-serif;
-            overflow: hidden; /* Prevents scrollbars if the button moves too far */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
         }
 
-        /* The Card Container */
+        /* Large, prominent card */
         .card {
             background-color: white;
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(255, 105, 180, 0.3);
+            width: 80%;
+            max-width: 600px; /* Bigger presence on screen */
+            min-height: 400px;
+            padding: 50px;
+            border-radius: 30px;
+            box-shadow: 0 20px 50px rgba(255, 20, 147, 0.2);
             text-align: center;
-            border: 2px solid #ff80ab;
-            max-width: 400px;
+            border: 4px solid #ff80ab;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            z-index: 10;
+            position: relative;
         }
 
         h1 {
             color: #d81b60;
-            margin-bottom: 30px;
+            font-size: 3rem;
+            margin-bottom: 40px;
+            line-height: 1.2;
         }
 
-        .buttons {
+        /* Button Container */
+        .btn-container {
             display: flex;
-            justify-content: space-around;
-            align-items: center;
-            height: 50px;
+            justify-content: center;
+            gap: 30px; /* Keeps them next to each other */
+            height: 60px;
+            position: relative;
         }
 
-        /* Button Styling */
         button {
-            padding: 12px 25px;
-            font-size: 18px;
+            padding: 15px 40px;
+            font-size: 22px;
+            font-weight: bold;
             border: none;
-            border-radius: 10px;
+            border-radius: 50px;
             cursor: pointer;
-            transition: transform 0.2s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
         #yesBtn {
             background-color: #ff4081;
             color: white;
+            transition: transform 0.3s;
         }
 
         #yesBtn:hover {
             transform: scale(1.1);
+            background-color: #f50057;
         }
 
+        /* The Sliding "No" Button */
         #noBtn {
-            background-color: #f48fb1;
-            color: white;
-            position: absolute; /* Essential for moving it around */
+            background-color: #eeeeee;
+            color: #888;
+            position: absolute; /* Changed via JS when moved */
+            left: 55%; /* Starting position slightly right of center */
+            transition: all 0.4s ease-out; /* This makes it slide smoothly! */
+        }
+
+        /* Background Hearts Decor */
+        .heart-decor {
+            position: absolute;
+            font-size: 30px;
+            color: #ff80ab;
+            opacity: 0.5;
+            user-select: none;
+            z-index: 1;
         }
     </style>
 </head>
 <body>
 
+    <div class="heart-decor" style="top: 10%; left: 10%;">❤️</div>
+    <div class="heart-decor" style="top: 20%; right: 15%;">💖</div>
+    <div class="heart-decor" style="bottom: 15%; left: 20%;">💗</div>
+    <div class="heart-decor" style="bottom: 10%; right: 10%;">❤️</div>
+
     <div class="card">
-        <h1>Will you be my Valentine? ❤️</h1>
-        <div class="buttons">
-            <button id="yesBtn" onclick="celebrate()">Yes!</button>
-            <button id="noBtn">No</button>
+        <h1>Sav, will you be my Valentine? ❤️</h1>
+        <div class="btn-container">
+            <button id="yesBtn" onclick="celebrate()">Yes</button>
+            <button id="noBtn" onmouseover="moveNo()">No</button>
         </div>
     </div>
 
     <script>
         const noBtn = document.getElementById('noBtn');
-        const yesBtn = document.getElementById('yesBtn');
 
-        // Function to move the "No" button randomly
-        noBtn.addEventListener('mouseover', () => {
-            // Calculate random positions within the window
-            const x = Math.random() * (window.innerWidth - noBtn.offsetWidth);
-            const y = Math.random() * (window.innerHeight - noBtn.offsetHeight);
-            
-            noBtn.style.left = `${x}px`;
-            noBtn.style.top = `${y}px`;
-        });
+        function moveNo() {
+            // Get window dimensions
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
 
-        // Function for when she finally hits "Yes"
+            // Generate random coordinates
+            // We subtract button size so it stays within the screen
+            const randomX = Math.floor(Math.random() * (windowWidth - 150));
+            const randomY = Math.floor(Math.random() * (windowHeight - 100));
+
+            // Apply new position
+            noBtn.style.position = 'fixed';
+            noBtn.style.left = randomX + 'px';
+            noBtn.style.top = randomY + 'px';
+        }
+
         function celebrate() {
-            alert("Yay! I knew you'd say yes! ❤️");
-            // You can change the window location or trigger animations here
-            document.body.style.backgroundColor = "#ffc1e3";
-            document.querySelector('.card').innerHTML = "<h1>Can't wait! 🥰</h1><p>See you on the 14th!</p>";
+            // Remove the "No" button entirely when she says Yes
+            noBtn.style.display = 'none';
+            
+            const card = document.querySelector('.card');
+            card.innerHTML = `
+                <h1 style="font-size: 4rem;">Yay! 🥰</h1>
+                <p style="font-size: 1.5rem; color: #d81b60;">I'm the luckiest! I love you, Sav!</p>
+                <div style="font-size: 50px;">❤️❤️❤️</div>
+            `;
+            document.body.style.backgroundColor = "#ff80ab";
         }
     </script>
 
