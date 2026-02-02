@@ -5,11 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>For Sav ❤️</title>
     <style>
-        /* Romantic Background with Hearts */
         body {
-            background-color: #ffdae0;
-            background-image: radial-gradient(#ffb7c5 1px, transparent 1px);
-            background-size: 40px 40px; /* Small heart-like pattern */
+            background-color: #ffdae0; /* Solid pink background */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -19,89 +16,87 @@
             overflow: hidden;
         }
 
-        /* Large, prominent card */
         .card {
             background-color: white;
-            width: 80%;
-            max-width: 600px; /* Bigger presence on screen */
-            min-height: 400px;
+            width: 85%;
+            max-width: 700px; 
+            min-height: 450px;
             padding: 50px;
-            border-radius: 30px;
-            box-shadow: 0 20px 50px rgba(255, 20, 147, 0.2);
+            border-radius: 40px;
+            box-shadow: 0 20px 50px rgba(255, 20, 147, 0.15);
             text-align: center;
-            border: 4px solid #ff80ab;
+            border: 5px solid #ff80ab;
             display: flex;
             flex-direction: column;
             justify-content: center;
-            z-index: 10;
             position: relative;
+            z-index: 10;
         }
 
         h1 {
             color: #d81b60;
-            font-size: 3rem;
-            margin-bottom: 40px;
-            line-height: 1.2;
+            font-size: 3.5rem;
+            margin-bottom: 50px;
         }
 
-        /* Button Container */
+        /* Button Container to prevent overlapping */
         .btn-container {
             display: flex;
             justify-content: center;
-            gap: 30px; /* Keeps them next to each other */
-            height: 60px;
+            align-items: center;
+            gap: 50px; /* Large gap so they are clearly separated */
+            width: 100%;
             position: relative;
         }
 
         button {
-            padding: 15px 40px;
-            font-size: 22px;
+            padding: 18px 45px;
+            font-size: 24px;
             font-weight: bold;
             border: none;
             border-radius: 50px;
             cursor: pointer;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            min-width: 140px;
         }
 
         #yesBtn {
             background-color: #ff4081;
             color: white;
-            transition: transform 0.3s;
+            transition: transform 0.2s;
         }
 
         #yesBtn:hover {
             transform: scale(1.1);
-            background-color: #f50057;
         }
 
-        /* The Sliding "No" Button */
         #noBtn {
             background-color: #eeeeee;
-            color: #888;
-            position: absolute; /* Changed via JS when moved */
-            left: 55%; /* Starting position slightly right of center */
-            transition: all 0.4s ease-out; /* This makes it slide smoothly! */
+            color: #777;
+            /* Smooth sliding transition */
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative; 
+            z-index: 20;
         }
 
-        /* Background Hearts Decor */
+        /* Decorative Background Hearts */
         .heart-decor {
             position: absolute;
-            font-size: 30px;
+            font-size: 50px;
             color: #ff80ab;
-            opacity: 0.5;
+            opacity: 0.4;
             user-select: none;
-            z-index: 1;
         }
     </style>
 </head>
 <body>
 
     <div class="heart-decor" style="top: 10%; left: 10%;">❤️</div>
-    <div class="heart-decor" style="top: 20%; right: 15%;">💖</div>
-    <div class="heart-decor" style="bottom: 15%; left: 20%;">💗</div>
-    <div class="heart-decor" style="bottom: 10%; right: 10%;">❤️</div>
+    <div class="heart-decor" style="top: 15%; right: 12%;">💖</div>
+    <div class="heart-decor" style="bottom: 12%; left: 15%;">💗</div>
+    <div class="heart-decor" style="bottom: 8%; right: 8%;">❤️</div>
 
-    <div class="card">
+    <div class="card" id="mainCard">
         <h1>Sav, will you be my Valentine? ❤️</h1>
         <div class="btn-container">
             <button id="yesBtn" onclick="celebrate()">Yes</button>
@@ -113,31 +108,29 @@
         const noBtn = document.getElementById('noBtn');
 
         function moveNo() {
-            // Get window dimensions
-            const windowWidth = window.innerWidth;
-            const windowHeight = window.innerHeight;
+            // Calculate random coordinates
+            // Subtracting 150-200px ensures it doesn't slide off the very edge
+            const x = Math.random() * (window.innerWidth - 200);
+            const y = Math.random() * (window.innerHeight - 100);
 
-            // Generate random coordinates
-            // We subtract button size so it stays within the screen
-            const randomX = Math.floor(Math.random() * (windowWidth - 150));
-            const randomY = Math.floor(Math.random() * (windowHeight - 100));
-
-            // Apply new position
+            // Once it moves the first time, we set it to fixed so it can go anywhere
             noBtn.style.position = 'fixed';
-            noBtn.style.left = randomX + 'px';
-            noBtn.style.top = randomY + 'px';
+            noBtn.style.left = `${x}px`;
+            noBtn.style.top = `${y}px`;
         }
 
         function celebrate() {
-            // Remove the "No" button entirely when she says Yes
-            noBtn.style.display = 'none';
+            const card = document.getElementById('mainCard');
+            noBtn.style.display = 'none'; // Get rid of the no button
             
-            const card = document.querySelector('.card');
             card.innerHTML = `
-                <h1 style="font-size: 4rem;">Yay! 🥰</h1>
-                <p style="font-size: 1.5rem; color: #d81b60;">I'm the luckiest! I love you, Sav!</p>
-                <div style="font-size: 50px;">❤️❤️❤️</div>
+                <h1 style="font-size: 5rem; color: #ff4081; margin-bottom: 20px;">SCORE!!!</h1>
+                <p style="font-size: 1.8rem; color: #d81b60; font-weight: bold;">
+                    I love you baby, Happy Valentine's Day!
+                </p>
+                <div style="font-size: 80px; margin-top: 20px;">🌹💑✨</div>
             `;
+            
             document.body.style.backgroundColor = "#ff80ab";
         }
     </script>
