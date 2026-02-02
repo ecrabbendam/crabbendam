@@ -27,7 +27,7 @@
             box-shadow: 0 20px 50px rgba(255, 20, 147, 0.2);
             text-align: center;
             border: 5px solid #ff80ab;
-            z-index: 100; /* Stays on top of floating photos */
+            z-index: 100; /* Card stays on top of photos */
             transition: all 0.5s ease;
         }
 
@@ -43,7 +43,7 @@
 
         button {
             padding: 15px 40px;
-            font-size: 22px;
+            font-size: 24px;
             font-weight: bold;
             border: none;
             border-radius: 50px;
@@ -51,34 +51,39 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
-        #yesBtn { background-color: #ff4081; color: white; }
+        #yesBtn { 
+            background-color: #ff4081; 
+            color: white; 
+        }
+
+        /* Updated No button: Less gray, more "clickable" pink */
         #noBtn { 
-            background-color: #eeeeee; color: #777; 
+            background-color: #ffc1e3; 
+            color: #d81b60; 
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             position: relative;
         }
 
-        /* Floating Photo Styling */
+        /* Increased photo size to 280px */
         .floating-photo {
             position: absolute;
-            width: 180px;
-            height: 180px;
+            width: 280px;
+            height: 280px;
             object-fit: cover;
-            border-radius: 15px;
-            border: 5px solid white;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
-            opacity: 0; /* Hidden until "Yes" is clicked */
-            transition: opacity 1s ease-in-out;
+            border-radius: 20px;
+            border: 8px solid white;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+            opacity: 0; 
+            transition: opacity 1.2s ease-in-out;
             z-index: 10;
-            animation: floatSlightly 4s infinite ease-in-out;
+            animation: floatSlightly 5s infinite ease-in-out;
         }
 
         @keyframes floatSlightly {
             0%, 100% { transform: translateY(0) rotate(0deg); }
-            50% { transform: translateY(-15px) rotate(3deg); }
+            50% { transform: translateY(-25px) rotate(4deg); }
         }
 
-        /* Falling Hearts */
         .heart-fall {
             position: absolute;
             color: #ff80ab;
@@ -95,12 +100,12 @@
 </head>
 <body>
 
-    <img src="images/IMG_0881.jpeg" class="floating-photo" style="top: 10%; left: 5%; animation-delay: 0s;">
-    <img src="images/IMG_4880.jpeg" class="floating-photo" style="top: 15%; right: 5%; animation-delay: 0.5s;">
-    <img src="images/IMG_4132.jpeg" class="floating-photo" style="bottom: 10%; left: 8%; animation-delay: 1s;">
-    <img src="images/IMG_0105.jpg" class="floating-photo" style="bottom: 15%; right: 10%; animation-delay: 1.5s;">
-    <img src="images/IMG_7081.jpeg" class="floating-photo" style="top: 50%; left: 2%; transform: translateY(-50%); animation-delay: 2s;">
-    <img src="images/IMG_3125.jpeg" class="floating-photo" style="top: 50%; right: 2%; transform: translateY(-50%); animation-delay: 2.5s;">
+    <img src="images/IMG_0881.jpeg" class="floating-photo" style="top: 5%; left: 3%; animation-delay: 0s;">
+    <img src="images/IMG_4880.jpeg" class="floating-photo" style="top: 8%; right: 3%; animation-delay: 0.5s;">
+    <img src="images/IMG_4132.jpeg" class="floating-photo" style="bottom: 5%; left: 5%; animation-delay: 1s;">
+    <img src="images/IMG_0105.jpg" class="floating-photo" style="bottom: 8%; right: 5%; animation-delay: 1.5s;">
+    <img src="images/IMG_7081.jpeg" class="floating-photo" style="top: 45%; left: -2%; animation-delay: 2s;">
+    <img src="images/IMG_3125.jpeg" class="floating-photo" style="top: 45%; right: -2%; animation-delay: 2.5s;">
 
     <div class="card" id="mainCard">
         <h1 id="titleText">Sav, will you be my Valentine? ❤️</h1>
@@ -111,7 +116,6 @@
     </div>
 
     <script>
-        // Falling hearts generator
         function createHeart() {
             const heart = document.createElement('div');
             heart.className = 'heart-fall';
@@ -124,7 +128,6 @@
         }
         setInterval(createHeart, 250);
 
-        // Escape Logic for No Button
         function moveNo() {
             const noBtn = document.getElementById('noBtn');
             const x = Math.random() * (window.innerWidth - 150);
@@ -134,9 +137,7 @@
             noBtn.style.top = `${y}px`;
         }
 
-        // Celebrate Logic
         function celebrate() {
-            // Change text inside card
             document.getElementById('mainCard').innerHTML = `
                 <h1 style="font-size: 4.5rem; color: #ff4081; margin: 0;">SCORE!!!</h1>
                 <p style="font-size: 1.8rem; color: #d81b60; font-weight: bold;">
@@ -145,7 +146,6 @@
                 <div style="font-size: 50px;">❤️❤️💐🌸🌹💓</div>
             `;
 
-            // Reveal all photos
             const photos = document.querySelectorAll('.floating-photo');
             photos.forEach(photo => {
                 photo.style.opacity = '1';
