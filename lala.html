@@ -12,95 +12,79 @@
             align-items: center;
             height: 100vh;
             margin: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             overflow: hidden;
             position: relative;
         }
 
-        /* The Card */
         .card {
             background-color: white;
-            width: 90%;
-            max-width: 800px; 
-            min-height: 500px;
+            width: 85%;
+            max-width: 650px; 
+            min-height: 400px;
             padding: 40px;
             border-radius: 40px;
             box-shadow: 0 20px 50px rgba(255, 20, 147, 0.2);
             text-align: center;
             border: 5px solid #ff80ab;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            position: relative;
-            z-index: 10;
+            z-index: 100; /* Stays on top of floating photos */
+            transition: all 0.5s ease;
         }
 
-        h1 {
-            color: #d81b60;
-            font-size: 3.5rem;
-            margin-bottom: 30px;
-        }
+        h1 { color: #d81b60; font-size: 3rem; margin-bottom: 40px; }
 
         .btn-container {
             display: flex;
             justify-content: center;
-            align-items: center;
-            gap: 60px; 
-            width: 100%;
+            gap: 60px;
             position: relative;
-            height: 100px;
+            height: 80px;
         }
 
         button {
-            padding: 18px 45px;
-            font-size: 24px;
+            padding: 15px 40px;
+            font-size: 22px;
             font-weight: bold;
             border: none;
             border-radius: 50px;
             cursor: pointer;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            min-width: 140px;
         }
 
-        #yesBtn {
-            background-color: #ff4081;
-            color: white;
-            transition: transform 0.2s;
+        #yesBtn { background-color: #ff4081; color: white; }
+        #noBtn { 
+            background-color: #eeeeee; color: #777; 
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
         }
 
-        #noBtn {
-            background-color: #eeeeee;
-            color: #777;
-            transition: all 0.3s ease-out;
-            position: relative; 
-            z-index: 20;
-        }
-
-        /* Photo Gallery Styling */
-        .photo-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .photo-grid img {
-            width: 100%;
-            height: 150px;
+        /* Floating Photo Styling */
+        .floating-photo {
+            position: absolute;
+            width: 180px;
+            height: 180px;
             object-fit: cover;
             border-radius: 15px;
-            border: 3px solid #ff80ab;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border: 5px solid white;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+            opacity: 0; /* Hidden until "Yes" is clicked */
+            transition: opacity 1s ease-in-out;
+            z-index: 10;
+            animation: floatSlightly 4s infinite ease-in-out;
         }
 
-        /* Falling Hearts Animation */
-        .heart-decor {
+        @keyframes floatSlightly {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(3deg); }
+        }
+
+        /* Falling Hearts */
+        .heart-fall {
             position: absolute;
             color: #ff80ab;
             opacity: 0.6;
-            user-select: none;
-            z-index: 1;
             top: -50px;
+            z-index: 1;
             animation: fall linear infinite;
         }
 
@@ -111,8 +95,15 @@
 </head>
 <body>
 
+    <img src="images/IMG_0881.jpeg" class="floating-photo" style="top: 10%; left: 5%; animation-delay: 0s;">
+    <img src="images/IMG_4880.jpeg" class="floating-photo" style="top: 15%; right: 5%; animation-delay: 0.5s;">
+    <img src="images/IMG_4132.jpeg" class="floating-photo" style="bottom: 10%; left: 8%; animation-delay: 1s;">
+    <img src="images/IMG_0105.jpeg" class="floating-photo" style="bottom: 15%; right: 10%; animation-delay: 1.5s;">
+    <img src="images/IMG_7081.jpeg" class="floating-photo" style="top: 50%; left: 2%; transform: translateY(-50%); animation-delay: 2s;">
+    <img src="images/IMG_3125.jpeg" class="floating-photo" style="top: 50%; right: 2%; transform: translateY(-50%); animation-delay: 2.5s;">
+
     <div class="card" id="mainCard">
-        <h1 id="mainTitle">Sav, will you be my Valentine? ❤️</h1>
+        <h1 id="titleText">Sav, will you be my Valentine? ❤️</h1>
         <div class="btn-container" id="btnHolder">
             <button id="yesBtn" onclick="celebrate()">Yes</button>
             <button id="noBtn" onmouseover="moveNo()">No</button>
@@ -120,25 +111,22 @@
     </div>
 
     <script>
-        // Create falling hearts
+        // Falling hearts generator
         function createHeart() {
             const heart = document.createElement('div');
-            heart.className = 'heart-decor';
+            heart.className = 'heart-fall';
             heart.innerText = ['❤️', '💖', '💗', '💓'][Math.floor(Math.random() * 4)];
             heart.style.left = Math.random() * 100 + 'vw';
             heart.style.fontSize = (Math.random() * 20 + 20) + 'px';
-            heart.style.duration = (Math.random() * 3 + 2) + 's';
-            heart.style.animationDuration = (Math.random() * 3 + 4) + 's';
+            heart.style.animationDuration = (Math.random() * 2 + 3) + 's';
             document.body.appendChild(heart);
-            
-            // Remove heart after it falls to keep page fast
-            setTimeout(() => { heart.remove(); }, 6000);
+            setTimeout(() => heart.remove(), 5000);
         }
-        setInterval(createHeart, 200);
+        setInterval(createHeart, 250);
 
-        const noBtn = document.getElementById('noBtn');
-
+        // Escape Logic for No Button
         function moveNo() {
+            const noBtn = document.getElementById('noBtn');
             const x = Math.random() * (window.innerWidth - 150);
             const y = Math.random() * (window.innerHeight - 80);
             noBtn.style.position = 'fixed';
@@ -146,27 +134,25 @@
             noBtn.style.top = `${y}px`;
         }
 
+        // Celebrate Logic
         function celebrate() {
-            const card = document.getElementById('mainCard');
-            
-            card.innerHTML = `
-                <h1 style="font-size: 4rem; color: #ff4081; margin: 0;">SCORE!!!</h1>
-                <p style="font-size: 1.5rem; color: #d81b60; font-weight: bold; margin: 10px 0;">
+            // Change text inside card
+            document.getElementById('mainCard').innerHTML = `
+                <h1 style="font-size: 4.5rem; color: #ff4081; margin: 0;">SCORE!!!</h1>
+                <p style="font-size: 1.8rem; color: #d81b60; font-weight: bold;">
                     I love you baby, Happy Valentine's Day!
                 </p>
-                
-                <div class="photo-grid">
-                    <img src="photo1.jpg" alt="Us 1">
-                    <img src="photo2.jpg" alt="Us 2">
-                    <img src="photo3.jpg" alt="Us 3">
-                </div>
-                
-                <div style="font-size: 50px; margin-top: 15px;">❤️❤️💐🌸🌹💓</div>
+                <div style="font-size: 50px;">❤️❤️💐🌸🌹💓</div>
             `;
-            
+
+            // Reveal all photos
+            const photos = document.querySelectorAll('.floating-photo');
+            photos.forEach(photo => {
+                photo.style.opacity = '1';
+            });
+
             document.body.style.backgroundColor = "#ff80ab";
         }
     </script>
-
 </body>
 </html>
