@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ERP Implementation Estimator</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0D0F1A; color: #E8E4DC; font-family: 'DM Mono', monospace; }
+    .card { background: #13162A; border: 1px solid #2A2D45; border-radius: 12px; }
+    .btn-group button { background: #1C2035; border: 1px solid #2A2D45; color: #9BA3BF; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-family: 'DM Mono', monospace; font-size: 12px; transition: all 0.2s; }
+    .btn-group button.active { background: #4F8EF7; border-color: #4F8EF7; color: #fff; }
+    .btn-group button:hover:not(.active) { border-color: #4F8EF7; color: #E8E4DC; }
+    .phase-row { border: 1px solid #2A2D45; border-radius: 10px; margin-bottom: 10px; overflow: hidden; transition: border-color 0.2s; }
+    .phase-row:hover { border-color: #4A4F6A; }
+    .phase-row.disabled { opacity: 0.4; }
+    input[type=range] { accent-color: #4F8EF7; width: 100%; }
+    input[type=date] { background: #1C2035; border: 1px solid #2A2D45; color: #E8E4DC; padding: 8px 12px; border-radius: 8px; font-family: 'DM Mono', monospace; font-size: 13px; outline: none; }
+    .stat-box { background: #1C2035; border: 1px solid #2A2D45; border-radius: 10px; padding: 20px; text-align: center; }
+    .expand-tasks { background: #1A1D30; padding: 16px 20px; border-top: 1px solid #2A2D45; }
+    .task-item { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 13px; color: #9BA3BF; font-family: 'DM Mono', monospace; cursor: pointer; }
+    .toggle-chip { font-size: 10px; padding: 2px 8px; border-radius: 20px; font-family: 'DM Mono', monospace; border: none; cursor: pointer; transition: all 0.2s; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState } = React;
+
+    const phases = [
+      {
+        id: "customer_readiness", name: "Customer Readiness", icon: "🤝", baseWeeks: 4,
+        tasks: ["Internal Mobilization","Resource Assignment","Project Budget Creation and Forecasting","Introduction call / Kickoff Meeting","Business Requirements Document","Discovery Agenda"],
+        color: "#4F8EF7",
+      },
+      {
+        id: "edu_services", name: "Educational Services Setup", icon: "🎓", baseWeeks: 2,
+        tasks: ["eLearning Subscription","Implementation Training","Manufacturing Training","Internet-Based Training"],
+        color: "#7C5CFC",
+      },
+      {
+        id: "design", name: "Design (Onsite Discovery & FDD)", icon: "🔍", baseWeeks: 4,
+        tasks: ["Onsite Discovery visit","Functional Design Document","Project Plan & Resource Plan Baseline Delivery","BOM Solutioning plan"],
+        color: "#B85CF7",
+      },
+      {
+        id: "build", name: "Build", icon: "🏗️", baseWeeks: 5,
+        tasks: ["System parameters","List of Lists","Security Inspector","Accounting/Finance Setup","Costing","Initial Data Entry","Factory Definition","Bill of Manufacturing (BOMs)","IQAlerts"],
+        color: "#F7934C",
+      },
+      {
+        id: "kt", name: "Knowledge Transfer Process Definition", icon: "📚", baseWeeks: 5,
+        tasks: ["Sales Order Entry","Scheduling and Planning","Supply Chain - Purchase Order & Receiving","Production Setup","Production Reporting","Shipping","Customer Service","Finance - Day to Day Operations","Warehouse Inventory Management","QUALITY","CRM","IQ Alert","Crystal Reports","RealTime Production Monitoring","MRO","Project Manager","Time And Attendance"],
+        color: "#F7C948",
+      },
+      {
+        id: "prt", name: "PRT (Process Readiness Testing)", icon: "🔄", baseWeeks: 3,
+        tasks: ["PRT","Gap Analysis","Update Workflows and Design (if necessary)"],
+        color: "#2DC9A0",
+      },
+      {
+        id: "crp", name: "CRP (Conference Room Pilot)", icon: "🧪", baseWeeks: 3,
+        tasks: ["CRP","Results: Go / No-Go","Final modifications"],
+        color: "#4FC9F7",
+      },
+      {
+        id: "cutover", name: "Cutover & Go-Live", icon: "🚀", baseWeeks: 2,
+        tasks: ["Cutover Review","Initiate Transition to Software Support","Final Data Migration & Validation","Go-Live Execution & Monitoring"],
+        color: "#F75C5C",
+      },
+      {
+        id: "post_golive", name: "Post Go-Live", icon: "🌱", baseWeeks: 3,
+        tasks: ["Develop Plan for subsequent phases","Transition to Software Support","First Month-end Closure validation","Project Closure"],
+        color: "#2DC9A0",
+      },
+    ];
+
+    const complexityMultipliers = {
+      low:    { label: "Low",    desc: "Basic Modules",       multiplier: 0.75 },
+      medium: { label: "Medium", desc: "Advanced Modules",    multiplier: 1.0  },
+      high:   { label: "High",   desc: "Complex environment", multiplier: 1.5  },
+    };
+
+    const phaseComplexityOverrides = {};
+
+    const teamSizeFactors = { 2: 1.4, 3: 1.15, 4: 1.0, 5: 0.9 };
+
+    function ERPEstimator() {
+      const [complexity, setComplexity] = useState("medium");
+      const [teamSize, setTeamSize] = useState(3);
+      const [expanded, setExpanded] = useState(null);
+      const [startDate, setStartDate] = useState(() => new Date().toISOString().split("T")[0]);
+      const [phaseToggles, setPhaseToggles] = useState(Object.fromEntries(phases.map(p => [p.id, true])));
+      const [deliverableToggles, setDeliverableToggles] = useState(
+        Object.fromEntries(phases.map(p => [p.id, Object.fromEntries(p.tasks.map((_, i) => [i, true]))]))
+      );
+
+      const togglePhase = (id) => setPhaseToggles(prev => ({ ...prev, [id]: !prev[id] }));
+      const toggleDeliverable = (phaseId, taskIdx, e) => {
+        e.stopPropagation();
+        setDeliverableToggles(prev => ({ ...prev, [phaseId]: { ...prev[phaseId], [taskIdx]: !prev[phaseId][taskIdx] } }));
+      };
+
+      const teamFactor = teamSizeFactors[teamSize] || 1.0;
+      const complexityMult = complexityMultipliers[complexity].multiplier;
+
+      const computedPhases = phases.map(p => {
+        const activeCount = p.tasks.filter((_, i) => deliverableToggles[p.id][i]).length;
+        const taskRatio = p.tasks.length > 0 ? activeCount / p.tasks.length : 1;
+        const override = phaseComplexityOverrides[p.id];
+        const baseWeeks = override ? override[complexity] : p.baseWeeks * complexityMult;
+        return { ...p, weeks: Math.max(1, Math.round(baseWeeks * teamFactor * taskRatio)), active: phaseToggles[p.id], activeCount };
+      });
+
+      const totalWeeks = computedPhases.filter(p => p.active).reduce((sum, p) => sum + p.weeks, 0);
+      const totalMonths = (totalWeeks / 4.33).toFixed(1);
+
+      const getEndDate = () => {
+        const d = new Date(startDate);
+        d.setDate(d.getDate() + totalWeeks * 7);
+        return d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+      };
+
+      let cursor = 0;
+      const ganttData = computedPhases.filter(p => p.active).map(p => { const item = { ...p, start: cursor }; cursor += p.weeks; return item; });
+
+      return (
+        <div style={{ fontFamily: "'Georgia', serif", background: "#0D0F1A", minHeight: "100vh", color: "#E8E4DC", padding: "40px 24px" }}>
+          <div style={{ maxWidth: 880, margin: "0 auto" }}>
+
+            {/* Header */}
+            <div style={{ marginBottom: 8, fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#4F8EF7", letterSpacing: 3, textTransform: "uppercase" }}>Project Estimator</div>
+            <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(32px, 5vw, 52px)", margin: "0 0 6px", lineHeight: 1.1, color: "#F0EDE6" }}>ERP Implementation</h1>
+            <p style={{ color: "#6B7399", fontFamily: "'DM Mono', monospace", fontSize: 13, margin: "0 0 40px" }}>Small team · Flexible timeline · Adjustable estimate</p>
+
+            {/* Stats */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 32 }}>
+              <div className="stat-box">
+                <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 42, color: "#4F8EF7", lineHeight: 1 }}>{totalWeeks}</div>
+                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#6B7399", marginTop: 6, textTransform: "uppercase", letterSpacing: 1 }}>Total Weeks</div>
+              </div>
+              <div className="stat-box">
+                <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 42, color: "#2DC9A0", lineHeight: 1 }}>{totalMonths}</div>
+                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#6B7399", marginTop: 6, textTransform: "uppercase", letterSpacing: 1 }}>Months</div>
+              </div>
+              <div className="stat-box">
+                <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: "#F7C948", lineHeight: 1, paddingTop: 10 }}>{getEndDate()}</div>
+                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#6B7399", marginTop: 6, textTransform: "uppercase", letterSpacing: 1 }}>Est. Go-Live</div>
+              </div>
+            </div>
+
+            {/* Controls */}
+            <div className="card" style={{ padding: 24, marginBottom: 28 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 28 }}>
+                <div>
+                  <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#6B7399", textTransform: "uppercase", letterSpacing: 2, marginBottom: 10 }}>Complexity</div>
+                  <div className="btn-group" style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    {Object.entries(complexityMultipliers).map(([k, v]) => (
+                      <button key={k} className={complexity === k ? "active" : ""} onClick={() => setComplexity(k)} style={{ textAlign: "left" }}>
+                        <span style={{ fontWeight: 600 }}>{v.label}</span>
+                        <span style={{ opacity: 0.6, marginLeft: 6 }}>— {v.desc}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#6B7399", textTransform: "uppercase", letterSpacing: 2, marginBottom: 10 }}>
+                    Team Size: <span style={{ color: "#E8E4DC" }}>{teamSize} people</span>
+                  </div>
+                  <input type="range" min={2} max={5} value={teamSize} onChange={e => setTeamSize(Number(e.target.value))} />
+                  <div style={{ display: "flex", justifyContent: "space-between", fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#6B7399", marginTop: 4 }}>
+                    <span>2</span><span>3</span><span>4</span><span>5</span>
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#6B7399", textTransform: "uppercase", letterSpacing: 2, marginBottom: 10 }}>Start Date</div>
+                  <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
+                  <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#6B7399", marginTop: 10 }}>
+                    Estimated end: <span style={{ color: "#F7C948" }}>{getEndDate()}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Phases */}
+            <div style={{ marginBottom: 28 }}>
+              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#6B7399", textTransform: "uppercase", letterSpacing: 2, marginBottom: 14 }}>
+                Phases — expand to toggle deliverables
+              </div>
+              {computedPhases.map(phase => (
+                <div key={phase.id} className={`phase-row ${!phase.active ? "disabled" : ""}`}>
+                  <div style={{ display: "flex", alignItems: "center", padding: "14px 18px", gap: 14, cursor: "pointer" }}
+                    onClick={() => setExpanded(expanded === phase.id ? null : phase.id)}>
+                    <span style={{ fontSize: 20 }}>{phase.icon}</span>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 17, color: "#F0EDE6" }}>{phase.name}</div>
+                      <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#6B7399", marginTop: 2 }}>
+                        {phase.activeCount} / {phase.tasks.length} deliverables
+                      </div>
+                    </div>
+                    <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 26, color: phase.color, minWidth: 70, textAlign: "right" }}>{phase.weeks}w</div>
+                    <button className="toggle-chip"
+                      style={{ background: phase.active ? phase.color + "22" : "#2A2D45", color: phase.active ? phase.color : "#6B7399", border: `1px solid ${phase.active ? phase.color + "55" : "#2A2D45"}` }}
+                      onClick={e => { e.stopPropagation(); togglePhase(phase.id); }}>
+                      {phase.active ? "included" : "excluded"}
+                    </button>
+                    <span style={{ color: "#4A4F6A", fontFamily: "'DM Mono', monospace", fontSize: 12, marginLeft: 4 }}>
+                      {expanded === phase.id ? "▲" : "▼"}
+                    </span>
+                  </div>
+                  {expanded === phase.id && (
+                    <div className="expand-tasks">
+                      {phase.tasks.map((t, i) => {
+                        const on = deliverableToggles[phase.id][i];
+                        return (
+                          <div key={i} className="task-item" onClick={e => toggleDeliverable(phase.id, i, e)}
+                            style={{ opacity: on ? 1 : 0.4 }}>
+                            <div style={{ width: 16, height: 16, borderRadius: 4, flexShrink: 0, border: `2px solid ${on ? phase.color : "#3D4260"}`, background: on ? phase.color : "transparent", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}>
+                              {on && <span style={{ color: "#0D0F1A", fontSize: 10, fontWeight: 900, lineHeight: 1 }}>✓</span>}
+                            </div>
+                            <span style={{ textDecoration: on ? "none" : "line-through", transition: "all 0.2s" }}>{t}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Gantt */}
+            <div className="card" style={{ padding: 24, marginBottom: 28 }}>
+              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#6B7399", textTransform: "uppercase", letterSpacing: 2, marginBottom: 18 }}>Visual Timeline (weeks)</div>
+              {ganttData.map(p => (
+                <div key={p.id} style={{ display: "flex", alignItems: "center", marginBottom: 10, gap: 12 }}>
+                  <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#9BA3BF", width: 140, flexShrink: 0, textAlign: "right" }}>{p.name.split(" ")[0]}</div>
+                  <div style={{ flex: 1, position: "relative", height: 28 }}>
+                    <div style={{ position: "absolute", left: `${(p.start / totalWeeks) * 100}%`, width: `${(p.weeks / totalWeeks) * 100}%`, background: p.color, height: "100%", borderRadius: 6, display: "flex", alignItems: "center", padding: "0 10px", fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#0D0F1A", fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", transition: "all 0.4s ease" }}>
+                      {p.weeks}w
+                    </div>
+                  </div>
+                </div>
+              ))}
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 8 }}>
+                <div style={{ width: 140, flexShrink: 0 }} />
+                <div style={{ flex: 1, display: "flex", justifyContent: "space-between", fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#3D4260" }}>
+                  {Array.from({ length: Math.min(totalWeeks + 1, 12) }, (_, i) => (
+                    <span key={i}>{Math.round((i / 11) * totalWeeks)}w</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Note */}
+            <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#4A4F6A", lineHeight: 1.8, borderTop: "1px solid #2A2D45", paddingTop: 20 }}>
+              <span style={{ color: "#F75C5C" }}>⚠ Note:</span> Estimates assume dedicated part-time involvement per team member and vendor responsiveness. Complexity multipliers add 25–50% buffer for customization and integration work. Toggle phases on/off to model phased rollouts.
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<ERPEstimator />);
+  </script>
+</body>
+</html>
