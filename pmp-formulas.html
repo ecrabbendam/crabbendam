@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PMP Formula Reference</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f5f5f3;
+      color: #1a1a19;
+      padding: 2rem 1rem;
+      line-height: 1.6;
+    }
+    .container { max-width: 720px; margin: 0 auto; }
+    h1 { font-size: 22px; font-weight: 500; margin-bottom: 6px; }
+    .subtitle { font-size: 14px; color: #73726c; margin-bottom: 24px; }
+    .tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+    .tab {
+      padding: 6px 14px;
+      border-radius: 8px;
+      border: 0.5px solid #c0bfb7;
+      font-size: 13px;
+      cursor: pointer;
+      background: #ffffff;
+      color: #73726c;
+      transition: all .15s;
+    }
+    .tab.active { background: #deeaf8; color: #185fa5; border-color: #b5d4f4; font-weight: 500; }
+    .tab:hover:not(.active) { background: #f1efe8; }
+    .section { display: none; }
+    .section.active { display: block; }
+    .card {
+      background: #ffffff;
+      border: 0.5px solid #d3d1c7;
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+    }
+    .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; flex-wrap: wrap; gap: 6px; }
+    .formula-name { font-size: 14px; font-weight: 500; color: #1a1a19; }
+    .badge { font-size: 11px; padding: 3px 9px; border-radius: 8px; font-weight: 500; }
+    .badge-blue { background: #deeaf8; color: #185fa5; }
+    .badge-green { background: #eaf3de; color: #3b6d11; }
+    .badge-amber { background: #faeeda; color: #854f0b; }
+    .formula-box {
+      background: #f1efe8;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 13px;
+      color: #1a1a19;
+      margin-bottom: 8px;
+    }
+    .desc { font-size: 13px; color: #73726c; line-height: 1.6; }
+    .vars { display: flex; flex-direction: column; gap: 2px; margin-top: 6px; }
+    .var-row { display: flex; gap: 8px; font-size: 12px; }
+    .var-key { color: #185fa5; font-family: "Courier New", Courier, monospace; min-width: 42px; }
+    .var-val { color: #73726c; }
+    .tip { font-size: 12px; color: #854f0b; margin-top: 6px; }
+    h3 {
+      font-size: 11px;
+      font-weight: 500;
+      color: #888780;
+      margin: 14px 0 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      body { background: #1c1c1a; color: #e2e0d6; }
+      .tab { background: #2c2c2a; color: #b4b2a9; border-color: #444441; }
+      .tab.active { background: #0c447c; color: #b5d4f4; border-color: #185fa5; }
+      .tab:hover:not(.active) { background: #3a3a38; }
+      .card { background: #2c2c2a; border-color: #444441; }
+      .formula-name { color: #e2e0d6; }
+      .formula-box { background: #3a3a38; color: #e2e0d6; }
+      .desc { color: #b4b2a9; }
+      .var-val { color: #b4b2a9; }
+      .var-key { color: #85b7eb; }
+      .tip { color: #ef9f27; }
+      h3 { color: #888780; }
+      .badge-blue { background: #0c447c; color: #b5d4f4; }
+      .badge-green { background: #27500a; color: #c0dd97; }
+      .badge-amber { background: #633806; color: #fac775; }
+      .subtitle { color: #888780; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>PMP Formula Reference</h1>
+    <p class="subtitle">Key formulas for the Project Management Professional certification exam</p>
+
+    <div class="tabs">
+      <div class="tab active" onclick="show('ev', this)">Earned Value</div>
+      <div class="tab" onclick="show('schedule', this)">Schedule</div>
+      <div class="tab" onclick="show('quality', this)">Quality &amp; Comms</div>
+      <div class="tab" onclick="show('risk', this)">Risk &amp; Procurement</div>
+    </div>
+
+    <!-- EARNED VALUE -->
+    <div class="section active" id="ev">
+      <h3>Core Measurements</h3>
+      <div class="card">
+        <div class="card-header"><span class="formula-name">Planned Value (PV)</span><span class="badge badge-blue">EVM</span></div>
+        <div class="formula-box">PV = % Planned Complete × BAC</div>
+        <p class="desc">Work that should have been completed by a specific point in time.</p>
+        <div class="vars"><div class="var-row"><span class="var-key">BAC</span><span class="var-val">Budget at Completion (total project budget)</span></div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="formula-name">Earned Value (EV)</span><span class="badge badge-blue">EVM</span></div>
+        <div class="formula-box">EV = % Actually Complete × BAC</div>
+        <p class="desc">The value of the work that has actually been accomplished.</p>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="formula-name">Actual Cost (AC)</span><span class="badge badge-blue">EVM</span></div>
+        <div class="formula-box">AC = Actual cost incurred</div>
+        <p class="desc">Total cost actually spent to accomplish the work measured by EV.</p>
+      </div>
+
+      <h3>Variances</h3>
+      <div class="card">
+        <div class="card-header"><span class="formula-name">Cost Variance (CV)</span><span class="badge badge-green">Variance</span></div>
+        <div class="formula-box">CV = EV − AC</div>
+        <p class="desc">Positive = under budget. Negative = over budget.</p>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="formula-name">Schedule Variance (SV)</span><span class="badge badge-green">Variance</span></div>
+        <div class="formula-box">SV = EV − PV</div>
+        <p class="desc">Positive = ahead of schedule. Negative = behind schedule.</p>
+      </div>
+
+      <h3>Performance Indices</h3>
+      <div class="card">
+        <div class="card-header"><span class="formula-name">Cost Performance Index (CPI)</span><span class="badge badge-blue">Index</span></div>
+        <div class="formula-box">CPI = EV ÷ AC</div>
+        <p class="desc">Efficiency of cost usage. CPI &gt; 1 = under budget, &lt; 1 = over budget.</p>
+        <p class="tip">⚑ Most important EVM efficiency metric on the exam.</p>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="formula-name">Schedule Performance Index (SPI)</span><span class="badge badge-blue">Index</span></div>
+        <div class="formula-box">SPI = EV ÷ PV</div>
+        <p class="desc">Efficiency of schedule usage. SPI &gt; 1 = ahead of schedule.</p>
+      </div>
+
+      <h3>Forecasting</h3>
+      <div class="card">
+        <div class="card-header"><span class="formula-name">Estimate at Completion (EAC) — 3 variants</span><span class="badge badge-amber">Forecast</span></div>
+        <div class="formula-box">EAC = BAC ÷ CPI</div>
+        <p class="desc">If current CPI trend continues for the rest of the project.</p>
+        <div class="formula-box" style="margin-top: 8px;">EAC = AC + (BAC − EV)</div>
+        <p class="desc">If the remaining work will be done at the originally planned rate.</p>
+        <div class="formula-box" style="margin-top: 8px;">EAC = AC + [(BAC − EV) ÷ (CPI × SPI)]</div>
+        <p class="desc">If both cost and schedule performance affect remaining work.</p>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="formula-name">Estimate to Complete (ETC)</span><span class="badge badge-amber">Forecast</span></div>
+        <div class="formula-box">ETC = EAC − AC</div>
+        <p class="desc">Cost remaining to finish the project from now.</p>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="formula-name">Variance at Completion (VAC)</span><span class="badge badge-amber">Forecast</span></div>
+        <div class="formula-box">VAC = BAC − EAC</div>
+        <p class="desc">Expected cost over/under budget at project end.</p>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="formula-name">To-Complete Performance Index (TCPI)</span><span class="badge badge-amber">Forecast</span></div>
+        <div class="formula-box">TCPI = (BAC − EV) ÷ (BAC − AC)</div>
+        <p class="desc">CPI efficiency required on remaining work to meet the BAC.</p>
+        <div class="formula-box" style="margin-top:8px;">TCPI = (BAC − EV) ÷ (EAC − AC)</div>
+        <p class="desc">Use this version when the original BAC is no longer achievable.</p>
+      </div>
+    </div>
+
+    <!-- SCHEDULE -->
+    <div class="section" id="schedule">
+      <h3>Critical Path Method</h3>
+      <div class="card">
+        <div class="card-header"><span class="formula-name">Float (Slack)</span><span class="badge badge-blue">CPM</span></div>
+        <div class="formula-box">Float = LS − ES  or  LF − EF</div>
+        <div class="vars">
+          <div class="var-row"><span class="var-key">LS</span><span class="var-val">Late Start</span></div>
+          <div class="var-row"><span class="var-key">ES</span><span class="var-val">Early Start</span></div>
+          <div class="var-row"><span class="var-key">LF</span><span class="var-val">Late Finish</span></div>
+          <div class="var-row"><span class="var-key">EF</span><span class="var-val">Early Finish</span></div>
+        </div>
+        <p class="tip">⚑ Critical path activities have zero float.</p>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="formula-name">Early Start / Early Finish</span><span class="badge badge-blue">CPM</span></div>
+        <div class="formula-box">EF = ES + Duration − 1</div>
+        <p class="desc">Forward pass: move left to right through the network. ES of successor = EF of predecessor + 1.</p>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="formula-name">Late Start / Late Finish</span><span class="badge badge-blue">CPM</span></div>
+        <div class="formula-box">LS = LF − Duration + 1</div>
+        <p class="desc">Backward pass: move right to left. LF of predecessor = LS of successor − 1.</p>
+      </div>
+
+      <h3>PERT (3-Point Estimating)</h3>
+      <div class="card">
+        <div class="card-header"><span class="formula-name">PERT Estimate (Beta)</span><span class="badge badge-green">PERT</span></div>
+        <div class="formula-box">E = (O + 4M + P) ÷ 6</div>
+        <div class="vars">
+          <div class="var-row"><span class="var-key">O</span><span class="var-val">Optimistic estimate</span></div>
+          <div class="var-row"><span class="var-key">M</span><span class="var-val">Most Likely estimate</span></div>
+          <div class="var-row"><span class="var-key">P</span><span class="var-val">Pessimistic estimate</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="formula-name">PERT Standard Deviation</span><span class="badge badge-green">PERT</span></div>
+        <div class="formula-box">σ = (P − O) ÷ 6</div>
+        <p class="desc">Measures the spread/uncertainty of the estimate.</p>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="formula-name">PERT Variance</span><span class="badge badge-green">PERT</span></div>
+        <div class="formula-box">σ² = ((P − O) ÷ 6)²</div>
+        <p class="desc">Sum of activity variances along the critical path gives the project variance.</p>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="formula-name">Triangular Distribution</span><span class="badge badge-amber">3-Point</span></div>
+        <div class="formula-box">E = (O + M + P) ÷ 3</div>
+        <p class="desc">Simpler than PERT beta — each estimate carries equal weight.</p>
+      </div>
+    </div>
+
+    <!-- QUALITY & COMMS -->
+    <div class="section" id="quality">
+      <h3>Communication</h3>
+      <div class="card">
+        <div class="card-header"><span class="formula-name">Communication Channels</span><span class="badge badge-blue">Comms</span></div>
+        <div class="formula-box">Channels = n(n − 1) ÷ 2</div>
+        <p class="desc">Total potential communication paths between n stakeholders.</p>
+        <p class="tip">⚑ Very frequently tested. With 10 people → 10×9÷2 = 45 channels.</p>
+      </div>
+
+      <h3>Procurement &amp; Cost</h3>
+      <div class="card">
+        <div class="card-header"><span class="formula-name">Point of Total Assumption (PTA)</span><span class="badge badge-amber">Contract</span></div>
+        <div class="formula-box">PTA = ((Ceiling − Target Price) ÷ Buyer Share) + Target Cost</div>
+        <p class="desc">In a Fixed Price Incentive Fee (FPIF) contract — the cost at which the seller absorbs all additional cost risk.</p>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="formula-name">Contract Price (CPIF / CPFF)</span><span class="badge badge-amber">Contract</span></div>
+        <div class="formula-box">Price = AC + Fee</div>
+        <p class="desc">Cost-Plus contracts: buyer pays all actual costs plus an agreed fee (fixed, incentive, or award).</p>
+      </div>
+
+      <h3>Depreciation</h3>
+      <div class="card">
+        <div class="card-header"><span class="formula-name">Straight-Line Depreciation</span><span class="badge badge-green">Finance</span></div>
+        <div class="formula-box">Depreciation = (Asset Cost − Salvage Value) ÷ Useful Life</div>
+        <p class="desc">Equal depreciation expense each year.</p>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="formula-name">Double Declining Balance</span><span class="badge badge-green">Finance</span></div>
+        <div class="formula-box">Depreciation = (2 ÷ Useful Life) × Book Value</div>
+        <p class="desc">Accelerated method — higher depreciation in early years.</p>
+      </div>
+
+      <h3>Project Selection</h3>
+      <div class="card">
+        <div class="card-header"><span class="formula-name">Net Present Value (NPV)</span><span class="badge badge-blue">Selection</span></div>
+        <div class="formula-box">NPV = Σ [FV ÷ (1 + r)ⁿ] − Initial Investment</div>
+        <div class="vars">
+          <div class="var-row"><span class="var-key">FV</span><span class="var-val">Future cash flow</span></div>
+          <div class="var-row"><span class="var-key">r</span><span class="var-val">Discount rate</span></div>
+          <div class="var-row"><span class="var-key">n</span><span class="var-val">Period number</span></div>
+        </div>
+        <p class="tip">⚑ Higher NPV = better project. NPV &gt; 0 means the project adds value.</p>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="formula-name">Present Value (PV)</span><span class="badge badge-blue">Finance</span></div>
+        <div class="formula-box">PV = FV ÷ (1 + r)ⁿ</div>
+        <p class="desc">What a future amount is worth in today's dollars.</p>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="formula-name">Return on Investment (ROI)</span><span class="badge badge-green">Selection</span></div>
+        <div class="formula-box">ROI = (Net Benefits ÷ Costs) × 100%</div>
+        <p class="desc">Higher ROI = more attractive project. Used for benefit-cost comparisons.</p>
+      </div>
+    </div>
+
+    <!-- RISK -->
+    <div class="section" id="risk">
+      <h3>Risk</h3>
+      <div class="card">
+        <div class="card-header"><span class="formula-name">Expected Monetary Value (EMV)</span><span class="badge badge-blue">Risk</span></div>
+        <div class="formula-box">EMV = Probability × Impact</div>
+        <p class="desc">Used in decision tree analysis. Sum of all EMVs = Expected Value of a decision branch.</p>
+        <p class="tip">⚑ Risks use negative values; opportunities use positive values.</p>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="formula-name">Contingency Reserve</span><span class="badge badge-blue">Risk</span></div>
+        <div class="formula-box">Reserve = Σ (Probability × Impact) per risk</div>
+        <p class="desc">Set aside for identified risks ("known unknowns"). Management reserve handles "unknown unknowns."</p>
+      </div>
+
+      <h3>Quality</h3>
+      <div class="card">
+        <div class="card-header"><span class="formula-name">Cost of Quality (COQ)</span><span class="badge badge-green">Quality</span></div>
+        <div class="formula-box">COQ = Cost of Conformance + Cost of Non-Conformance</div>
+        <p class="desc">Cost of conformance = prevention + appraisal costs. Cost of non-conformance = internal + external failure costs.</p>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="formula-name">Control Chart — Rule of Seven</span><span class="badge badge-green">Quality</span></div>
+        <div class="formula-box">Alert: 7 consecutive points on same side of mean</div>
+        <p class="desc">Seven consecutive data points above or below the mean indicates a non-random pattern — the process is out of control even if within control limits.</p>
+      </div>
+
+      <h3>Team &amp; Human Resources</h3>
+      <div class="card">
+        <div class="card-header"><span class="formula-name">Tuckman's Team Development</span><span class="badge badge-amber">HR</span></div>
+        <div class="formula-box">Forming → Storming → Norming → Performing → Adjourning</div>
+        <p class="desc">Not a numerical formula, but a required model: teams progress through stages, and conflict (storming) is a normal part of development.</p>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="formula-name">Maslow's Hierarchy of Needs</span><span class="badge badge-amber">HR</span></div>
+        <div class="formula-box">Physiological → Safety → Social → Esteem → Self-Actualization</div>
+        <p class="desc">Lower-level needs must be met before higher-level motivators take effect.</p>
+      </div>
+    </div>
+
+  </div><!-- /container -->
+
+  <script>
+    function show(id, el) {
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      el.classList.add('active');
+    }
+  </script>
+</body>
+</html>
