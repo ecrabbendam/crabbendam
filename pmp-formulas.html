@@ -38,10 +38,18 @@
       padding: 14px 16px;
       margin-bottom: 10px;
     }
-    .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; flex-wrap: wrap; gap: 6px; }
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .card-header-left { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     .formula-name { font-size: 14px; font-weight: 500; color: #1a1a19; }
     .badge { font-size: 11px; padding: 3px 9px; border-radius: 8px; font-weight: 500; }
-    .badge-blue { background: #deeaf8; color: #185fa5; }
+    .badge-blue  { background: #deeaf8; color: #185fa5; }
     .badge-green { background: #eaf3de; color: #3b6d11; }
     .badge-amber { background: #faeeda; color: #854f0b; }
     .formula-box {
@@ -60,13 +68,37 @@
     .var-val { color: #73726c; }
     .tip { font-size: 12px; color: #854f0b; margin-top: 6px; }
     h3 {
-      font-size: 11px;
-      font-weight: 500;
-      color: #888780;
-      margin: 14px 0 8px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
+      font-size: 11px; font-weight: 500; color: #888780;
+      margin: 14px 0 8px; text-transform: uppercase; letter-spacing: 0.05em;
     }
+    /* Examples button */
+    .btn-examples {
+      font-size: 12px; padding: 3px 10px; border-radius: 8px;
+      border: 0.5px solid #c0bfb7; background: #ffffff; color: #73726c;
+      cursor: pointer; transition: all .15s; white-space: nowrap;
+    }
+    .btn-examples:hover { background: #f1efe8; border-color: #888780; }
+    .btn-examples.open { background: #eaf3de; color: #3b6d11; border-color: #c0dd97; }
+    /* Examples panel */
+    .examples-panel { display: none; margin-top: 12px; border-top: 0.5px solid #e8e6de; padding-top: 12px; }
+    .examples-panel.open { display: block; }
+    .examples-label {
+      font-size: 11px; font-weight: 500; color: #888780;
+      text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;
+    }
+    .example {
+      background: #f8f7f3; border-radius: 8px; padding: 10px 12px;
+      margin-bottom: 8px; border-left: 2px solid #c0dd97;
+    }
+    .example:last-child { margin-bottom: 0; }
+    .example-title { font-size: 12px; font-weight: 500; color: #3b6d11; margin-bottom: 4px; }
+    .example-scenario { font-size: 12px; color: #73726c; margin-bottom: 6px; line-height: 1.5; }
+    .example-calc {
+      font-family: "Courier New", Courier, monospace; font-size: 12px; color: #1a1a19;
+      background: #eef5e4; border-radius: 6px; padding: 6px 10px; margin-bottom: 4px;
+      white-space: pre-wrap;
+    }
+    .example-result { font-size: 12px; color: #3b6d11; font-weight: 500; }
 
     @media (prefers-color-scheme: dark) {
       body { background: #1c1c1a; color: #e2e0d6; }
@@ -81,257 +113,842 @@
       .var-key { color: #85b7eb; }
       .tip { color: #ef9f27; }
       h3 { color: #888780; }
-      .badge-blue { background: #0c447c; color: #b5d4f4; }
+      .badge-blue  { background: #0c447c; color: #b5d4f4; }
       .badge-green { background: #27500a; color: #c0dd97; }
       .badge-amber { background: #633806; color: #fac775; }
       .subtitle { color: #888780; }
+      .btn-examples { background: #2c2c2a; color: #b4b2a9; border-color: #444441; }
+      .btn-examples:hover { background: #3a3a38; border-color: #888780; }
+      .btn-examples.open { background: #27500a; color: #c0dd97; border-color: #639922; }
+      .examples-panel { border-top-color: #444441; }
+      .examples-label { color: #888780; }
+      .example { background: #1e2e18; border-left-color: #639922; }
+      .example-title { color: #97c459; }
+      .example-scenario { color: #b4b2a9; }
+      .example-calc { background: #243320; color: #e2e0d6; }
+      .example-result { color: #97c459; }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>PMP Formula Reference</h1>
-    <p class="subtitle">Key formulas for the Project Management Professional certification exam</p>
+<div class="container">
+  <h1>PMP Formula Reference</h1>
+  <p class="subtitle">Key formulas for the Project Management Professional certification exam</p>
 
-    <div class="tabs">
-      <div class="tab active" onclick="show('ev', this)">Earned Value</div>
-      <div class="tab" onclick="show('schedule', this)">Schedule</div>
-      <div class="tab" onclick="show('quality', this)">Quality &amp; Comms</div>
-      <div class="tab" onclick="show('risk', this)">Risk &amp; Procurement</div>
-    </div>
+  <div class="tabs">
+    <div class="tab active" onclick="show('ev', this)">Earned Value</div>
+    <div class="tab" onclick="show('schedule', this)">Schedule</div>
+    <div class="tab" onclick="show('quality', this)">Quality &amp; Comms</div>
+    <div class="tab" onclick="show('risk', this)">Risk &amp; Procurement</div>
+  </div>
 
-    <!-- EARNED VALUE -->
-    <div class="section active" id="ev">
-      <h3>Core Measurements</h3>
-      <div class="card">
-        <div class="card-header"><span class="formula-name">Planned Value (PV)</span><span class="badge badge-blue">EVM</span></div>
-        <div class="formula-box">PV = % Planned Complete × BAC</div>
-        <p class="desc">Work that should have been completed by a specific point in time.</p>
-        <div class="vars"><div class="var-row"><span class="var-key">BAC</span><span class="var-val">Budget at Completion (total project budget)</span></div></div>
-      </div>
-      <div class="card">
-        <div class="card-header"><span class="formula-name">Earned Value (EV)</span><span class="badge badge-blue">EVM</span></div>
-        <div class="formula-box">EV = % Actually Complete × BAC</div>
-        <p class="desc">The value of the work that has actually been accomplished.</p>
-      </div>
-      <div class="card">
-        <div class="card-header"><span class="formula-name">Actual Cost (AC)</span><span class="badge badge-blue">EVM</span></div>
-        <div class="formula-box">AC = Actual cost incurred</div>
-        <p class="desc">Total cost actually spent to accomplish the work measured by EV.</p>
-      </div>
+  <!-- ── EARNED VALUE ────────────────────────── -->
+  <div class="section active" id="ev">
+    <h3>Core Measurements</h3>
 
-      <h3>Variances</h3>
-      <div class="card">
-        <div class="card-header"><span class="formula-name">Cost Variance (CV)</span><span class="badge badge-green">Variance</span></div>
-        <div class="formula-box">CV = EV − AC</div>
-        <p class="desc">Positive = under budget. Negative = over budget.</p>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-left"><span class="formula-name">Planned Value (PV)</span><span class="badge badge-blue">EVM</span></div>
+        <button class="btn-examples" onclick="toggleEx(this)">Examples</button>
       </div>
-      <div class="card">
-        <div class="card-header"><span class="formula-name">Schedule Variance (SV)</span><span class="badge badge-green">Variance</span></div>
-        <div class="formula-box">SV = EV − PV</div>
-        <p class="desc">Positive = ahead of schedule. Negative = behind schedule.</p>
-      </div>
-
-      <h3>Performance Indices</h3>
-      <div class="card">
-        <div class="card-header"><span class="formula-name">Cost Performance Index (CPI)</span><span class="badge badge-blue">Index</span></div>
-        <div class="formula-box">CPI = EV ÷ AC</div>
-        <p class="desc">Efficiency of cost usage. CPI &gt; 1 = under budget, &lt; 1 = over budget.</p>
-        <p class="tip">⚑ Most important EVM efficiency metric on the exam.</p>
-      </div>
-      <div class="card">
-        <div class="card-header"><span class="formula-name">Schedule Performance Index (SPI)</span><span class="badge badge-blue">Index</span></div>
-        <div class="formula-box">SPI = EV ÷ PV</div>
-        <p class="desc">Efficiency of schedule usage. SPI &gt; 1 = ahead of schedule.</p>
-      </div>
-
-      <h3>Forecasting</h3>
-      <div class="card">
-        <div class="card-header"><span class="formula-name">Estimate at Completion (EAC) — 3 variants</span><span class="badge badge-amber">Forecast</span></div>
-        <div class="formula-box">EAC = BAC ÷ CPI</div>
-        <p class="desc">If current CPI trend continues for the rest of the project.</p>
-        <div class="formula-box" style="margin-top: 8px;">EAC = AC + (BAC − EV)</div>
-        <p class="desc">If the remaining work will be done at the originally planned rate.</p>
-        <div class="formula-box" style="margin-top: 8px;">EAC = AC + [(BAC − EV) ÷ (CPI × SPI)]</div>
-        <p class="desc">If both cost and schedule performance affect remaining work.</p>
-      </div>
-      <div class="card">
-        <div class="card-header"><span class="formula-name">Estimate to Complete (ETC)</span><span class="badge badge-amber">Forecast</span></div>
-        <div class="formula-box">ETC = EAC − AC</div>
-        <p class="desc">Cost remaining to finish the project from now.</p>
-      </div>
-      <div class="card">
-        <div class="card-header"><span class="formula-name">Variance at Completion (VAC)</span><span class="badge badge-amber">Forecast</span></div>
-        <div class="formula-box">VAC = BAC − EAC</div>
-        <p class="desc">Expected cost over/under budget at project end.</p>
-      </div>
-      <div class="card">
-        <div class="card-header"><span class="formula-name">To-Complete Performance Index (TCPI)</span><span class="badge badge-amber">Forecast</span></div>
-        <div class="formula-box">TCPI = (BAC − EV) ÷ (BAC − AC)</div>
-        <p class="desc">CPI efficiency required on remaining work to meet the BAC.</p>
-        <div class="formula-box" style="margin-top:8px;">TCPI = (BAC − EV) ÷ (EAC − AC)</div>
-        <p class="desc">Use this version when the original BAC is no longer achievable.</p>
-      </div>
-    </div>
-
-    <!-- SCHEDULE -->
-    <div class="section" id="schedule">
-      <h3>Critical Path Method</h3>
-      <div class="card">
-        <div class="card-header"><span class="formula-name">Float (Slack)</span><span class="badge badge-blue">CPM</span></div>
-        <div class="formula-box">Float = LS − ES  or  LF − EF</div>
-        <div class="vars">
-          <div class="var-row"><span class="var-key">LS</span><span class="var-val">Late Start</span></div>
-          <div class="var-row"><span class="var-key">ES</span><span class="var-val">Early Start</span></div>
-          <div class="var-row"><span class="var-key">LF</span><span class="var-val">Late Finish</span></div>
-          <div class="var-row"><span class="var-key">EF</span><span class="var-val">Early Finish</span></div>
+      <div class="formula-box">PV = % Planned Complete × BAC</div>
+      <p class="desc">Work that should have been completed by a specific point in time.</p>
+      <div class="vars"><div class="var-row"><span class="var-key">BAC</span><span class="var-val">Budget at Completion (total project budget)</span></div></div>
+      <div class="examples-panel">
+        <p class="examples-label">Worked Examples</p>
+        <div class="example">
+          <p class="example-title">Example 1 — Website Redesign</p>
+          <p class="example-scenario">Project BAC = $100,000. By week 4 of 10, the plan says 40% of work should be done.</p>
+          <div class="example-calc">PV = 40% × $100,000 = $40,000</div>
+          <p class="example-result">$40,000 of work should have been completed by now.</p>
         </div>
-        <p class="tip">⚑ Critical path activities have zero float.</p>
-      </div>
-      <div class="card">
-        <div class="card-header"><span class="formula-name">Early Start / Early Finish</span><span class="badge badge-blue">CPM</span></div>
-        <div class="formula-box">EF = ES + Duration − 1</div>
-        <p class="desc">Forward pass: move left to right through the network. ES of successor = EF of predecessor + 1.</p>
-      </div>
-      <div class="card">
-        <div class="card-header"><span class="formula-name">Late Start / Late Finish</span><span class="badge badge-blue">CPM</span></div>
-        <div class="formula-box">LS = LF − Duration + 1</div>
-        <p class="desc">Backward pass: move right to left. LF of predecessor = LS of successor − 1.</p>
-      </div>
-
-      <h3>PERT (3-Point Estimating)</h3>
-      <div class="card">
-        <div class="card-header"><span class="formula-name">PERT Estimate (Beta)</span><span class="badge badge-green">PERT</span></div>
-        <div class="formula-box">E = (O + 4M + P) ÷ 6</div>
-        <div class="vars">
-          <div class="var-row"><span class="var-key">O</span><span class="var-val">Optimistic estimate</span></div>
-          <div class="var-row"><span class="var-key">M</span><span class="var-val">Most Likely estimate</span></div>
-          <div class="var-row"><span class="var-key">P</span><span class="var-val">Pessimistic estimate</span></div>
+        <div class="example">
+          <p class="example-title">Example 2 — Software Sprint</p>
+          <p class="example-scenario">A 6-month project with BAC = $240,000 is 3 months in. Plan called for 50% completion.</p>
+          <div class="example-calc">PV = 50% × $240,000 = $120,000</div>
+          <p class="example-result">$120,000 worth of work was planned to be done at this midpoint.</p>
         </div>
       </div>
-      <div class="card">
-        <div class="card-header"><span class="formula-name">PERT Standard Deviation</span><span class="badge badge-green">PERT</span></div>
-        <div class="formula-box">σ = (P − O) ÷ 6</div>
-        <p class="desc">Measures the spread/uncertainty of the estimate.</p>
-      </div>
-      <div class="card">
-        <div class="card-header"><span class="formula-name">PERT Variance</span><span class="badge badge-green">PERT</span></div>
-        <div class="formula-box">σ² = ((P − O) ÷ 6)²</div>
-        <p class="desc">Sum of activity variances along the critical path gives the project variance.</p>
-      </div>
-      <div class="card">
-        <div class="card-header"><span class="formula-name">Triangular Distribution</span><span class="badge badge-amber">3-Point</span></div>
-        <div class="formula-box">E = (O + M + P) ÷ 3</div>
-        <p class="desc">Simpler than PERT beta — each estimate carries equal weight.</p>
-      </div>
     </div>
 
-    <!-- QUALITY & COMMS -->
-    <div class="section" id="quality">
-      <h3>Communication</h3>
-      <div class="card">
-        <div class="card-header"><span class="formula-name">Communication Channels</span><span class="badge badge-blue">Comms</span></div>
-        <div class="formula-box">Channels = n(n − 1) ÷ 2</div>
-        <p class="desc">Total potential communication paths between n stakeholders.</p>
-        <p class="tip">⚑ Very frequently tested. With 10 people → 10×9÷2 = 45 channels.</p>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-left"><span class="formula-name">Earned Value (EV)</span><span class="badge badge-blue">EVM</span></div>
+        <button class="btn-examples" onclick="toggleEx(this)">Examples</button>
       </div>
-
-      <h3>Procurement &amp; Cost</h3>
-      <div class="card">
-        <div class="card-header"><span class="formula-name">Point of Total Assumption (PTA)</span><span class="badge badge-amber">Contract</span></div>
-        <div class="formula-box">PTA = ((Ceiling − Target Price) ÷ Buyer Share) + Target Cost</div>
-        <p class="desc">In a Fixed Price Incentive Fee (FPIF) contract — the cost at which the seller absorbs all additional cost risk.</p>
-      </div>
-      <div class="card">
-        <div class="card-header"><span class="formula-name">Contract Price (CPIF / CPFF)</span><span class="badge badge-amber">Contract</span></div>
-        <div class="formula-box">Price = AC + Fee</div>
-        <p class="desc">Cost-Plus contracts: buyer pays all actual costs plus an agreed fee (fixed, incentive, or award).</p>
-      </div>
-
-      <h3>Depreciation</h3>
-      <div class="card">
-        <div class="card-header"><span class="formula-name">Straight-Line Depreciation</span><span class="badge badge-green">Finance</span></div>
-        <div class="formula-box">Depreciation = (Asset Cost − Salvage Value) ÷ Useful Life</div>
-        <p class="desc">Equal depreciation expense each year.</p>
-      </div>
-      <div class="card">
-        <div class="card-header"><span class="formula-name">Double Declining Balance</span><span class="badge badge-green">Finance</span></div>
-        <div class="formula-box">Depreciation = (2 ÷ Useful Life) × Book Value</div>
-        <p class="desc">Accelerated method — higher depreciation in early years.</p>
-      </div>
-
-      <h3>Project Selection</h3>
-      <div class="card">
-        <div class="card-header"><span class="formula-name">Net Present Value (NPV)</span><span class="badge badge-blue">Selection</span></div>
-        <div class="formula-box">NPV = Σ [FV ÷ (1 + r)ⁿ] − Initial Investment</div>
-        <div class="vars">
-          <div class="var-row"><span class="var-key">FV</span><span class="var-val">Future cash flow</span></div>
-          <div class="var-row"><span class="var-key">r</span><span class="var-val">Discount rate</span></div>
-          <div class="var-row"><span class="var-key">n</span><span class="var-val">Period number</span></div>
+      <div class="formula-box">EV = % Actually Complete × BAC</div>
+      <p class="desc">The value of the work that has actually been accomplished.</p>
+      <div class="examples-panel">
+        <p class="examples-label">Worked Examples</p>
+        <div class="example">
+          <p class="example-title">Example 1 — Construction Project</p>
+          <p class="example-scenario">BAC = $500,000. The team has actually completed 35% of scope.</p>
+          <div class="example-calc">EV = 35% × $500,000 = $175,000</div>
+          <p class="example-result">$175,000 worth of work has been earned.</p>
         </div>
-        <p class="tip">⚑ Higher NPV = better project. NPV &gt; 0 means the project adds value.</p>
-      </div>
-      <div class="card">
-        <div class="card-header"><span class="formula-name">Present Value (PV)</span><span class="badge badge-blue">Finance</span></div>
-        <div class="formula-box">PV = FV ÷ (1 + r)ⁿ</div>
-        <p class="desc">What a future amount is worth in today's dollars.</p>
-      </div>
-      <div class="card">
-        <div class="card-header"><span class="formula-name">Return on Investment (ROI)</span><span class="badge badge-green">Selection</span></div>
-        <div class="formula-box">ROI = (Net Benefits ÷ Costs) × 100%</div>
-        <p class="desc">Higher ROI = more attractive project. Used for benefit-cost comparisons.</p>
+        <div class="example">
+          <p class="example-title">Example 2 — IT Rollout (behind plan)</p>
+          <p class="example-scenario">BAC = $80,000. Plan was 60% complete, but only 45% is actually done.</p>
+          <div class="example-calc">EV = 45% × $80,000 = $36,000</div>
+          <p class="example-result">Only $36,000 of value has been earned (vs. $48,000 planned).</p>
+        </div>
       </div>
     </div>
 
-    <!-- RISK -->
-    <div class="section" id="risk">
-      <h3>Risk</h3>
-      <div class="card">
-        <div class="card-header"><span class="formula-name">Expected Monetary Value (EMV)</span><span class="badge badge-blue">Risk</span></div>
-        <div class="formula-box">EMV = Probability × Impact</div>
-        <p class="desc">Used in decision tree analysis. Sum of all EMVs = Expected Value of a decision branch.</p>
-        <p class="tip">⚑ Risks use negative values; opportunities use positive values.</p>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-left"><span class="formula-name">Actual Cost (AC)</span><span class="badge badge-blue">EVM</span></div>
+        <button class="btn-examples" onclick="toggleEx(this)">Examples</button>
       </div>
-      <div class="card">
-        <div class="card-header"><span class="formula-name">Contingency Reserve</span><span class="badge badge-blue">Risk</span></div>
-        <div class="formula-box">Reserve = Σ (Probability × Impact) per risk</div>
-        <p class="desc">Set aside for identified risks ("known unknowns"). Management reserve handles "unknown unknowns."</p>
-      </div>
-
-      <h3>Quality</h3>
-      <div class="card">
-        <div class="card-header"><span class="formula-name">Cost of Quality (COQ)</span><span class="badge badge-green">Quality</span></div>
-        <div class="formula-box">COQ = Cost of Conformance + Cost of Non-Conformance</div>
-        <p class="desc">Cost of conformance = prevention + appraisal costs. Cost of non-conformance = internal + external failure costs.</p>
-      </div>
-      <div class="card">
-        <div class="card-header"><span class="formula-name">Control Chart — Rule of Seven</span><span class="badge badge-green">Quality</span></div>
-        <div class="formula-box">Alert: 7 consecutive points on same side of mean</div>
-        <p class="desc">Seven consecutive data points above or below the mean indicates a non-random pattern — the process is out of control even if within control limits.</p>
-      </div>
-
-      <h3>Team &amp; Human Resources</h3>
-      <div class="card">
-        <div class="card-header"><span class="formula-name">Tuckman's Team Development</span><span class="badge badge-amber">HR</span></div>
-        <div class="formula-box">Forming → Storming → Norming → Performing → Adjourning</div>
-        <p class="desc">Not a numerical formula, but a required model: teams progress through stages, and conflict (storming) is a normal part of development.</p>
-      </div>
-      <div class="card">
-        <div class="card-header"><span class="formula-name">Maslow's Hierarchy of Needs</span><span class="badge badge-amber">HR</span></div>
-        <div class="formula-box">Physiological → Safety → Social → Esteem → Self-Actualization</div>
-        <p class="desc">Lower-level needs must be met before higher-level motivators take effect.</p>
+      <div class="formula-box">AC = Actual cost incurred</div>
+      <p class="desc">Total cost actually spent to accomplish the work measured by EV.</p>
+      <div class="examples-panel">
+        <p class="examples-label">Worked Examples</p>
+        <div class="example">
+          <p class="example-title">Example 1 — Reading AC from context</p>
+          <p class="example-scenario">The project has spent $55,000 in labor, $10,000 in materials, and $5,000 in overhead so far.</p>
+          <div class="example-calc">AC = $55,000 + $10,000 + $5,000 = $70,000</div>
+          <p class="example-result">AC = $70,000. This is the input you use in CV, CPI, ETC, and EAC formulas.</p>
+        </div>
       </div>
     </div>
 
-  </div><!-- /container -->
+    <h3>Variances</h3>
 
-  <script>
-    function show(id, el) {
-      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      document.getElementById(id).classList.add('active');
-      el.classList.add('active');
-    }
-  </script>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-left"><span class="formula-name">Cost Variance (CV)</span><span class="badge badge-green">Variance</span></div>
+        <button class="btn-examples" onclick="toggleEx(this)">Examples</button>
+      </div>
+      <div class="formula-box">CV = EV − AC</div>
+      <p class="desc">Positive = under budget. Negative = over budget.</p>
+      <div class="examples-panel">
+        <p class="examples-label">Worked Examples</p>
+        <div class="example">
+          <p class="example-title">Example 1 — Under budget</p>
+          <p class="example-scenario">EV = $50,000, AC = $45,000.</p>
+          <div class="example-calc">CV = $50,000 − $45,000 = +$5,000</div>
+          <p class="example-result">Positive CV: project is $5,000 under budget.</p>
+        </div>
+        <div class="example">
+          <p class="example-title">Example 2 — Over budget</p>
+          <p class="example-scenario">EV = $30,000, AC = $38,000.</p>
+          <div class="example-calc">CV = $30,000 − $38,000 = −$8,000</div>
+          <p class="example-result">Negative CV: project is $8,000 over budget. Needs corrective action.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-left"><span class="formula-name">Schedule Variance (SV)</span><span class="badge badge-green">Variance</span></div>
+        <button class="btn-examples" onclick="toggleEx(this)">Examples</button>
+      </div>
+      <div class="formula-box">SV = EV − PV</div>
+      <p class="desc">Positive = ahead of schedule. Negative = behind schedule.</p>
+      <div class="examples-panel">
+        <p class="examples-label">Worked Examples</p>
+        <div class="example">
+          <p class="example-title">Example 1 — Ahead of schedule</p>
+          <p class="example-scenario">EV = $60,000, PV = $50,000 (more work done than planned).</p>
+          <div class="example-calc">SV = $60,000 − $50,000 = +$10,000</div>
+          <p class="example-result">Positive SV: project is ahead of schedule by $10,000 of work value.</p>
+        </div>
+        <div class="example">
+          <p class="example-title">Example 2 — Behind schedule</p>
+          <p class="example-scenario">PV = $75,000, but only EV = $60,000 of work is done.</p>
+          <div class="example-calc">SV = $60,000 − $75,000 = −$15,000</div>
+          <p class="example-result">Negative SV: project is behind schedule by $15,000 of planned value.</p>
+        </div>
+      </div>
+    </div>
+
+    <h3>Performance Indices</h3>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-left"><span class="formula-name">Cost Performance Index (CPI)</span><span class="badge badge-blue">Index</span></div>
+        <button class="btn-examples" onclick="toggleEx(this)">Examples</button>
+      </div>
+      <div class="formula-box">CPI = EV ÷ AC</div>
+      <p class="desc">Efficiency of cost usage. CPI &gt; 1 = under budget, &lt; 1 = over budget.</p>
+      <p class="tip">⚑ Most important EVM efficiency metric on the exam.</p>
+      <div class="examples-panel">
+        <p class="examples-label">Worked Examples</p>
+        <div class="example">
+          <p class="example-title">Example 1 — Efficient project</p>
+          <p class="example-scenario">EV = $80,000, AC = $70,000.</p>
+          <div class="example-calc">CPI = $80,000 ÷ $70,000 = 1.14</div>
+          <p class="example-result">Getting $1.14 of value per dollar spent. Project is under budget.</p>
+        </div>
+        <div class="example">
+          <p class="example-title">Example 2 — Over-spending</p>
+          <p class="example-scenario">EV = $40,000, AC = $55,000.</p>
+          <div class="example-calc">CPI = $40,000 ÷ $55,000 = 0.73</div>
+          <p class="example-result">Only $0.73 of value per dollar spent. Project is over budget.</p>
+        </div>
+        <div class="example">
+          <p class="example-title">Example 3 — Exam interpretation question</p>
+          <p class="example-scenario">"The CPI is 0.85. What does this mean for the project?"</p>
+          <div class="example-calc">CPI = 0.85 → spending $1.00 to get $0.85 of value</div>
+          <p class="example-result">The project is over budget — only 85 cents of value produced per dollar spent.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-left"><span class="formula-name">Schedule Performance Index (SPI)</span><span class="badge badge-blue">Index</span></div>
+        <button class="btn-examples" onclick="toggleEx(this)">Examples</button>
+      </div>
+      <div class="formula-box">SPI = EV ÷ PV</div>
+      <p class="desc">Efficiency of schedule usage. SPI &gt; 1 = ahead of schedule.</p>
+      <div class="examples-panel">
+        <p class="examples-label">Worked Examples</p>
+        <div class="example">
+          <p class="example-title">Example 1 — Exactly on track</p>
+          <p class="example-scenario">EV = $50,000, PV = $50,000.</p>
+          <div class="example-calc">SPI = $50,000 ÷ $50,000 = 1.0</div>
+          <p class="example-result">SPI = 1.0: project is exactly on schedule.</p>
+        </div>
+        <div class="example">
+          <p class="example-title">Example 2 — Behind schedule</p>
+          <p class="example-scenario">EV = $30,000, PV = $45,000.</p>
+          <div class="example-calc">SPI = $30,000 ÷ $45,000 = 0.67</div>
+          <p class="example-result">Only accomplishing 67% of planned work. Significantly behind schedule.</p>
+        </div>
+      </div>
+    </div>
+
+    <h3>Forecasting</h3>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-left"><span class="formula-name">Estimate at Completion (EAC) — 3 variants</span><span class="badge badge-amber">Forecast</span></div>
+        <button class="btn-examples" onclick="toggleEx(this)">Examples</button>
+      </div>
+      <div class="formula-box">EAC = BAC ÷ CPI</div>
+      <p class="desc">If current CPI trend continues for the rest of the project.</p>
+      <div class="formula-box" style="margin-top:8px;">EAC = AC + (BAC − EV)</div>
+      <p class="desc">If the remaining work will be done at the originally planned rate.</p>
+      <div class="formula-box" style="margin-top:8px;">EAC = AC + [(BAC − EV) ÷ (CPI × SPI)]</div>
+      <p class="desc">If both cost and schedule performance affect remaining work.</p>
+      <div class="examples-panel">
+        <p class="examples-label">Worked Examples</p>
+        <div class="example">
+          <p class="example-title">Variant 1 — CPI trend continues</p>
+          <p class="example-scenario">BAC = $200,000, CPI = 0.80.</p>
+          <div class="example-calc">EAC = $200,000 ÷ 0.80 = $250,000</div>
+          <p class="example-result">If inefficiency continues, the project will cost $250,000 — $50,000 over budget.</p>
+        </div>
+        <div class="example">
+          <p class="example-title">Variant 2 — Remaining work at planned rate</p>
+          <p class="example-scenario">BAC = $200,000, AC = $90,000, EV = $70,000.</p>
+          <div class="example-calc">EAC = $90,000 + ($200,000 − $70,000) = $220,000</div>
+          <p class="example-result">Assuming remaining work proceeds on budget, total cost will be $220,000.</p>
+        </div>
+        <div class="example">
+          <p class="example-title">Variant 3 — Both CPI and SPI considered</p>
+          <p class="example-scenario">BAC = $200,000, AC = $90,000, EV = $70,000, CPI = 0.78, SPI = 0.88.</p>
+          <div class="example-calc">EAC = $90,000 + [($200,000 − $70,000) ÷ (0.78 × 0.88)]
+     = $90,000 + [$130,000 ÷ 0.686]
+     = $90,000 + $189,500 ≈ $279,500</div>
+          <p class="example-result">Factoring in both inefficiencies, the project is expected to cost ~$279,500.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-left"><span class="formula-name">Estimate to Complete (ETC)</span><span class="badge badge-amber">Forecast</span></div>
+        <button class="btn-examples" onclick="toggleEx(this)">Examples</button>
+      </div>
+      <div class="formula-box">ETC = EAC − AC</div>
+      <p class="desc">Cost remaining to finish the project from now.</p>
+      <div class="examples-panel">
+        <p class="examples-label">Worked Examples</p>
+        <div class="example">
+          <p class="example-title">Example 1</p>
+          <p class="example-scenario">EAC = $250,000, AC = $90,000 already spent.</p>
+          <div class="example-calc">ETC = $250,000 − $90,000 = $160,000</div>
+          <p class="example-result">$160,000 more is needed to finish the project.</p>
+        </div>
+        <div class="example">
+          <p class="example-title">Example 2 — Near completion</p>
+          <p class="example-scenario">EAC = $105,000, AC = $98,000 already spent.</p>
+          <div class="example-calc">ETC = $105,000 − $98,000 = $7,000</div>
+          <p class="example-result">Only $7,000 remains to complete the project.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-left"><span class="formula-name">Variance at Completion (VAC)</span><span class="badge badge-amber">Forecast</span></div>
+        <button class="btn-examples" onclick="toggleEx(this)">Examples</button>
+      </div>
+      <div class="formula-box">VAC = BAC − EAC</div>
+      <p class="desc">Expected cost over/under budget at project end.</p>
+      <div class="examples-panel">
+        <p class="examples-label">Worked Examples</p>
+        <div class="example">
+          <p class="example-title">Example 1 — Over budget at completion</p>
+          <p class="example-scenario">BAC = $200,000, EAC = $230,000.</p>
+          <div class="example-calc">VAC = $200,000 − $230,000 = −$30,000</div>
+          <p class="example-result">Projected to finish $30,000 over budget.</p>
+        </div>
+        <div class="example">
+          <p class="example-title">Example 2 — Under budget at completion</p>
+          <p class="example-scenario">BAC = $150,000, EAC = $140,000.</p>
+          <div class="example-calc">VAC = $150,000 − $140,000 = +$10,000</div>
+          <p class="example-result">Projected to finish $10,000 under budget.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-left"><span class="formula-name">To-Complete Performance Index (TCPI)</span><span class="badge badge-amber">Forecast</span></div>
+        <button class="btn-examples" onclick="toggleEx(this)">Examples</button>
+      </div>
+      <div class="formula-box">TCPI = (BAC − EV) ÷ (BAC − AC)</div>
+      <p class="desc">CPI efficiency required on remaining work to meet the BAC.</p>
+      <div class="formula-box" style="margin-top:8px;">TCPI = (BAC − EV) ÷ (EAC − AC)</div>
+      <p class="desc">Use this version when the original BAC is no longer achievable.</p>
+      <div class="examples-panel">
+        <p class="examples-label">Worked Examples</p>
+        <div class="example">
+          <p class="example-title">Example 1 — Can we still hit BAC?</p>
+          <p class="example-scenario">BAC = $100,000, EV = $40,000, AC = $50,000.</p>
+          <div class="example-calc">TCPI = ($100,000 − $40,000) ÷ ($100,000 − $50,000)
+     = $60,000 ÷ $50,000 = 1.20</div>
+          <p class="example-result">Must perform at 1.20 CPI on all remaining work — very aggressive target.</p>
+        </div>
+        <div class="example">
+          <p class="example-title">Example 2 — BAC revised upward</p>
+          <p class="example-scenario">Same data, but a new EAC of $115,000 has been approved.</p>
+          <div class="example-calc">TCPI = ($100,000 − $40,000) ÷ ($115,000 − $50,000)
+     = $60,000 ÷ $65,000 = 0.92</div>
+          <p class="example-result">With the revised EAC, only 0.92 CPI is needed — more achievable.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SCHEDULE ──────────────────────────────── -->
+  <div class="section" id="schedule">
+    <h3>Critical Path Method</h3>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-left"><span class="formula-name">Float (Slack)</span><span class="badge badge-blue">CPM</span></div>
+        <button class="btn-examples" onclick="toggleEx(this)">Examples</button>
+      </div>
+      <div class="formula-box">Float = LS − ES  or  LF − EF</div>
+      <div class="vars">
+        <div class="var-row"><span class="var-key">LS</span><span class="var-val">Late Start</span></div>
+        <div class="var-row"><span class="var-key">ES</span><span class="var-val">Early Start</span></div>
+        <div class="var-row"><span class="var-key">LF</span><span class="var-val">Late Finish</span></div>
+        <div class="var-row"><span class="var-key">EF</span><span class="var-val">Early Finish</span></div>
+      </div>
+      <p class="tip">⚑ Critical path activities have zero float.</p>
+      <div class="examples-panel">
+        <p class="examples-label">Worked Examples</p>
+        <div class="example">
+          <p class="example-title">Example 1 — Activity with float</p>
+          <p class="example-scenario">An activity has ES = Day 5, LS = Day 8.</p>
+          <div class="example-calc">Float = LS − ES = 8 − 5 = 3 days</div>
+          <p class="example-result">This activity can be delayed up to 3 days without delaying the project.</p>
+        </div>
+        <div class="example">
+          <p class="example-title">Example 2 — Critical path activity</p>
+          <p class="example-scenario">An activity has EF = Day 15, LF = Day 15.</p>
+          <div class="example-calc">Float = LF − EF = 15 − 15 = 0 days</div>
+          <p class="example-result">Zero float — on the critical path. Any delay will delay the whole project.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-left"><span class="formula-name">Early Start / Early Finish</span><span class="badge badge-blue">CPM</span></div>
+        <button class="btn-examples" onclick="toggleEx(this)">Examples</button>
+      </div>
+      <div class="formula-box">EF = ES + Duration − 1</div>
+      <p class="desc">Forward pass: move left to right through the network. ES of successor = EF of predecessor + 1.</p>
+      <div class="examples-panel">
+        <p class="examples-label">Worked Examples</p>
+        <div class="example">
+          <p class="example-title">Example 1 — First activity</p>
+          <p class="example-scenario">Activity A starts on Day 1 and has a 4-day duration.</p>
+          <div class="example-calc">EF = 1 + 4 − 1 = Day 4</div>
+          <p class="example-result">Activity A's earliest finish is Day 4.</p>
+        </div>
+        <div class="example">
+          <p class="example-title">Example 2 — Successor activity</p>
+          <p class="example-scenario">Activity A finishes Day 4. Activity B (3-day duration) follows immediately.</p>
+          <div class="example-calc">ES(B) = EF(A) + 1 = Day 5
+EF(B) = 5 + 3 − 1 = Day 7</div>
+          <p class="example-result">Activity B runs Day 5 to Day 7.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-left"><span class="formula-name">Late Start / Late Finish</span><span class="badge badge-blue">CPM</span></div>
+        <button class="btn-examples" onclick="toggleEx(this)">Examples</button>
+      </div>
+      <div class="formula-box">LS = LF − Duration + 1</div>
+      <p class="desc">Backward pass: move right to left. LF of predecessor = LS of successor − 1.</p>
+      <div class="examples-panel">
+        <p class="examples-label">Worked Examples</p>
+        <div class="example">
+          <p class="example-title">Example 1 — Last activity</p>
+          <p class="example-scenario">Project must finish by Day 20. Last activity has a 5-day duration.</p>
+          <div class="example-calc">LF = Day 20
+LS = 20 − 5 + 1 = Day 16</div>
+          <p class="example-result">Last activity must start no later than Day 16.</p>
+        </div>
+        <div class="example">
+          <p class="example-title">Example 2 — Backward pass continuation</p>
+          <p class="example-scenario">Last activity LS = Day 16. Preceding activity has a 4-day duration.</p>
+          <div class="example-calc">LF(preceding) = LS(last) − 1 = Day 15
+LS(preceding) = 15 − 4 + 1 = Day 12</div>
+          <p class="example-result">Preceding activity must start no later than Day 12 and finish by Day 15.</p>
+        </div>
+      </div>
+    </div>
+
+    <h3>PERT (3-Point Estimating)</h3>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-left"><span class="formula-name">PERT Estimate (Beta)</span><span class="badge badge-green">PERT</span></div>
+        <button class="btn-examples" onclick="toggleEx(this)">Examples</button>
+      </div>
+      <div class="formula-box">E = (O + 4M + P) ÷ 6</div>
+      <div class="vars">
+        <div class="var-row"><span class="var-key">O</span><span class="var-val">Optimistic estimate</span></div>
+        <div class="var-row"><span class="var-key">M</span><span class="var-val">Most Likely estimate</span></div>
+        <div class="var-row"><span class="var-key">P</span><span class="var-val">Pessimistic estimate</span></div>
+      </div>
+      <div class="examples-panel">
+        <p class="examples-label">Worked Examples</p>
+        <div class="example">
+          <p class="example-title">Example 1 — Testing phase</p>
+          <p class="example-scenario">O = 4 days, M = 7 days, P = 16 days.</p>
+          <div class="example-calc">E = (4 + 4×7 + 16) ÷ 6 = (4 + 28 + 16) ÷ 6 = 48 ÷ 6 = 8 days</div>
+          <p class="example-result">The weighted estimate is 8 days. The most likely value gets the most weight (4×).</p>
+        </div>
+        <div class="example">
+          <p class="example-title">Example 2 — Symmetric distribution</p>
+          <p class="example-scenario">O = 2 days, M = 5 days, P = 8 days.</p>
+          <div class="example-calc">E = (2 + 4×5 + 8) ÷ 6 = 30 ÷ 6 = 5 days</div>
+          <p class="example-result">Symmetric range means the PERT estimate equals the most likely estimate.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-left"><span class="formula-name">PERT Standard Deviation</span><span class="badge badge-green">PERT</span></div>
+        <button class="btn-examples" onclick="toggleEx(this)">Examples</button>
+      </div>
+      <div class="formula-box">σ = (P − O) ÷ 6</div>
+      <p class="desc">Measures the spread/uncertainty of the estimate.</p>
+      <div class="examples-panel">
+        <p class="examples-label">Worked Examples</p>
+        <div class="example">
+          <p class="example-title">Example 1 — High uncertainty</p>
+          <p class="example-scenario">O = 4 days, P = 16 days.</p>
+          <div class="example-calc">σ = (16 − 4) ÷ 6 = 12 ÷ 6 = 2 days</div>
+          <p class="example-result">σ = 2 days. At 68% confidence (1σ), the range is 8 ± 2 = 6 to 10 days.</p>
+        </div>
+        <div class="example">
+          <p class="example-title">Example 2 — Low uncertainty</p>
+          <p class="example-scenario">O = 4 days, P = 6 days.</p>
+          <div class="example-calc">σ = (6 − 4) ÷ 6 ≈ 0.33 days</div>
+          <p class="example-result">Very small σ — tight range means high confidence in the estimate.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-left"><span class="formula-name">Triangular Distribution</span><span class="badge badge-amber">3-Point</span></div>
+        <button class="btn-examples" onclick="toggleEx(this)">Examples</button>
+      </div>
+      <div class="formula-box">E = (O + M + P) ÷ 3</div>
+      <p class="desc">Simpler than PERT beta — each estimate carries equal weight.</p>
+      <div class="examples-panel">
+        <p class="examples-label">Worked Examples</p>
+        <div class="example">
+          <p class="example-title">Example 1 — Compare to PERT beta</p>
+          <p class="example-scenario">O = 4 days, M = 7 days, P = 16 days.</p>
+          <div class="example-calc">Triangular: (4 + 7 + 16) ÷ 3 = 27 ÷ 3 = 9 days
+PERT beta:  (4 + 28 + 16) ÷ 6 = 48 ÷ 6 = 8 days</div>
+          <p class="example-result">Triangular gives 9 days vs. PERT's 8 days — the pessimistic value pulls the average higher.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── QUALITY & COMMS ──────────────────────── -->
+  <div class="section" id="quality">
+    <h3>Communication</h3>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-left"><span class="formula-name">Communication Channels</span><span class="badge badge-blue">Comms</span></div>
+        <button class="btn-examples" onclick="toggleEx(this)">Examples</button>
+      </div>
+      <div class="formula-box">Channels = n(n − 1) ÷ 2</div>
+      <p class="desc">Total potential communication paths between n stakeholders.</p>
+      <p class="tip">⚑ Very frequently tested. With 10 people → 10×9÷2 = 45 channels.</p>
+      <div class="examples-panel">
+        <p class="examples-label">Worked Examples</p>
+        <div class="example">
+          <p class="example-title">Example 1 — Small team</p>
+          <p class="example-scenario">5 stakeholders on the project.</p>
+          <div class="example-calc">Channels = 5 × (5 − 1) ÷ 2 = 5 × 4 ÷ 2 = 10</div>
+          <p class="example-result">10 communication channels to manage.</p>
+        </div>
+        <div class="example">
+          <p class="example-title">Example 2 — Adding one person</p>
+          <p class="example-scenario">A new stakeholder joins, growing the team from 10 to 11 people.</p>
+          <div class="example-calc">Before: 10×9÷2 = 45 channels
+After:  11×10÷2 = 55 channels</div>
+          <p class="example-result">Adding just one person adds 10 new channels — complexity grows rapidly.</p>
+        </div>
+        <div class="example">
+          <p class="example-title">Example 3 — Exam question style</p>
+          <p class="example-scenario">A PM manages a project with 8 people (including themselves). How many channels?</p>
+          <div class="example-calc">Channels = 8 × (8 − 1) ÷ 2 = 8 × 7 ÷ 2 = 28</div>
+          <p class="example-result">28 channels. Remember to include the PM in the count!</p>
+        </div>
+      </div>
+    </div>
+
+    <h3>Procurement &amp; Cost</h3>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-left"><span class="formula-name">Point of Total Assumption (PTA)</span><span class="badge badge-amber">Contract</span></div>
+        <button class="btn-examples" onclick="toggleEx(this)">Examples</button>
+      </div>
+      <div class="formula-box">PTA = ((Ceiling − Target Price) ÷ Buyer Share) + Target Cost</div>
+      <p class="desc">In a Fixed Price Incentive Fee (FPIF) contract — the cost point at which the seller absorbs all additional cost risk.</p>
+      <div class="examples-panel">
+        <p class="examples-label">Worked Examples</p>
+        <div class="example">
+          <p class="example-title">Example 1 — FPIF Contract</p>
+          <p class="example-scenario">Target Cost = $100,000 | Target Fee = $10,000 | Target Price = $110,000 | Ceiling = $130,000 | Share ratio = 70/30 (buyer/seller).</p>
+          <div class="example-calc">PTA = (($130,000 − $110,000) ÷ 0.70) + $100,000
+     = ($20,000 ÷ 0.70) + $100,000
+     = $28,571 + $100,000 = $128,571</div>
+          <p class="example-result">If actual costs exceed $128,571, the seller bears 100% of all additional costs.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-left"><span class="formula-name">Contract Price (CPIF / CPFF)</span><span class="badge badge-amber">Contract</span></div>
+        <button class="btn-examples" onclick="toggleEx(this)">Examples</button>
+      </div>
+      <div class="formula-box">Price = AC + Fee</div>
+      <p class="desc">Cost-Plus contracts: buyer pays all actual costs plus an agreed fee (fixed, incentive, or award).</p>
+      <div class="examples-panel">
+        <p class="examples-label">Worked Examples</p>
+        <div class="example">
+          <p class="example-title">Example 1 — CPFF (Fixed Fee)</p>
+          <p class="example-scenario">Actual cost = $80,000, fixed fee = $10,000.</p>
+          <div class="example-calc">Price = $80,000 + $10,000 = $90,000</div>
+          <p class="example-result">Buyer pays $90,000 regardless of seller efficiency.</p>
+        </div>
+        <div class="example">
+          <p class="example-title">Example 2 — CPIF (Incentive Fee)</p>
+          <p class="example-scenario">Target cost = $100,000, AC = $90,000 (came in under). Seller gets 30% of savings as bonus. Base fee = $8,000.</p>
+          <div class="example-calc">Savings = $100,000 − $90,000 = $10,000
+Incentive = 30% × $10,000 = $3,000
+Fee = $8,000 + $3,000 = $11,000
+Price = $90,000 + $11,000 = $101,000</div>
+          <p class="example-result">Seller is rewarded for efficiency. Buyer still pays less than the $108,000 target price.</p>
+        </div>
+      </div>
+    </div>
+
+    <h3>Project Selection</h3>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-left"><span class="formula-name">Net Present Value (NPV)</span><span class="badge badge-blue">Selection</span></div>
+        <button class="btn-examples" onclick="toggleEx(this)">Examples</button>
+      </div>
+      <div class="formula-box">NPV = Σ [FV ÷ (1 + r)ⁿ] − Initial Investment</div>
+      <div class="vars">
+        <div class="var-row"><span class="var-key">FV</span><span class="var-val">Future cash flow</span></div>
+        <div class="var-row"><span class="var-key">r</span><span class="var-val">Discount rate</span></div>
+        <div class="var-row"><span class="var-key">n</span><span class="var-val">Period number</span></div>
+      </div>
+      <p class="tip">⚑ Higher NPV = better project. NPV &gt; 0 means the project adds value.</p>
+      <div class="examples-panel">
+        <p class="examples-label">Worked Examples</p>
+        <div class="example">
+          <p class="example-title">Example 1 — Choose between two projects</p>
+          <p class="example-scenario">Project A NPV = $45,000. Project B NPV = $62,000. Same cost and risk profile.</p>
+          <div class="example-calc">Select Project B → higher NPV = more value created</div>
+          <p class="example-result">On the exam, always choose the higher NPV project when all else is equal.</p>
+        </div>
+        <div class="example">
+          <p class="example-title">Example 2 — Calculate NPV</p>
+          <p class="example-scenario">Project costs $50,000 today and returns $60,000 in Year 1. Discount rate = 10%.</p>
+          <div class="example-calc">PV of return = $60,000 ÷ (1.10)¹ = $54,545
+NPV = $54,545 − $50,000 = +$4,545</div>
+          <p class="example-result">NPV &gt; 0: project creates $4,545 of value. Worth pursuing.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-left"><span class="formula-name">Return on Investment (ROI)</span><span class="badge badge-green">Selection</span></div>
+        <button class="btn-examples" onclick="toggleEx(this)">Examples</button>
+      </div>
+      <div class="formula-box">ROI = (Net Benefits ÷ Costs) × 100%</div>
+      <p class="desc">Higher ROI = more attractive project. Used for benefit-cost comparisons.</p>
+      <div class="examples-panel">
+        <p class="examples-label">Worked Examples</p>
+        <div class="example">
+          <p class="example-title">Example 1 — Compare two projects</p>
+          <p class="example-scenario">Project A: Benefits = $150,000, Costs = $100,000.<br>Project B: Benefits = $90,000, Costs = $50,000.</p>
+          <div class="example-calc">ROI(A) = ($150,000 − $100,000) ÷ $100,000 × 100% = 50%
+ROI(B) = ($90,000 − $50,000) ÷ $50,000 × 100% = 80%</div>
+          <p class="example-result">Project B has a higher ROI (80%) even though Project A has higher absolute returns.</p>
+        </div>
+      </div>
+    </div>
+
+    <h3>Depreciation</h3>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-left"><span class="formula-name">Straight-Line Depreciation</span><span class="badge badge-green">Finance</span></div>
+        <button class="btn-examples" onclick="toggleEx(this)">Examples</button>
+      </div>
+      <div class="formula-box">Depreciation = (Asset Cost − Salvage Value) ÷ Useful Life</div>
+      <p class="desc">Equal depreciation expense each year.</p>
+      <div class="examples-panel">
+        <p class="examples-label">Worked Examples</p>
+        <div class="example">
+          <p class="example-title">Example 1 — Office equipment</p>
+          <p class="example-scenario">Equipment costs $10,000, salvage value = $1,000, useful life = 5 years.</p>
+          <div class="example-calc">Depreciation = ($10,000 − $1,000) ÷ 5 = $9,000 ÷ 5 = $1,800/year</div>
+          <p class="example-result">$1,800 is expensed each year for 5 years.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-left"><span class="formula-name">Double Declining Balance</span><span class="badge badge-green">Finance</span></div>
+        <button class="btn-examples" onclick="toggleEx(this)">Examples</button>
+      </div>
+      <div class="formula-box">Depreciation = (2 ÷ Useful Life) × Book Value</div>
+      <p class="desc">Accelerated method — higher depreciation in early years.</p>
+      <div class="examples-panel">
+        <p class="examples-label">Worked Examples</p>
+        <div class="example">
+          <p class="example-title">Example 1 — Year 1 and Year 2</p>
+          <p class="example-scenario">Asset cost = $10,000, useful life = 5 years.</p>
+          <div class="example-calc">Rate = 2 ÷ 5 = 40%
+Year 1: 40% × $10,000 = $4,000 → Book value = $6,000
+Year 2: 40% × $6,000  = $2,400 → Book value = $3,600</div>
+          <p class="example-result">Year 1 depreciation ($4,000) is more than double the straight-line rate ($1,800).</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── RISK & PROCUREMENT ───────────────────── -->
+  <div class="section" id="risk">
+    <h3>Risk</h3>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-left"><span class="formula-name">Expected Monetary Value (EMV)</span><span class="badge badge-blue">Risk</span></div>
+        <button class="btn-examples" onclick="toggleEx(this)">Examples</button>
+      </div>
+      <div class="formula-box">EMV = Probability × Impact</div>
+      <p class="desc">Used in decision tree analysis. Sum of all EMVs = Expected Value of a decision branch.</p>
+      <p class="tip">⚑ Risks use negative values; opportunities use positive values.</p>
+      <div class="examples-panel">
+        <p class="examples-label">Worked Examples</p>
+        <div class="example">
+          <p class="example-title">Example 1 — Single risk</p>
+          <p class="example-scenario">30% chance a vendor will be late, costing $20,000.</p>
+          <div class="example-calc">EMV = 30% × (−$20,000) = −$6,000</div>
+          <p class="example-result">Reserve $6,000 for this risk in your contingency budget.</p>
+        </div>
+        <div class="example">
+          <p class="example-title">Example 2 — Decision tree</p>
+          <p class="example-scenario">Build in-house: 60% chance of $50,000 gain, 40% chance of $30,000 loss.<br>Outsource: certain cost of $10,000.</p>
+          <div class="example-calc">EMV(in-house)  = (60% × $50,000) + (40% × −$30,000)
+               = $30,000 − $12,000 = +$18,000
+EMV(outsource) = −$10,000</div>
+          <p class="example-result">In-house has higher EMV ($18,000 vs. −$10,000). Choose in-house.</p>
+        </div>
+        <div class="example">
+          <p class="example-title">Example 3 — Mixed risks and opportunities</p>
+          <p class="example-scenario">Risk A: 20% × −$15,000. Risk B: 10% × −$40,000. Opportunity: 25% × +$20,000.</p>
+          <div class="example-calc">EMV = (−$3,000) + (−$4,000) + ($5,000) = −$2,000</div>
+          <p class="example-result">Net EMV is −$2,000. Reserve $2,000 in your contingency budget.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-left"><span class="formula-name">Contingency Reserve</span><span class="badge badge-blue">Risk</span></div>
+        <button class="btn-examples" onclick="toggleEx(this)">Examples</button>
+      </div>
+      <div class="formula-box">Reserve = Σ (Probability × Impact) per risk</div>
+      <p class="desc">Set aside for identified risks ("known unknowns"). Management reserve handles "unknown unknowns."</p>
+      <div class="examples-panel">
+        <p class="examples-label">Worked Examples</p>
+        <div class="example">
+          <p class="example-title">Example 1 — Three identified risks</p>
+          <p class="example-scenario">Risk 1: 50% × $10,000. Risk 2: 20% × $25,000. Risk 3: 10% × $50,000.</p>
+          <div class="example-calc">Reserve = $5,000 + $5,000 + $5,000 = $15,000</div>
+          <p class="example-result">Add $15,000 to the budget as contingency for these known risks.</p>
+        </div>
+      </div>
+    </div>
+
+    <h3>Quality</h3>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-left"><span class="formula-name">Cost of Quality (COQ)</span><span class="badge badge-green">Quality</span></div>
+        <button class="btn-examples" onclick="toggleEx(this)">Examples</button>
+      </div>
+      <div class="formula-box">COQ = Cost of Conformance + Cost of Non-Conformance</div>
+      <p class="desc">Conformance = prevention + appraisal. Non-conformance = internal + external failure.</p>
+      <div class="examples-panel">
+        <p class="examples-label">Worked Examples</p>
+        <div class="example">
+          <p class="example-title">Example 1 — Classify and calculate</p>
+          <p class="example-scenario">Training = $5,000 (prevention). Testing = $3,000 (appraisal). Rework = $8,000 (internal failure). Customer refunds = $4,000 (external failure).</p>
+          <div class="example-calc">Conformance     = $5,000 + $3,000 = $8,000
+Non-Conformance = $8,000 + $4,000 = $12,000
+COQ             = $8,000 + $12,000 = $20,000</div>
+          <p class="example-result">Non-conformance ($12,000) exceeds conformance ($8,000) — invest more in prevention upfront.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-left"><span class="formula-name">Control Chart — Rule of Seven</span><span class="badge badge-green">Quality</span></div>
+        <button class="btn-examples" onclick="toggleEx(this)">Examples</button>
+      </div>
+      <div class="formula-box">Alert: 7 consecutive points on same side of mean</div>
+      <p class="desc">Seven consecutive data points above or below the mean signals a non-random pattern — even if within control limits.</p>
+      <div class="examples-panel">
+        <p class="examples-label">Worked Examples</p>
+        <div class="example">
+          <p class="example-title">Example 1 — Rule triggered</p>
+          <p class="example-scenario">Daily defect counts over 7 days: 3, 4, 5, 3, 4, 5, 4 — all above the mean of 2.5.</p>
+          <div class="example-calc">7 consecutive points above mean → Rule of Seven triggered</div>
+          <p class="example-result">Even within control limits, the process is out of control. Investigate the cause.</p>
+        </div>
+        <div class="example">
+          <p class="example-title">Example 2 — Rule not triggered</p>
+          <p class="example-scenario">Points alternate above and below the mean: high, low, high, low, high, low, high.</p>
+          <div class="example-calc">No 7 consecutive points on the same side → no action</div>
+          <p class="example-result">The variation appears random. Process is in control.</p>
+        </div>
+      </div>
+    </div>
+
+    <h3>Team &amp; Human Resources</h3>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-left"><span class="formula-name">Tuckman's Team Development</span><span class="badge badge-amber">HR</span></div>
+        <button class="btn-examples" onclick="toggleEx(this)">Examples</button>
+      </div>
+      <div class="formula-box">Forming → Storming → Norming → Performing → Adjourning</div>
+      <p class="desc">Teams progress through stages; conflict (storming) is a normal part of development.</p>
+      <div class="examples-panel">
+        <p class="examples-label">Worked Examples</p>
+        <div class="example">
+          <p class="example-title">Example 1 — Identify the stage</p>
+          <p class="example-scenario">"Two team members are arguing about who owns a deliverable. The PM should..."</p>
+          <div class="example-calc">Stage: Storming — conflict over roles is expected here</div>
+          <p class="example-result">Facilitate resolution and clarify roles. This is a normal stage, not a crisis.</p>
+        </div>
+        <div class="example">
+          <p class="example-title">Example 2 — High performance</p>
+          <p class="example-scenario">"The team resolves issues independently and exceeds deliverable quality. What stage?"</p>
+          <div class="example-calc">Stage: Performing — self-directed and highly productive</div>
+          <p class="example-result">Delegate and empower rather than micromanage.</p>
+        </div>
+        <div class="example">
+          <p class="example-title">Example 3 — End of project</p>
+          <p class="example-scenario">"The project is complete and team members are being reassigned. What stage?"</p>
+          <div class="example-calc">Stage: Adjourning — team disbands after project closure</div>
+          <p class="example-result">PM should recognize contributions and conduct lessons-learned sessions.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-left"><span class="formula-name">Maslow's Hierarchy of Needs</span><span class="badge badge-amber">HR</span></div>
+        <button class="btn-examples" onclick="toggleEx(this)">Examples</button>
+      </div>
+      <div class="formula-box">Physiological → Safety → Social → Esteem → Self-Actualization</div>
+      <p class="desc">Lower-level needs must be met before higher-level motivators take effect.</p>
+      <div class="examples-panel">
+        <p class="examples-label">Worked Examples</p>
+        <div class="example">
+          <p class="example-title">Example 1 — Safety need</p>
+          <p class="example-scenario">"A team member is worried about potential layoffs. Which need is unmet?"</p>
+          <div class="example-calc">Safety needs — job security is a safety-level concern</div>
+          <p class="example-result">Until safety needs are addressed, higher motivators like recognition won't be effective.</p>
+        </div>
+        <div class="example">
+          <p class="example-title">Example 2 — Self-actualization</p>
+          <p class="example-scenario">A senior developer has all basic needs met and seeks more challenge and autonomy.</p>
+          <div class="example-calc">Self-Actualization — growth, creativity, reaching full potential</div>
+          <p class="example-result">Assign stretch goals and creative ownership to keep them engaged.</p>
+        </div>
+        <div class="example">
+          <p class="example-title">Example 3 — Social need</p>
+          <p class="example-scenario">"A remote team member feels isolated and disengaged despite good pay. What need is unmet?"</p>
+          <div class="example-calc">Social needs — belonging, teamwork, connection</div>
+          <p class="example-result">Increase team interaction, pair programming, or virtual team events to address this.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+<script>
+  function show(id, el) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    el.classList.add('active');
+  }
+  function toggleEx(btn) {
+    const panel = btn.closest('.card').querySelector('.examples-panel');
+    const isOpen = panel.classList.toggle('open');
+    btn.classList.toggle('open', isOpen);
+    btn.textContent = isOpen ? 'Hide examples' : 'Examples';
+  }
+</script>
 </body>
 </html>
