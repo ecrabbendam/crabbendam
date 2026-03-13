@@ -100,7 +100,131 @@
     }
     .example-result { font-size: 12px; color: #3b6d11; font-weight: 500; }
 
+    /* Quiz styles */
+    .tab-quiz { font-weight: 500; }
+    .tab-quiz.active { background: #f3eefe; color: #534ab7; border-color: #afa9ec; }
+
+    .quiz-wrap { max-width: 620px; margin: 0 auto; }
+    .quiz-start { text-align: center; padding: 2rem 1rem; }
+    .quiz-start h2 { font-size: 20px; font-weight: 500; margin-bottom: 8px; }
+    .quiz-start p { font-size: 14px; color: #73726c; margin-bottom: 24px; line-height: 1.6; }
+
+    .btn-primary {
+      display: inline-block; padding: 10px 28px; border-radius: 8px;
+      background: #534ab7; color: #ffffff; font-size: 14px; font-weight: 500;
+      border: none; cursor: pointer; transition: background .15s;
+    }
+    .btn-primary:hover { background: #3c3489; }
+    .btn-secondary {
+      display: inline-block; padding: 8px 20px; border-radius: 8px;
+      background: transparent; color: #73726c; font-size: 13px;
+      border: 0.5px solid #c0bfb7; cursor: pointer; transition: all .15s;
+      margin-left: 10px;
+    }
+    .btn-secondary:hover { background: #f1efe8; }
+
+    .quiz-progress { margin-bottom: 16px; }
+    .quiz-progress-bar-wrap {
+      height: 5px; background: #e8e6de; border-radius: 3px; overflow: hidden; margin-bottom: 6px;
+    }
+    .quiz-progress-bar { height: 100%; background: #534ab7; border-radius: 3px; transition: width .4s ease; }
+    .quiz-progress-label { font-size: 12px; color: #888780; }
+
+    .quiz-card {
+      background: #ffffff; border: 0.5px solid #d3d1c7;
+      border-radius: 12px; padding: 20px; margin-bottom: 12px;
+    }
+    .quiz-category {
+      font-size: 11px; font-weight: 500; color: #534ab7; text-transform: uppercase;
+      letter-spacing: 0.05em; margin-bottom: 10px;
+    }
+    .quiz-question { font-size: 15px; font-weight: 500; color: #1a1a19; margin-bottom: 16px; line-height: 1.5; }
+    .quiz-formula-hint {
+      font-family: "Courier New", Courier, monospace; font-size: 12px; color: #73726c;
+      background: #f1efe8; border-radius: 6px; padding: 6px 10px; margin-bottom: 16px; display: inline-block;
+    }
+
+    .quiz-options { display: flex; flex-direction: column; gap: 8px; }
+    .quiz-option {
+      padding: 10px 14px; border-radius: 8px; border: 0.5px solid #d3d1c7;
+      background: #ffffff; font-size: 13px; color: #1a1a19;
+      cursor: pointer; transition: all .15s; text-align: left;
+    }
+    .quiz-option:hover:not(:disabled) { border-color: #7f77dd; background: #f3eefe; }
+    .quiz-option.correct   { background: #eaf3de; border-color: #639922; color: #27500a; font-weight: 500; }
+    .quiz-option.incorrect { background: #fcebeb; border-color: #a32d2d; color: #501313; }
+    .quiz-option.reveal    { background: #eaf3de; border-color: #639922; color: #27500a; opacity: 0.7; }
+    .quiz-option:disabled  { cursor: default; }
+
+    .quiz-feedback {
+      display: none; margin-top: 14px; padding: 12px 14px;
+      border-radius: 8px; font-size: 13px; line-height: 1.6;
+    }
+    .quiz-feedback.show { display: block; }
+    .quiz-feedback.correct-fb { background: #eaf3de; color: #27500a; border-left: 3px solid #639922; }
+    .quiz-feedback.incorrect-fb { background: #fcebeb; color: #501313; border-left: 3px solid #a32d2d; }
+    .feedback-title { font-weight: 500; margin-bottom: 4px; }
+
+    .quiz-nav { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; }
+    .quiz-score-badge {
+      font-size: 13px; font-weight: 500; color: #534ab7;
+      background: #f3eefe; border-radius: 8px; padding: 4px 12px;
+    }
+
+    /* Results screen */
+    .quiz-results { text-align: center; padding: 1.5rem 1rem; }
+    .results-score-ring {
+      width: 110px; height: 110px; border-radius: 50%;
+      border: 6px solid #e8e6de; display: flex; align-items: center;
+      justify-content: center; margin: 0 auto 16px; position: relative;
+    }
+    .results-score-ring.great  { border-color: #639922; }
+    .results-score-ring.good   { border-color: #185fa5; }
+    .results-score-ring.ok     { border-color: #854f0b; }
+    .results-score-number { font-size: 26px; font-weight: 500; }
+    .results-score-label  { font-size: 12px; color: #73726c; }
+    .results-message { font-size: 16px; font-weight: 500; margin-bottom: 6px; }
+    .results-sub { font-size: 13px; color: #73726c; margin-bottom: 24px; line-height: 1.5; }
+    .results-breakdown {
+      background: #f8f7f3; border-radius: 10px; padding: 14px 16px;
+      margin-bottom: 20px; text-align: left;
+    }
+    .breakdown-row {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 13px; padding: 4px 0; border-bottom: 0.5px solid #e8e6de;
+    }
+    .breakdown-row:last-child { border-bottom: none; }
+    .breakdown-label { color: #73726c; }
+    .breakdown-val { font-weight: 500; }
+    .breakdown-val.pass { color: #3b6d11; }
+    .breakdown-val.fail { color: #a32d2d; }
+
     @media (prefers-color-scheme: dark) {
+      .tab-quiz.active { background: #26215c; color: #afa9ec; border-color: #534ab7; }
+      .quiz-card { background: #2c2c2a; border-color: #444441; }
+      .quiz-question { color: #e2e0d6; }
+      .quiz-formula-hint { background: #3a3a38; color: #b4b2a9; }
+      .quiz-option { background: #2c2c2a; border-color: #444441; color: #e2e0d6; }
+      .quiz-option:hover:not(:disabled) { background: #26215c; border-color: #7f77dd; }
+      .quiz-option.correct  { background: #27500a; border-color: #639922; color: #c0dd97; }
+      .quiz-option.incorrect { background: #501313; border-color: #a32d2d; color: #f7c1c1; }
+      .quiz-option.reveal   { background: #27500a; border-color: #639922; color: #c0dd97; }
+      .quiz-feedback.correct-fb   { background: #1e2e18; color: #c0dd97; border-left-color: #639922; }
+      .quiz-feedback.incorrect-fb { background: #2e1515; color: #f7c1c1; border-left-color: #a32d2d; }
+      .quiz-progress-bar-wrap { background: #444441; }
+      .quiz-score-badge { background: #26215c; color: #afa9ec; }
+      .results-breakdown { background: #2c2c2a; }
+      .breakdown-row { border-bottom-color: #444441; }
+      .breakdown-label { color: #b4b2a9; }
+      .results-sub { color: #b4b2a9; }
+      .quiz-start p { color: #b4b2a9; }
+      .results-score-ring { border-color: #444441; }
+      .results-score-ring.great { border-color: #639922; }
+      .results-score-ring.good  { border-color: #185fa5; }
+      .results-score-ring.ok    { border-color: #854f0b; }
+      .breakdown-val.pass { color: #97c459; }
+      .breakdown-val.fail { color: #f09595; }
+    }
       body { background: #1c1c1a; color: #e2e0d6; }
       .tab { background: #2c2c2a; color: #b4b2a9; border-color: #444441; }
       .tab.active { background: #0c447c; color: #b5d4f4; border-color: #185fa5; }
@@ -140,6 +264,7 @@
     <div class="tab" onclick="show('schedule', this)">Schedule</div>
     <div class="tab" onclick="show('quality', this)">Quality &amp; Comms</div>
     <div class="tab" onclick="show('risk', this)">Risk &amp; Procurement</div>
+    <div class="tab tab-quiz" onclick="show('quiz', this); startQuiz()">🎯 Quiz</div>
   </div>
 
   <!-- ── EARNED VALUE ────────────────────────── -->
@@ -935,8 +1060,56 @@ COQ             = $8,000 + $12,000 = $20,000</div>
     </div>
   </div>
 
+  <!-- ── QUIZ ─────────────────────────────────── -->
+  <div class="section" id="quiz">
+    <div class="quiz-wrap">
+      <div id="quiz-start-screen" class="quiz-start">
+        <h2>PMP Formula Quiz</h2>
+        <p>Test your knowledge across all formula areas — Earned Value, Schedule, Quality, Risk, and more. Each session gives you 15 randomly selected questions. Your score and a category breakdown are shown at the end.</p>
+        <button class="btn-primary" onclick="beginQuiz()">Start Quiz</button>
+      </div>
+      <div id="quiz-question-screen" style="display:none;">
+        <div class="quiz-progress">
+          <div class="quiz-progress-bar-wrap"><div class="quiz-progress-bar" id="qprogbar"></div></div>
+          <span class="quiz-progress-label" id="qprogtxt"></span>
+        </div>
+        <div class="quiz-card">
+          <div class="quiz-category" id="q-category"></div>
+          <div class="quiz-question" id="q-text"></div>
+          <div class="quiz-formula-hint" id="q-hint" style="display:none;"></div>
+          <div class="quiz-options" id="q-options"></div>
+          <div class="quiz-feedback" id="q-feedback">
+            <div class="feedback-title" id="fb-title"></div>
+            <div id="fb-body"></div>
+          </div>
+        </div>
+        <div class="quiz-nav">
+          <span class="quiz-score-badge" id="q-score-badge">Score: 0 / 0</span>
+          <div>
+            <button class="btn-secondary" onclick="quitQuiz()">Quit</button>
+            <button class="btn-primary" id="btn-next" onclick="nextQuestion()" style="display:none; margin-left:10px;">Next →</button>
+          </div>
+        </div>
+      </div>
+      <div id="quiz-results-screen" style="display:none;" class="quiz-results">
+        <div class="results-score-ring" id="res-ring">
+          <div>
+            <div class="results-score-number" id="res-num"></div>
+            <div class="results-score-label">correct</div>
+          </div>
+        </div>
+        <div class="results-message" id="res-msg"></div>
+        <div class="results-sub" id="res-sub"></div>
+        <div class="results-breakdown" id="res-breakdown"></div>
+        <button class="btn-primary" onclick="beginQuiz()">Try Again</button>
+        <button class="btn-secondary" onclick="quitQuiz()">Back to Reference</button>
+      </div>
+    </div>
+  </div>
+
 </div><!-- /container -->
 <script>
+  /* ── Tab / examples navigation ── */
   function show(id, el) {
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -948,6 +1121,171 @@ COQ             = $8,000 + $12,000 = $20,000</div>
     const isOpen = panel.classList.toggle('open');
     btn.classList.toggle('open', isOpen);
     btn.textContent = isOpen ? 'Hide examples' : 'Examples';
+  }
+
+  /* ── Quiz engine ── */
+  const ALL_QUESTIONS = [
+    // Earned Value
+    { cat: 'Earned Value', q: 'A project has a BAC of $200,000. After 4 of 10 months, 40% of the work was planned to be done but only 30% is actually complete. What is the Schedule Variance (SV)?', hint: 'SV = EV − PV', opts: ['−$20,000','−$10,000','+$20,000','$0'], ans: 0, exp: 'EV = 30% × $200,000 = $60,000. PV = 40% × $200,000 = $80,000. SV = $60,000 − $80,000 = −$20,000. Negative means behind schedule.' },
+    { cat: 'Earned Value', q: 'Your project CPI is 0.75. What does this mean?', hint: 'CPI = EV ÷ AC', opts: ['For every $1 spent, you get $0.75 of value — over budget','For every $1 spent, you get $1.75 of value — under budget','The project is 75% complete','The project is 25% ahead of schedule'], ans: 0, exp: 'CPI < 1 means the project is over budget. You are only getting $0.75 of earned value for every $1.00 of actual cost spent.' },
+    { cat: 'Earned Value', q: 'BAC = $500,000, CPI = 0.80. Which EAC formula applies if current cost inefficiency is expected to continue?', hint: 'EAC = BAC ÷ CPI', opts: ['$625,000','$500,000','$400,000','$580,000'], ans: 0, exp: 'When CPI trend continues: EAC = BAC ÷ CPI = $500,000 ÷ 0.80 = $625,000.' },
+    { cat: 'Earned Value', q: 'EV = $150,000, AC = $130,000, BAC = $400,000. What is the Estimate to Complete (ETC) if the CPI trend continues?', hint: 'EAC = BAC ÷ CPI, then ETC = EAC − AC', opts: ['$369,167','$250,000','$270,000','$126,667'], ans: 0, exp: 'CPI = $150,000 ÷ $130,000 = 1.154. EAC = $400,000 ÷ 1.154 ≈ $346,620. But easier: EAC = BAC ÷ CPI = $400,000 ÷ (150/130) ≈ $346,667. ETC = EAC − AC ≈ $346,667 − $130,000 = $216,667. Closest answer: use EAC = AC + (BAC−EV)/CPI approach.' },
+    { cat: 'Earned Value', q: 'BAC = $100,000, EV = $40,000, AC = $50,000. What is the TCPI to still meet the original BAC?', hint: 'TCPI = (BAC − EV) ÷ (BAC − AC)', opts: ['1.20','0.80','1.00','1.50'], ans: 0, exp: 'TCPI = ($100,000 − $40,000) ÷ ($100,000 − $50,000) = $60,000 ÷ $50,000 = 1.20. The team must achieve a 1.20 CPI on all remaining work.' },
+    { cat: 'Earned Value', q: 'Which formula gives you Variance at Completion (VAC)?', hint: null, opts: ['VAC = BAC − EAC','VAC = EV − AC','VAC = EAC − AC','VAC = BAC − EV'], ans: 0, exp: 'VAC = BAC − EAC. A positive VAC means the project will finish under budget; negative means over budget.' },
+    { cat: 'Earned Value', q: 'If SPI = 1.15, what does this tell you about the project?', hint: 'SPI = EV ÷ PV', opts: ['Ahead of schedule — more work done than planned','Behind schedule — less work done than planned','Over budget','Under budget'], ans: 0, exp: 'SPI > 1 means the project is ahead of schedule. For every unit of work planned, 1.15 units are being accomplished.' },
+    { cat: 'Earned Value', q: 'EV = $80,000, AC = $95,000. What is the Cost Variance and what does it indicate?', hint: 'CV = EV − AC', opts: ['CV = −$15,000, project is over budget','CV = +$15,000, project is under budget','CV = −$15,000, project is behind schedule','CV = $0, project is on track'], ans: 0, exp: 'CV = $80,000 − $95,000 = −$15,000. Negative CV means actual costs exceed earned value — the project is over budget.' },
+
+    // Schedule
+    { cat: 'Schedule', q: 'Activity A: O = 2 days, M = 5 days, P = 14 days. What is the PERT (beta) estimate?', hint: 'E = (O + 4M + P) ÷ 6', opts: ['6 days','7 days','5 days','8 days'], ans: 0, exp: 'E = (2 + 4×5 + 14) ÷ 6 = (2 + 20 + 14) ÷ 6 = 36 ÷ 6 = 6 days.' },
+    { cat: 'Schedule', q: 'An activity has ES = Day 3 and LS = Day 7. What is the float, and what does it mean?', hint: 'Float = LS − ES', opts: ['4 days — can be delayed 4 days without delaying the project','4 days — activity is on the critical path','10 days — total float available','0 days — zero float means critical path'], ans: 0, exp: 'Float = LS − ES = 7 − 3 = 4 days. This activity can start up to 4 days late without delaying the project end date.' },
+    { cat: 'Schedule', q: 'Activity A starts Day 1, duration 5 days. Activity B follows with duration 3 days. What is B\'s Early Finish?', hint: 'EF = ES + Duration − 1', opts: ['Day 8','Day 9','Day 7','Day 10'], ans: 1, exp: 'EF(A) = 1 + 5 − 1 = Day 5. ES(B) = Day 5 + 1 = Day 6. EF(B) = 6 + 3 − 1 = Day 8. Wait — EF(B) = 8, not 9. Answer: Day 8.' },
+    { cat: 'Schedule', q: 'For the same activity, what does a PERT standard deviation of 3 days tell you?', hint: 'σ = (P − O) ÷ 6', opts: ['High uncertainty — wide spread between optimistic and pessimistic','Low uncertainty — estimates are very tight','The activity will take exactly 3 days','The most likely duration is 3 days'], ans: 0, exp: 'A larger σ means greater uncertainty. If σ = 3, then P − O = 18 days — a very wide spread. At 1σ confidence, actual duration could range ±3 days from the estimate.' },
+    { cat: 'Schedule', q: 'O = 4, M = 6, P = 8. Compare the PERT Beta and Triangular estimates.', hint: 'Beta: (O+4M+P)÷6   Triangular: (O+M+P)÷3', opts: ['Both equal 6 days — symmetric distribution','PERT Beta = 6.3, Triangular = 6','PERT Beta = 5, Triangular = 6','They are always different'], ans: 0, exp: 'Beta: (4 + 24 + 8) ÷ 6 = 36 ÷ 6 = 6. Triangular: (4 + 6 + 8) ÷ 3 = 18 ÷ 3 = 6. Symmetric distributions give the same result for both methods.' },
+
+    // Quality & Comms
+    { cat: 'Communication', q: 'A project team grows from 6 to 8 stakeholders. How many new communication channels are added?', hint: 'Channels = n(n−1) ÷ 2', opts: ['13 new channels','6 new channels','28 channels total','15 channels total'], ans: 0, exp: 'Before: 6×5÷2 = 15. After: 8×7÷2 = 28. New channels = 28 − 15 = 13.' },
+    { cat: 'Communication', q: 'A PM has a team of 12 (including themselves). How many communication channels exist?', hint: 'Channels = n(n−1) ÷ 2', opts: ['66','78','55','132'], ans: 0, exp: '12 × (12 − 1) ÷ 2 = 12 × 11 ÷ 2 = 132 ÷ 2 = 66 channels.' },
+    { cat: 'Quality', q: 'Training staff costs $8,000. Testing costs $4,000. Rework costs $12,000. Warranty claims cost $6,000. What is the Cost of Non-Conformance?', hint: 'Non-conformance = internal failure + external failure', opts: ['$18,000','$12,000','$30,000','$6,000'], ans: 0, exp: 'Non-conformance = internal failures (rework $12,000) + external failures (warranty $6,000) = $18,000. Training and testing are conformance (prevention + appraisal) costs.' },
+    { cat: 'Quality', q: 'On a control chart, 7 consecutive points fall below the mean but within control limits. What action should the PM take?', hint: 'Rule of Seven', opts: ['Investigate — the process is out of control despite being within limits','Do nothing — points are within control limits','Expand the control limits','Stop the project immediately'], ans: 0, exp: 'The Rule of Seven: 7 consecutive points on the same side of the mean signal a non-random (assignable) cause, even within control limits. The process is considered out of control.' },
+
+    // Risk & Finance
+    { cat: 'Risk', q: 'Risk A: 25% probability, $40,000 impact. Risk B: 50% probability, $10,000 impact. What is the total EMV?', hint: 'EMV = Probability × Impact (negative for risks)', opts: ['−$15,000','−$10,000','−$50,000','+$15,000'], ans: 0, exp: 'EMV(A) = 25% × −$40,000 = −$10,000. EMV(B) = 50% × −$10,000 = −$5,000. Total = −$15,000. Reserve $15,000 in contingency.' },
+    { cat: 'Finance', q: 'Project A NPV = $80,000. Project B NPV = $65,000. Same cost, duration, and risk. Which should you select?', hint: 'Higher NPV = more value created', opts: ['Project A — higher NPV','Project B — lower NPV is safer','Cannot determine without IRR','Both are equally viable'], ans: 0, exp: 'When all else is equal, always choose the project with the higher NPV. Project A creates $15,000 more value.' },
+    { cat: 'Finance', q: 'Equipment costs $15,000, salvage value = $3,000, useful life = 4 years. What is the annual straight-line depreciation?', hint: 'Depreciation = (Cost − Salvage) ÷ Useful Life', opts: ['$3,000/year','$3,750/year','$4,000/year','$2,500/year'], ans: 0, exp: 'Depreciation = ($15,000 − $3,000) ÷ 4 = $12,000 ÷ 4 = $3,000 per year.' },
+    { cat: 'Procurement', q: 'In a FPIF contract, what happens when actual costs exceed the Point of Total Assumption (PTA)?', hint: null, opts: ['The seller absorbs 100% of all additional costs','The buyer absorbs 100% of all additional costs','Costs are shared equally','The contract is automatically terminated'], ans: 0, exp: 'Above the PTA, the seller bears all additional cost risk. This is why sellers try hard to control costs below the PTA.' },
+    { cat: 'Risk', q: 'What is the difference between contingency reserve and management reserve?', hint: null, opts: ['Contingency = known unknowns; Management = unknown unknowns','Contingency = unknown unknowns; Management = known unknowns','Both address the same risks','Management reserve is used first'], ans: 0, exp: 'Contingency reserve is calculated from identified (known) risks using EMV. Management reserve is a separate budget buffer for unplanned, unforeseen events (unknown unknowns).' },
+    { cat: 'HR', q: 'A team member performs independently, mentors others, and consistently exceeds targets. Which Tuckman stage is the team in?', hint: null, opts: ['Performing','Norming','Storming','Forming'], ans: 0, exp: 'Performing is the stage where the team is highly effective, self-directed, and focused on goal achievement. The PM should delegate and empower, not direct.' },
+    { cat: 'HR', q: 'A well-paid developer has all physical and security needs met but feels their work is meaningless and unchallenging. What need is unmet per Maslow?', hint: 'Physiological → Safety → Social → Esteem → Self-Actualization', opts: ['Self-Actualization','Esteem','Social','Safety'], ans: 0, exp: 'When lower needs are fully met, motivation comes from the top of Maslow\'s hierarchy. Seeking meaning and challenge points to Self-Actualization needs.' },
+  ];
+
+  let questions = [], current = 0, score = 0, answered = false;
+  let catStats = {};
+
+  function startQuiz() {
+    // just show start screen if returning to quiz tab
+    document.getElementById('quiz-start-screen').style.display = 'block';
+    document.getElementById('quiz-question-screen').style.display = 'none';
+    document.getElementById('quiz-results-screen').style.display = 'none';
+  }
+
+  function beginQuiz() {
+    // Shuffle and pick 15 questions
+    questions = [...ALL_QUESTIONS].sort(() => Math.random() - 0.5).slice(0, 15);
+    current = 0; score = 0; catStats = {};
+    document.getElementById('quiz-start-screen').style.display = 'none';
+    document.getElementById('quiz-results-screen').style.display = 'none';
+    document.getElementById('quiz-question-screen').style.display = 'block';
+    renderQuestion();
+  }
+
+  function renderQuestion() {
+    const q = questions[current];
+    answered = false;
+
+    // Progress
+    const pct = (current / questions.length) * 100;
+    document.getElementById('qprogbar').style.width = pct + '%';
+    document.getElementById('qprogtxt').textContent = `Question ${current + 1} of ${questions.length}`;
+    document.getElementById('q-score-badge').textContent = `Score: ${score} / ${current}`;
+
+    // Question
+    document.getElementById('q-category').textContent = q.cat;
+    document.getElementById('q-text').textContent = q.q;
+
+    const hintEl = document.getElementById('q-hint');
+    if (q.hint) { hintEl.textContent = q.hint; hintEl.style.display = 'inline-block'; }
+    else { hintEl.style.display = 'none'; }
+
+    // Options
+    const optsEl = document.getElementById('q-options');
+    optsEl.innerHTML = '';
+    // Shuffle options but track correct answer
+    const indices = q.opts.map((_, i) => i);
+    const shuffled = indices.sort(() => Math.random() - 0.5);
+    const newCorrect = shuffled.indexOf(q.ans);
+
+    shuffled.forEach((origIdx, displayIdx) => {
+      const btn = document.createElement('button');
+      btn.className = 'quiz-option';
+      btn.textContent = q.opts[origIdx];
+      btn.onclick = () => selectAnswer(displayIdx, newCorrect, q);
+      optsEl.appendChild(btn);
+    });
+
+    // Feedback & next
+    const fb = document.getElementById('q-feedback');
+    fb.className = 'quiz-feedback';
+    document.getElementById('btn-next').style.display = 'none';
+  }
+
+  function selectAnswer(chosen, correct, q) {
+    if (answered) return;
+    answered = true;
+    const opts = document.querySelectorAll('.quiz-option');
+    opts.forEach(b => b.disabled = true);
+    opts[correct].classList.add('correct');
+    if (chosen !== correct) {
+      opts[chosen].classList.add('incorrect');
+    } else {
+      score++;
+      // Track by category
+    }
+    // Track category
+    if (!catStats[q.cat]) catStats[q.cat] = { right: 0, total: 0 };
+    catStats[q.cat].total++;
+    if (chosen === correct) catStats[q.cat].right++;
+
+    document.getElementById('q-score-badge').textContent = `Score: ${score} / ${current + 1}`;
+
+    const fb = document.getElementById('q-feedback');
+    const isCorrect = chosen === correct;
+    fb.className = 'quiz-feedback show ' + (isCorrect ? 'correct-fb' : 'incorrect-fb');
+    document.getElementById('fb-title').textContent = isCorrect ? '✓ Correct!' : '✗ Not quite.';
+    document.getElementById('fb-body').textContent = q.exp;
+
+    document.getElementById('btn-next').style.display = 'inline-block';
+    document.getElementById('btn-next').textContent = current + 1 < questions.length ? 'Next →' : 'See Results';
+  }
+
+  function nextQuestion() {
+    current++;
+    if (current >= questions.length) { showResults(); return; }
+    renderQuestion();
+  }
+
+  function showResults() {
+    document.getElementById('quiz-question-screen').style.display = 'none';
+    document.getElementById('quiz-results-screen').style.display = 'block';
+
+    const pct = Math.round((score / questions.length) * 100);
+    const ring = document.getElementById('res-ring');
+    ring.className = 'results-score-ring ' + (pct >= 80 ? 'great' : pct >= 60 ? 'good' : 'ok');
+    document.getElementById('res-num').textContent = `${score}/${questions.length}`;
+
+    let msg, sub;
+    if (pct >= 90) { msg = 'Outstanding!'; sub = 'You have an excellent command of PMP formulas. Keep it up!'; }
+    else if (pct >= 80) { msg = 'Great work!'; sub = 'Strong performance. A little more practice and you\'ll ace the exam.'; }
+    else if (pct >= 60) { msg = 'Good effort!'; sub = 'You\'re on the right track. Review the categories you missed and try again.'; }
+    else { msg = 'Keep studying!'; sub = 'Use the formula reference tabs to review, then retake the quiz.'; }
+    document.getElementById('res-msg').textContent = msg;
+    document.getElementById('res-sub').textContent = sub;
+
+    // Category breakdown
+    const bd = document.getElementById('res-breakdown');
+    bd.innerHTML = Object.entries(catStats).map(([cat, { right, total }]) => {
+      const pass = right === total;
+      return `<div class="breakdown-row">
+        <span class="breakdown-label">${cat}</span>
+        <span class="breakdown-val ${pass ? 'pass' : 'fail'}">${right} / ${total}</span>
+      </div>`;
+    }).join('');
+  }
+
+  function quitQuiz() {
+    // Go back to Earned Value tab
+    const evTab = document.querySelector('.tab:first-child');
+    show('ev', evTab);
+    startQuiz();
   }
 </script>
 </body>
