@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HOBBY QUEST — Find Your Thing</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a12;
+    --bg2: #0f0f1e;
+    --panel: #13132a;
+    --border: #2a2a55;
+    --neon-cyan: #00f5ff;
+    --neon-pink: #ff2d78;
+    --neon-yellow: #ffe600;
+    --neon-green: #39ff14;
+    --neon-purple: #bf5fff;
+    --text: #e8e8ff;
+    --text-dim: #7878aa;
+    --card-bg: #1a1a35;
+    --glow-cyan: 0 0 20px #00f5ff55, 0 0 40px #00f5ff22;
+    --glow-pink: 0 0 20px #ff2d7855, 0 0 40px #ff2d7822;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 18px;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Scanline overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.07) 2px,
+      rgba(0,0,0,0.07) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* Animated background stars */
+  .stars {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+  }
+  .star {
+    position: absolute;
+    width: 2px; height: 2px;
+    background: white;
+    border-radius: 50%;
+    opacity: 0;
+    animation: twinkle var(--dur) var(--delay) infinite;
+  }
+  @keyframes twinkle {
+    0%,100% { opacity: 0; }
+    50% { opacity: var(--op); }
+  }
+
+  /* Grid lines */
+  .grid-floor {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 200px;
+    background:
+      linear-gradient(to top, rgba(0,245,255,0.07) 0%, transparent 100%),
+      repeating-linear-gradient(90deg, rgba(0,245,255,0.05) 0px, transparent 1px, transparent 60px, rgba(0,245,255,0.05) 61px),
+      repeating-linear-gradient(0deg, rgba(0,245,255,0.05) 0px, transparent 1px, transparent 40px, rgba(0,245,255,0.05) 41px);
+    transform: perspective(300px) rotateX(40deg);
+    transform-origin: bottom center;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrapper {
+    position: relative;
+    z-index: 1;
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 40px 20px 100px;
+  }
+
+  /* ── HEADER ── */
+  header {
+    text-align: center;
+    margin-bottom: 50px;
+    position: relative;
+  }
+  .header-eyebrow {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    color: var(--neon-cyan);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    animation: flicker 4s infinite;
+  }
+  @keyframes flicker {
+    0%,97%,100% { opacity: 1; }
+    98% { opacity: 0.4; }
+    99% { opacity: 1; }
+    99.5% { opacity: 0.2; }
+  }
+  h1 {
+    font-family: 'Press Start 2P', monospace;
+    font-size: clamp(22px, 5vw, 38px);
+    line-height: 1.4;
+    background: linear-gradient(135deg, var(--neon-cyan) 0%, var(--neon-pink) 50%, var(--neon-yellow) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: none;
+    filter: drop-shadow(0 0 30px rgba(0,245,255,0.4));
+    animation: titlePulse 3s ease-in-out infinite;
+  }
+  @keyframes titlePulse {
+    0%,100% { filter: drop-shadow(0 0 20px rgba(0,245,255,0.4)); }
+    50% { filter: drop-shadow(0 0 50px rgba(255,45,120,0.6)); }
+  }
+  .header-sub {
+    margin-top: 20px;
+    color: var(--text-dim);
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 1px;
+  }
+  .header-sub span { color: var(--neon-yellow); }
+
+  /* ── PROGRESS BAR ── */
+  .progress-wrap {
+    margin-bottom: 36px;
+  }
+  .progress-labels {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+  }
+  .progress-labels .current { color: var(--neon-cyan); }
+  .progress-bar-outer {
+    height: 8px;
+    background: var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .progress-bar-inner {
+    height: 100%;
+    background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink));
+    border-radius: 4px;
+    transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 0 12px var(--neon-cyan);
+  }
+
+  /* ── QUESTION CARD ── */
+  .screen {
+    display: none;
+    animation: slideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .screen.active { display: block; }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(30px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .q-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 36px;
+    position: relative;
+    overflow: hidden;
+  }
+  .q-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink), var(--neon-yellow));
+  }
+  .q-number {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    color: var(--neon-pink);
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+  }
+  .q-text {
+    font-size: clamp(18px, 3vw, 24px);
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.4;
+    margin-bottom: 30px;
+  }
+  .q-emoji {
+    font-size: 40px;
+    margin-bottom: 16px;
+    display: block;
+    filter: drop-shadow(0 0 10px rgba(255,230,0,0.5));
+  }
+
+  /* ── ANSWER OPTIONS ── */
+  .options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  .options.cols-1 { grid-template-columns: 1fr; }
+  .options.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+  .opt-btn {
+    background: var(--panel);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 16px;
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    line-height: 1.3;
+  }
+  .opt-btn .opt-icon {
+    font-size: 26px;
+    flex-shrink: 0;
+    filter: drop-shadow(0 0 8px rgba(255,255,255,0.3));
+  }
+  .opt-btn:hover {
+    border-color: var(--neon-cyan);
+    background: rgba(0,245,255,0.08);
+    transform: translateY(-2px);
+    box-shadow: var(--glow-cyan);
+    color: var(--neon-cyan);
+  }
+  .opt-btn.selected {
+    border-color: var(--neon-pink);
+    background: rgba(255,45,120,0.12);
+    box-shadow: var(--glow-pink);
+    color: var(--neon-pink);
+  }
+  .opt-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  /* ── MULTI SELECT HINT ── */
+  .multi-hint {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    color: var(--neon-yellow);
+    margin-bottom: 20px;
+    letter-spacing: 1px;
+  }
+
+  /* ── NEXT BUTTON ── */
+  .next-wrap {
+    margin-top: 28px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 14px;
+    align-items: center;
+  }
+  .btn-next {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 11px;
+    padding: 16px 28px;
+    background: linear-gradient(135deg, var(--neon-cyan), #006eff);
+    border: none;
+    border-radius: 8px;
+    color: #000;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: all 0.2s ease;
+    box-shadow: 0 0 20px rgba(0,245,255,0.4);
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-next:hover {
+    transform: scale(1.05) translateY(-2px);
+    box-shadow: 0 0 40px rgba(0,245,255,0.7);
+  }
+  .btn-next:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  /* ── RESULTS ── */
+  #results-screen {
+    animation: slideIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .results-header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+  .results-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: clamp(14px, 3vw, 22px);
+    color: var(--neon-yellow);
+    margin-bottom: 12px;
+    text-shadow: 0 0 30px rgba(255,230,0,0.5);
+    line-height: 1.5;
+  }
+  .results-sub {
+    color: var(--text-dim);
+    font-size: 16px;
+    font-weight: 600;
+  }
+  .results-sub span { color: var(--neon-green); }
+
+  .hobby-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 18px;
+    margin-bottom: 40px;
+  }
+
+  .hobby-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px 18px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.25s ease;
+    animation: cardPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+  @keyframes cardPop {
+    from { opacity: 0; transform: scale(0.8) translateY(20px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  .hobby-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--accent-color, var(--neon-cyan));
+    box-shadow: 0 8px 30px rgba(0,0,0,0.4), 0 0 20px rgba(0,245,255,0.15);
+  }
+  .hobby-card .rank-badge {
+    position: absolute;
+    top: 12px; right: 14px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    color: var(--accent-color, var(--neon-cyan));
+    letter-spacing: 1px;
+  }
+  .hobby-card .hobby-icon {
+    font-size: 40px;
+    margin-bottom: 12px;
+    display: block;
+    filter: drop-shadow(0 0 12px rgba(255,255,255,0.3));
+  }
+  .hobby-card .hobby-name {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 10px;
+    color: var(--text);
+    margin-bottom: 10px;
+    line-height: 1.6;
+  }
+  .hobby-card .hobby-desc {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-dim);
+    line-height: 1.5;
+    margin-bottom: 12px;
+  }
+  .hobby-card .hobby-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .tag {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.07);
+    color: var(--text-dim);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .hobby-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent-color, var(--neon-cyan)), transparent);
+  }
+  .hobby-card.top-pick {
+    border-color: var(--neon-yellow);
+    background: linear-gradient(135deg, rgba(255,230,0,0.07) 0%, var(--card-bg) 60%);
+  }
+  .hobby-card.top-pick::before {
+    background: linear-gradient(90deg, var(--neon-yellow), var(--neon-pink), transparent);
+  }
+
+  /* Score bar */
+  .score-bar {
+    margin-top: 10px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .score-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-color, var(--neon-cyan)), var(--neon-pink));
+    border-radius: 2px;
+    transition: width 1s ease 0.3s;
+    box-shadow: 0 0 8px var(--accent-color, var(--neon-cyan));
+  }
+
+  /* ── RESTART ── */
+  .btn-restart {
+    display: block;
+    margin: 0 auto;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 10px;
+    padding: 18px 36px;
+    background: transparent;
+    border: 2px solid var(--neon-pink);
+    border-radius: 8px;
+    color: var(--neon-pink);
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+  }
+  .btn-restart:hover {
+    background: rgba(255,45,120,0.15);
+    box-shadow: var(--glow-pink);
+    transform: scale(1.05);
+  }
+
+  /* ── INTRO SCREEN ── */
+  #intro-screen .intro-box {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 48px 40px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  #intro-screen .intro-box::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink), var(--neon-yellow), var(--neon-green));
+  }
+  .intro-icons {
+    font-size: 48px;
+    margin-bottom: 24px;
+    letter-spacing: 8px;
+    animation: float 3s ease-in-out infinite;
+  }
+  @keyframes float {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+  .intro-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: clamp(12px, 3vw, 18px);
+    color: var(--neon-cyan);
+    margin-bottom: 20px;
+    line-height: 1.7;
+    text-shadow: 0 0 30px rgba(0,245,255,0.5);
+  }
+  .intro-desc {
+    color: var(--text-dim);
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 1.7;
+    margin-bottom: 36px;
+    max-width: 550px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .intro-desc strong { color: var(--neon-yellow); }
+  .btn-start {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 13px;
+    padding: 20px 48px;
+    background: linear-gradient(135deg, var(--neon-pink), #9900ff);
+    border: none;
+    border-radius: 10px;
+    color: white;
+    cursor: pointer;
+    letter-spacing: 2px;
+    transition: all 0.25s ease;
+    box-shadow: 0 0 30px rgba(255,45,120,0.5);
+    position: relative;
+    overflow: hidden;
+    text-transform: uppercase;
+  }
+  .btn-start::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 60%;
+    height: 100%;
+    background: rgba(255,255,255,0.2);
+    transform: skewX(-20deg);
+    animation: shine 2.5s infinite;
+  }
+  @keyframes shine {
+    0% { left: -100%; }
+    100% { left: 200%; }
+  }
+  .btn-start:hover {
+    transform: scale(1.06) translateY(-3px);
+    box-shadow: 0 0 60px rgba(255,45,120,0.7);
+  }
+
+  .disclaimer {
+    margin-top: 30px;
+    font-size: 13px;
+    color: var(--text-dim);
+    font-style: italic;
+  }
+
+  /* ── CATEGORY SECTION ── */
+  .category-section {
+    margin-bottom: 50px;
+  }
+  .category-label {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--neon-purple);
+    margin-bottom: 18px;
+    padding-left: 2px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .category-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--neon-purple), transparent);
+  }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    .options { grid-template-columns: 1fr; }
+    .options.cols-3 { grid-template-columns: 1fr 1fr; }
+    .q-card { padding: 24px 18px; }
+    .hobby-grid { grid-template-columns: 1fr 1fr; }
+    #intro-screen .intro-box { padding: 28px 20px; }
+  }
+  @media (max-width: 400px) {
+    .hobby-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="stars" id="stars"></div>
+<div class="grid-floor"></div>
+
+<div class="wrapper">
+  <!-- HEADER -->
+  <header>
+    <div class="header-eyebrow">★ LEVEL UP YOUR LIFE ★</div>
+    <h1>HOBBY QUEST</h1>
+    <p class="header-sub">Find your <span>next obsession</span> — beyond the screen</p>
+  </header>
+
+  <!-- INTRO SCREEN -->
+  <div id="intro-screen" class="screen active">
+    <div class="intro-box">
+      <div class="intro-icons">🎮📱📺</div>
+      <div class="intro-title">STUCK IN SCREEN MODE?</div>
+      <p class="intro-desc">
+        You crush it at gaming, you've binged every show, you've scrolled to the end of the internet.<br><br>
+        Time to discover what <strong>ELSE</strong> you're built for.<br>
+        Answer <strong>8 quick questions</strong> and we'll match you to hobbies you'll actually want to try.
+      </p>
+      <button class="btn-start" onclick="startQuiz()">▶ START THE QUEST</button>
+      <p class="disclaimer">⚡ ~2 minutes • No login • No boring stuff</p>
+    </div>
+  </div>
+
+  <!-- QUIZ SCREENS (generated by JS) -->
+  <div id="quiz-container"></div>
+
+  <!-- RESULTS SCREEN -->
+  <div id="results-screen" class="screen" style="display:none;"></div>
+</div>
+
+<script>
+// ── STARS ──
+const starsEl = document.getElementById('stars');
+for (let i = 0; i < 120; i++) {
+  const s = document.createElement('div');
+  s.className = 'star';
+  s.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*100}%;--dur:${2+Math.random()*5}s;--delay:${Math.random()*6}s;--op:${0.3+Math.random()*0.7}`;
+  starsEl.appendChild(s);
+}
+
+// ── QUESTIONS ──
+const questions = [
+  {
+    id: 'vibe',
+    text: 'What\'s your general vibe when you\'re not on a screen?',
+    emoji: '🤔',
+    multi: false,
+    options: [
+      { icon: '🌳', label: 'Outside & Moving', tags: ['outdoor','physical','active'] },
+      { icon: '🛠️', label: 'Making & Building', tags: ['creative','handson','indoor'] },
+      { icon: '🧪', label: 'Thinking & Experimenting', tags: ['stem','intellectual','solo'] },
+      { icon: '🎨', label: 'Artistic & Expressive', tags: ['creative','artistic','calm'] },
+    ]
+  },
+  {
+    id: 'energy',
+    text: 'Pick the energy level that fits you best:',
+    emoji: '⚡',
+    multi: false,
+    options: [
+      { icon: '🔥', label: 'High Energy — I want to move!', tags: ['active','physical','competitive'] },
+      { icon: '🌊', label: 'Medium — Some effort, not a workout', tags: ['moderate','social'] },
+      { icon: '🧘', label: 'Chill — I\'d rather sit and focus', tags: ['calm','solo','intellectual'] },
+      { icon: '🎭', label: 'It depends on the day', tags: ['varied','creative','social'] },
+    ]
+  },
+  {
+    id: 'people',
+    text: 'When doing a hobby, do you prefer to...',
+    emoji: '👥',
+    multi: false,
+    options: [
+      { icon: '🕹️', label: 'Go solo — just me & the thing', tags: ['solo','calm','creative'] },
+      { icon: '⚔️', label: 'Compete — I want to WIN', tags: ['competitive','social','active'] },
+      { icon: '🤝', label: 'Hang with a crew', tags: ['social','community','fun'] },
+      { icon: '🔄', label: 'Mix — both sounds good', tags: ['social','solo','varied'] },
+    ]
+  },
+  {
+    id: 'makes',
+    text: 'What sounds most satisfying to you?',
+    emoji: '✨',
+    multi: false,
+    options: [
+      { icon: '🏆', label: 'Beating a personal record or opponent', tags: ['competitive','physical','achievement'] },
+      { icon: '🎁', label: 'Creating something I can show people', tags: ['creative','artistic','handson'] },
+      { icon: '🧩', label: 'Solving a tricky problem', tags: ['intellectual','stem','solo'] },
+      { icon: '🌍', label: 'Exploring new places or things', tags: ['outdoor','adventure','social'] },
+    ]
+  },
+  {
+    id: 'hands',
+    text: 'Do you like working with your hands?',
+    emoji: '🙌',
+    multi: false,
+    options: [
+      { icon: '🔧', label: 'Yes — love building & fixing stuff', tags: ['handson','stem','indoor'] },
+      { icon: '🖌️', label: 'Kind of — if it\'s artistic', tags: ['artistic','creative','handson'] },
+      { icon: '🎵', label: 'Musically — like playing instruments', tags: ['music','creative','artistic'] },
+      { icon: '❌', label: 'Not really — I prefer mind over hands', tags: ['intellectual','calm','solo'] },
+    ]
+  },
+  {
+    id: 'nature',
+    text: 'How do you feel about the outdoors?',
+    emoji: '🌿',
+    multi: false,
+    options: [
+      { icon: '🌄', label: 'Love it — give me fresh air', tags: ['outdoor','nature','active'] },
+      { icon: '🐟', label: 'It\'s OK if there\'s a purpose (fishing, hiking...)', tags: ['outdoor','calm','solo'] },
+      { icon: '🏙️', label: 'Prefer urban / local environments', tags: ['social','community','moderate'] },
+      { icon: '🏠', label: 'Hard pass — indoor is better', tags: ['indoor','calm','creative'] },
+    ]
+  },
+  {
+    id: 'skills',
+    text: 'Which skills do you secretly think you\'d be decent at?',
+    emoji: '🎯',
+    multi: true,
+    hint: 'Pick as many as you want!',
+    options: [
+      { icon: '🎸', label: 'Music', tags: ['music','artistic','creative'] },
+      { icon: '⚽', label: 'Sports / Athletic', tags: ['physical','competitive','active'] },
+      { icon: '💻', label: 'Tech / Coding', tags: ['stem','intellectual','solo'] },
+      { icon: '🎨', label: 'Drawing / Design', tags: ['artistic','creative','calm'] },
+      { icon: '🍳', label: 'Cooking', tags: ['handson','creative','social'] },
+      { icon: '📸', label: 'Photography / Film', tags: ['creative','artistic','outdoor'] },
+    ]
+  },
+  {
+    id: 'motivation',
+    text: 'What would actually make you stick with a new hobby?',
+    emoji: '🚀',
+    multi: false,
+    options: [
+      { icon: '📈', label: 'Getting visibly better over time', tags: ['achievement','competitive','intellectual'] },
+      { icon: '💸', label: 'Making money from it someday', tags: ['achievement','creative','stem'] },
+      { icon: '😎', label: 'Showing it off / impressing people', tags: ['social','artistic','performance'] },
+      { icon: '❤️', label: 'Just genuinely loving it', tags: ['calm','solo','creative'] },
+    ]
+  }
+];
+
+// ── HOBBIES DATABASE ──
+const hobbies = [
+  // PHYSICAL / OUTDOOR
+  { name: 'Skateboarding', icon: '🛹', desc: 'Street tricks, parks, grinds. High skill ceiling, sick once you land your first kickflip.', tags: ['outdoor','active','competitive','achievement','social'], color: '#ff2d78' },
+  { name: 'Rock Climbing', icon: '🧗', desc: 'Indoor bouldering or real walls — problem-solving meets physical endurance.', tags: ['outdoor','active','physical','intellectual','achievement'], color: '#ff7c2d' },
+  { name: 'Parkour / Free Running', icon: '🏃', desc: 'The city is your playground. Jump, vault, flip. Insane when you film it.', tags: ['outdoor','active','physical','social','achievement'], color: '#ff2d78' },
+  { name: 'Archery', icon: '🏹', desc: 'Ridiculously satisfying. Pure focus and precision. Range in most areas.', tags: ['indoor','calm','solo','achievement','competitive'], color: '#00f5ff' },
+  { name: 'Martial Arts', icon: '🥋', desc: 'BJJ, boxing, Muay Thai, karate — real skills for real life plus insane fitness.', tags: ['physical','competitive','active','social','achievement'], color: '#ff2d78' },
+  { name: 'Cycling / BMX', icon: '🚵', desc: 'Road bikes, mountain biking, or BMX tricks — get far, go fast, do stunts.', tags: ['outdoor','active','physical','adventure','competitive'], color: '#39ff14' },
+  { name: 'Fishing', icon: '🎣', desc: 'Meditative solo time or chill with friends. More strategy than it looks.', tags: ['outdoor','calm','solo','nature','varied'], color: '#00a8ff' },
+  { name: 'Surfing / Bodyboarding', icon: '🏄', desc: 'Florida coast is RIGHT THERE. Reading waves is a skill that takes years to master.', tags: ['outdoor','active','physical','nature','adventure'], color: '#00f5ff' },
+  { name: 'Swimming / Freediving', icon: '🤿', desc: 'You\'re in Florida — beaches and springs everywhere. Learn to freedive for a superpower.', tags: ['outdoor','physical','active','nature','achievement'], color: '#00f5ff' },
+  { name: 'Longboarding', icon: '🛷', desc: 'Cruising the neighborhood on a longboard is effortless cool. Fast to learn.', tags: ['outdoor','active','moderate','social'], color: '#ff7c2d' },
+  { name: 'Calisthenics', icon: '💪', desc: 'Pushups and pullups are just the start. Handstands, planches, muscle-ups — look insane.', tags: ['physical','active','achievement','solo','indoor'], color: '#ff2d78' },
+
+  // CREATIVE / ARTISTIC
+  { name: 'Digital Art / Illustration', icon: '🎨', desc: 'Draw on a tablet, create characters, concept art. Carries directly from gaming visuals.', tags: ['artistic','creative','solo','indoor','calm','achievement'], color: '#bf5fff' },
+  { name: 'Music Production / Beat Making', icon: '🎧', desc: 'Make beats on FL Studio, GarageBand, or Ableton. Zero cost to start, huge ceiling.', tags: ['music','creative','indoor','solo','achievement','artistic'], color: '#ff2d78' },
+  { name: 'Guitar / Bass', icon: '🎸', desc: 'Start with tabs of songs you love. Within weeks you can play real stuff.', tags: ['music','artistic','creative','solo','achievement','social'], color: '#ff7c2d' },
+  { name: 'Drums / Electronic Kit', icon: '🥁', desc: 'Unbelievably fun. E-kits are affordable. Rhythm from gaming actually helps here.', tags: ['music','active','creative','artistic','achievement','physical'], color: '#ffe600' },
+  { name: 'Drawing / Sketching', icon: '✏️', desc: 'No gear needed. Portraits, anime, characters, whatever you\'re into.', tags: ['artistic','creative','calm','solo','indoor','achievement'], color: '#bf5fff' },
+  { name: 'Filmmaking / YouTube', icon: '🎬', desc: 'Script, shoot, edit — your phone is a studio. Turn any hobby into content.', tags: ['creative','artistic','social','achievement','performance'], color: '#ff2d78' },
+  { name: 'Photography', icon: '📸', desc: 'Walk around with a camera and see the world differently. Start with a phone.', tags: ['creative','artistic','outdoor','solo','achievement'], color: '#00f5ff' },
+  { name: '3D Printing & Design', icon: '🖨️', desc: 'Design in Blender or TinkerCAD, print real objects. Total nerd power move.', tags: ['stem','creative','handson','indoor','achievement'], color: '#39ff14' },
+  { name: 'Origami & Paper Craft', icon: '🦢', desc: 'Absurdly meditative. Complex models are basically puzzles you build with paper.', tags: ['handson','calm','solo','creative','artistic'], color: '#bf5fff' },
+  { name: 'Graffiti / Street Art', icon: '🖌️', desc: 'Sketching letterforms and characters. Legal walls exist. Creative outlet with an edge.', tags: ['artistic','creative','outdoor','social','achievement'], color: '#ff2d78' },
+
+  // TECH / STEM
+  { name: 'Coding / Game Dev', icon: '👾', desc: 'Build the games you play. Python, Unity, Godot — free tools, massive online community.', tags: ['stem','intellectual','creative','indoor','solo','achievement'], color: '#39ff14' },
+  { name: 'Electronics / Arduino', icon: '⚡', desc: 'Build gadgets, robots, LED projects. Raspberry Pi runs for $35. Crazy satisfying.', tags: ['stem','handson','intellectual','creative','indoor','achievement'], color: '#ffe600' },
+  { name: 'Robotics', icon: '🤖', desc: 'Competitions like FIRST Robotics are basically esports but physical. School teams exist.', tags: ['stem','competitive','intellectual','social','achievement','handson'], color: '#39ff14' },
+  { name: 'Ham Radio / SDR', icon: '📡', desc: 'Talk to people across the world on radio frequencies. Surprisingly niche-cool hobby.', tags: ['stem','intellectual','solo','achievement'], color: '#00f5ff' },
+  { name: 'Chess', icon: '♟️', desc: 'Endless depth. Lichess and Chess.com online are free. Competitive rankings are addictive.', tags: ['intellectual','competitive','solo','calm','achievement'], color: '#bf5fff' },
+  { name: 'Astronomy', icon: '🔭', desc: 'Florida dark skies aren\'t perfect but a decent telescope changes everything.', tags: ['intellectual','outdoor','solo','calm','nature','stem'], color: '#00f5ff' },
+  { name: 'Lock Picking', icon: '🔓', desc: 'Genuinely useful skill, tons of YouTube lore, and local clubs you\'d never expect exist.', tags: ['intellectual','handson','solo','stem','achievement'], color: '#ffe600' },
+  { name: 'Magic / Cardistry', icon: '🃏', desc: 'Card tricks and fancy shuffles. Easy to learn one trick, hard to master. People flip out.', tags: ['artistic','solo','achievement','performance','creative'], color: '#ff7c2d' },
+
+  // COLLECTION / STRATEGY
+  { name: 'TCG — Magic / Pokémon / Yu-Gi-Oh', icon: '🃏', desc: 'Competitive card games. Cross between chess and collecting. Huge local scene.', tags: ['competitive','intellectual','social','community','varied'], color: '#ffe600' },
+  { name: 'Scale Modeling', icon: '🚀', desc: 'Gundam, cars, planes — build and paint insanely detailed miniatures. Peak patience.', tags: ['handson','creative','calm','solo','indoor','achievement'], color: '#bf5fff' },
+  { name: 'Miniature Painting (Warhammer)', icon: '🎲', desc: 'Tiny detailed minis. Half hobby half art. Local stores run events and games.', tags: ['artistic','handson','creative','social','community','calm'], color: '#bf5fff' },
+  { name: 'DnD / Tabletop RPG', icon: '🐉', desc: 'Collaborative storytelling + strategy. Massive creative outlet. Social but imaginative.', tags: ['creative','social','intellectual','community','artistic'], color: '#ff7c2d' },
+  { name: 'Lego Technics & MOCs', icon: '🧱', desc: 'Custom builds beyond sets. Complex mechanisms, engineering challenge, great display pieces.', tags: ['handson','creative','stem','calm','indoor','intellectual'], color: '#ffe600' },
+
+  // FOOD / LIFE
+  { name: 'Cooking & Recipe Hacking', icon: '🍳', desc: 'Learn a few dishes, then start experimenting. Useful forever, impressive immediately.', tags: ['handson','creative','social','varied','achievement'], color: '#ff7c2d' },
+  { name: 'Baking / Bread Making', icon: '🍞', desc: 'Sourdough is almost like a science experiment. Results are edible — major win.', tags: ['handson','creative','calm','indoor','achievement','stem'], color: '#ffe600' },
+
+  // PERFORMANCE / SOCIAL
+  { name: 'Stand-Up Comedy / Improv', icon: '🎤', desc: 'Local comedy clubs have open mics for teens. Terrifying and incredible.', tags: ['performance','social','creative','artistic','competitive'], color: '#ff2d78' },
+  { name: 'Beatboxing', icon: '🎙️', desc: 'Your phone is your stage. Ridiculous range of techniques online. Weirdly captivating skill.', tags: ['music','artistic','performance','social','achievement'], color: '#ff2d78' },
+  { name: 'Rubik\'s Cube / Speedcubing', icon: '🧊', desc: 'Learn to solve, then go fast. Under 60 seconds is achievable in a few months.', tags: ['intellectual','competitive','solo','achievement','handson'], color: '#00f5ff' },
+];
+
+// ── STATE ──
+let answers = {};
+let currentQ = 0;
+const totalQ = questions.length;
+
+function startQuiz() {
+  document.getElementById('intro-screen').style.display = 'none';
+  buildAllQuestions();
+  showQuestion(0);
+}
+
+function buildAllQuestions() {
+  const container = document.getElementById('quiz-container');
+  container.innerHTML = '';
+  questions.forEach((q, i) => {
+    const div = document.createElement('div');
+    div.id = `q-${i}`;
+    div.className = 'screen';
+    div.innerHTML = buildQuestionHTML(q, i);
+    container.appendChild(div);
+  });
+}
+
+function buildQuestionHTML(q, idx) {
+  const optionClass = q.options.length === 3 ? 'cols-3' : q.options.length === 1 ? 'cols-1' : '';
+  const optionsHTML = q.options.map((o, oi) =>
+    `<button class="opt-btn" data-qi="${idx}" data-oi="${oi}" data-tags='${JSON.stringify(o.tags)}' onclick="selectOption(this, ${idx}, ${oi}, ${!!q.multi})">`+
+    `<span class="opt-icon">${o.icon}</span><span>${o.label}</span></button>`
+  ).join('');
+
+  return `
+    <div class="progress-wrap">
+      <div class="progress-labels">
+        <span class="current">Q${idx+1} / ${totalQ}</span>
+        <span>${Math.round((idx/totalQ)*100)}% done</span>
+      </div>
+      <div class="progress-bar-outer"><div class="progress-bar-inner" id="pbar-${idx}" style="width:${(idx/totalQ)*100}%"></div></div>
+    </div>
+    <div class="q-card">
+      <div class="q-number">QUESTION ${idx+1}</div>
+      <span class="q-emoji">${q.emoji}</span>
+      <div class="q-text">${q.text}</div>
+      ${q.multi ? `<div class="multi-hint">⬆ ${q.hint}</div>` : ''}
+      <div class="options ${optionClass}" id="opts-${idx}">${optionsHTML}</div>
+      <div class="next-wrap">
+        ${idx > 0 ? `<button class="btn-restart" onclick="goBack(${idx})" style="font-size:9px;padding:12px 20px;">◀ BACK</button>` : ''}
+        <button class="btn-next" id="next-${idx}" onclick="nextQuestion(${idx})" disabled>
+          ${idx === totalQ-1 ? 'SEE RESULTS ▶' : 'NEXT ▶'}
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function showQuestion(idx) {
+  document.querySelectorAll('.screen').forEach(s => { s.classList.remove('active'); s.style.display = 'none'; });
+  const el = document.getElementById(`q-${idx}`);
+  if (el) { el.style.display = 'block'; el.classList.add('active'); }
+  currentQ = idx;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  // Restore previous selection if any
+  if (answers[idx]) {
+    const opts = el.querySelectorAll('.opt-btn');
+    opts.forEach(btn => {
+      const oi = parseInt(btn.dataset.oi);
+      if (answers[idx].includes(oi)) btn.classList.add('selected');
+    });
+    document.getElementById(`next-${idx}`).disabled = false;
+  }
+}
+
+function selectOption(btn, qi, oi, isMulti) {
+  const container = document.getElementById(`opts-${qi}`);
+  const btns = container.querySelectorAll('.opt-btn');
+
+  if (!isMulti) {
+    btns.forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    answers[qi] = [oi];
+  } else {
+    btn.classList.toggle('selected');
+    const selected = [...btns].filter(b => b.classList.contains('selected')).map(b => parseInt(b.dataset.oi));
+    answers[qi] = selected.length ? selected : null;
+  }
+
+  const next = document.getElementById(`next-${qi}`);
+  next.disabled = !answers[qi] || answers[qi].length === 0;
+}
+
+function nextQuestion(qi) {
+  if (qi === totalQ - 1) {
+    showResults();
+  } else {
+    showQuestion(qi + 1);
+  }
+}
+
+function goBack(qi) {
+  showQuestion(qi - 1);
+}
+
+function showResults() {
+  // Collect all tags from selected answers
+  const tagScores = {};
+
+  questions.forEach((q, qi) => {
+    if (!answers[qi]) return;
+    answers[qi].forEach(oi => {
+      const opt = q.options[oi];
+      opt.tags.forEach(tag => {
+        tagScores[tag] = (tagScores[tag] || 0) + 1;
+      });
+    });
+  });
+
+  // Score hobbies
+  const scored = hobbies.map(h => {
+    let score = 0;
+    let matches = 0;
+    h.tags.forEach(t => {
+      if (tagScores[t]) { score += tagScores[t]; matches++; }
+    });
+    return { ...h, score, matches };
+  }).sort((a, b) => b.score - a.score || b.matches - a.matches);
+
+  const top = scored.slice(0, 12);
+  const maxScore = top[0].score || 1;
+
+  const colors = ['#ffe600','#00f5ff','#ff2d78','#39ff14','#bf5fff','#ff7c2d'];
+
+  let gridHTML = '';
+  top.forEach((h, i) => {
+    const pct = Math.round((h.score / maxScore) * 100);
+    const accent = h.color || colors[i % colors.length];
+    const isTop = i < 3;
+    const label = i === 0 ? '🥇 #1 PICK' : i === 1 ? '🥈 #2' : i === 2 ? '🥉 #3' : `#${i+1}`;
+    const tagsHTML = h.tags.slice(0,3).map(t => `<span class="tag">${t}</span>`).join('');
+    const delay = i * 80;
+    gridHTML += `
+      <div class="hobby-card ${isTop?'top-pick':''}" style="--accent-color:${accent};animation-delay:${delay}ms">
+        <div class="rank-badge">${label}</div>
+        <span class="hobby-icon">${h.icon}</span>
+        <div class="hobby-name">${h.name}</div>
+        <div class="hobby-desc">${h.desc}</div>
+        <div class="hobby-tags">${tagsHTML}</div>
+        <div class="score-bar"><div class="score-fill" style="width:0%" data-pct="${pct}"></div></div>
+      </div>
+    `;
+  });
+
+  const resultsEl = document.getElementById('results-screen');
+  resultsEl.innerHTML = `
+    <div class="results-header">
+      <div class="results-title">🏆 QUEST COMPLETE!</div>
+      <p class="results-sub">Here are your <span>top ${top.length} hobby matches</span> — beyond the screen.</p>
+    </div>
+    <div class="hobby-grid">${gridHTML}</div>
+    <button class="btn-restart" onclick="restart()">↺ TAKE IT AGAIN</button>
+  `;
+
+  document.querySelectorAll('.screen').forEach(s => { s.classList.remove('active'); s.style.display = 'none'; });
+  resultsEl.style.display = 'block';
+  resultsEl.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  // Animate score bars after render
+  setTimeout(() => {
+    document.querySelectorAll('.score-fill').forEach(bar => {
+      bar.style.width = bar.dataset.pct + '%';
+    });
+  }, 200);
+}
+
+function restart() {
+  answers = {};
+  currentQ = 0;
+  const resultsEl = document.getElementById('results-screen');
+  resultsEl.style.display = 'none';
+  resultsEl.classList.remove('active');
+  document.getElementById('quiz-container').innerHTML = '';
+  document.getElementById('intro-screen').style.display = 'block';
+  document.getElementById('intro-screen').classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>
