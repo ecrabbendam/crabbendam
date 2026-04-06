@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Artemis II Flight Day 6 Timeline</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f9;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #ffffff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #003366;
+            color: white;
+            text-transform: uppercase;
+            font-size: 0.9em;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        .time-cell {
+            font-weight: bold;
+            color: #003366;
+            white-space: nowrap;
+        }
+        .event-cell {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Artemis II: Flight Day 6 Guide (Moon Flyby)</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Time (EDT / GMT)</th>
+                <th>Event</th>
+                <th>What to Know</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="time-cell">9:50 a.m. / 1350</td>
+                <td class="event-cell">Crew Wake-Up</td>
+                <td>Beginning of Flight Day 6 (Flyby Day). NASA will play a wake-up song for the crew.</td>
+            </tr>
+            <tr>
+                <td class="time-cell">1:00 p.m. / 1700</td>
+                <td class="event-cell">NASA Livestream Begins</td>
+                <td>Special broadcast coverage starts; the 24/7 feed transitions to this event.</td>
+            </tr>
+            <tr>
+                <td class="time-cell">1:56 p.m. / 1756</td>
+                <td class="event-cell">Distance Record Broken</td>
+                <td>Orion surpasses the Apollo 13 record, traveling beyond 248,655 miles from Earth.</td>
+            </tr>
+            <tr>
+                <td class="time-cell">2:10 p.m. / 1810</td>
+                <td class="event-cell">Crew Commentary</td>
+                <td>The crew will provide audio-only comments on reaching the record-breaking distance.</td>
+            </tr>
+            <tr>
+                <td class="time-cell">2:15 p.m. / 1815</td>
+                <td class="event-cell">Cabin Configuration</td>
+                <td>Astronauts darken cabin lights and prepare cameras and gear for the flyby.</td>
+            </tr>
+            <tr>
+                <td class="time-cell">2:45 p.m. / 1845</td>
+                <td class="event-cell">Observation Period Begins</td>
+                <td>Seven-hour moon flyby observation starts; the main phase lasts five hours.</td>
+            </tr>
+            <tr>
+                <td class="time-cell">4:35 p.m. / 2035</td>
+                <td class="event-cell">Interior Views</td>
+                <td>NASA will broadcast live interior views of the Orion spacecraft during the flyby.</td>
+            </tr>
+            <tr>
+                <td class="time-cell">Ongoing</td>
+                <td class="event-cell">Scientific Observations</td>
+                <td>The crew targets 10 specific locations for study as observations continue.</td>
+            </tr>
+        </tbody>
+    </table>
+
+</body>
+</html>
