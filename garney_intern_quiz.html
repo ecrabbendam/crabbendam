@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Garney Construction — Intern Knowledge Assessment</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy: #0d1b2a;
+    --navy-mid: #1a2e42;
+    --navy-light: #253d56;
+    --gold: #f5a623;
+    --gold-light: #fbc65a;
+    --gold-pale: #fff8eb;
+    --white: #ffffff;
+    --off-white: #f7f5f0;
+    --gray-100: #eeecea;
+    --gray-300: #c8c4bd;
+    --gray-500: #8a867d;
+    --gray-700: #4a4641;
+    --green: #2d7a4e;
+    --green-bg: #edf7f1;
+    --green-border: #86c9a0;
+    --red: #b83232;
+    --red-bg: #fdf0f0;
+    --red-border: #e8a0a0;
+    --radius: 10px;
+    --radius-lg: 16px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--navy);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 1rem 4rem;
+    color: var(--navy);
+  }
+
+  /* Header */
+  .site-header {
+    width: 100%;
+    max-width: 720px;
+    margin-bottom: 2.5rem;
+    text-align: center;
+  }
+  .site-header .logo-bar {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--gold);
+    color: var(--navy);
+    padding: 8px 20px;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .site-header .logo-icon {
+    width: 20px; height: 20px;
+    background: var(--navy);
+    border-radius: 3px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .site-header .logo-icon svg { display: block; }
+  .site-header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(26px, 4vw, 38px);
+    color: var(--white);
+    line-height: 1.15;
+    margin-bottom: 0.5rem;
+  }
+  .site-header h1 em { color: var(--gold); font-style: italic; }
+  .site-header p {
+    color: var(--gray-300);
+    font-size: 14px;
+    font-weight: 300;
+  }
+
+  /* Card shell */
+  .quiz-card {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    width: 100%;
+    max-width: 720px;
+    overflow: hidden;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.4);
+  }
+
+  /* Top strip */
+  .card-top {
+    background: var(--navy-mid);
+    padding: 1.25rem 1.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .progress-wrap { flex: 1; }
+  .progress-labels {
+    display: flex; justify-content: space-between;
+    font-size: 12px; color: var(--gray-300); margin-bottom: 6px;
+  }
+  .progress-track {
+    height: 5px;
+    background: var(--navy-light);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--gold);
+    border-radius: 99px;
+    transition: width 0.4s cubic-bezier(.4,0,.2,1);
+  }
+  .score-chip {
+    background: var(--navy-light);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 99px;
+    padding: 5px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--white);
+    white-space: nowrap;
+  }
+  .score-chip span { color: var(--gold); }
+
+  /* Question body */
+  .card-body { padding: 2rem 1.75rem 1.5rem; }
+
+  .q-type-badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+  }
+  .badge-mc { background: #e8f0fb; color: #1a4a9e; }
+  .badge-tf { background: #ede8fb; color: #4a1aaf; }
+
+  .q-text {
+    font-family: 'DM Serif Display', serif;
+    font-size: 20px;
+    line-height: 1.45;
+    color: var(--navy);
+    margin-bottom: 1.5rem;
+  }
+
+  /* Choices */
+  .choices { display: flex; flex-direction: column; gap: 9px; margin-bottom: 1.25rem; }
+
+  .choice {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 0.75rem 1rem;
+    border: 1.5px solid var(--gray-100);
+    border-radius: var(--radius);
+    cursor: pointer;
+    background: var(--white);
+    transition: border-color 0.15s, background 0.15s;
+    text-align: left;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14.5px;
+    font-weight: 400;
+    color: var(--gray-700);
+    line-height: 1.45;
+    width: 100%;
+  }
+  .choice:hover:not(:disabled) {
+    border-color: var(--gold);
+    background: var(--gold-pale);
+    color: var(--navy);
+  }
+  .choice:disabled { cursor: default; }
+
+  .choice-letter {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: var(--gray-100);
+    color: var(--gray-500);
+    font-size: 12px;
+    font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.15s, color 0.15s;
+  }
+  .choice:hover:not(:disabled) .choice-letter {
+    background: var(--gold);
+    color: var(--navy);
+  }
+
+  .choice.correct {
+    border-color: var(--green-border);
+    background: var(--green-bg);
+    color: var(--green);
+  }
+  .choice.correct .choice-letter {
+    background: var(--green);
+    color: var(--white);
+  }
+  .choice.wrong {
+    border-color: var(--red-border);
+    background: var(--red-bg);
+    color: var(--red);
+  }
+  .choice.wrong .choice-letter {
+    background: var(--red);
+    color: var(--white);
+  }
+  .choice.reveal {
+    border-color: var(--green-border);
+    background: var(--green-bg);
+    color: var(--green);
+    opacity: 0.75;
+  }
+  .choice.reveal .choice-letter { background: var(--green); color: var(--white); }
+
+  /* Feedback */
+  .feedback {
+    padding: 0.85rem 1rem;
+    border-radius: var(--radius);
+    font-size: 13.5px;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+    animation: fadeIn 0.25s ease;
+  }
+  .feedback.correct { background: var(--green-bg); color: var(--green); border-left: 4px solid var(--green); }
+  .feedback.wrong { background: var(--red-bg); color: var(--red); border-left: 4px solid var(--red); }
+  .feedback strong { font-weight: 600; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Nav */
+  .card-footer {
+    padding: 1rem 1.75rem 1.5rem;
+    display: flex;
+    justify-content: flex-end;
+    border-top: 1px solid var(--gray-100);
+  }
+  .btn-next {
+    background: var(--navy);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius);
+    padding: 0.7rem 1.75rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-next:hover { background: var(--navy-mid); }
+  .btn-next:active { transform: scale(0.98); }
+  .btn-next svg { flex-shrink: 0; }
+
+  /* --- SUMMARY --- */
+  .summary { padding: 2.5rem 1.75rem; }
+
+  .summary-top {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  .summary-ring {
+    width: 110px; height: 110px;
+    margin-bottom: 1.25rem;
+  }
+  .ring-track { fill: none; stroke: var(--gray-100); stroke-width: 8; }
+  .ring-fill { fill: none; stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset 1s cubic-bezier(.4,0,.2,1); }
+
+  .summary-big {
+    font-family: 'DM Serif Display', serif;
+    font-size: 36px;
+    color: var(--navy);
+    margin-bottom: 4px;
+  }
+  .summary-sub { font-size: 14px; color: var(--gray-500); margin-bottom: 1rem; }
+  .grade-pill {
+    display: inline-block;
+    padding: 5px 18px;
+    border-radius: 99px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+  }
+
+  /* Intern name input area */
+  .intern-input-area {
+    background: var(--off-white);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--gray-100);
+  }
+  .intern-input-area label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--gray-500);
+    margin-bottom: 6px;
+  }
+  .intern-input-area input {
+    width: 100%;
+    padding: 0.6rem 0.9rem;
+    border: 1.5px solid var(--gray-300);
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    color: var(--navy);
+    background: var(--white);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .intern-input-area input:focus { border-color: var(--gold); }
+
+  /* Review list */
+  .review-list { margin-bottom: 2rem; }
+  .review-list h3 {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--gray-500);
+    margin-bottom: 0.75rem;
+  }
+  .review-item {
+    display: flex;
+    gap: 10px;
+    padding: 0.7rem 0.9rem;
+    border-radius: 8px;
+    margin-bottom: 6px;
+    font-size: 13.5px;
+    line-height: 1.45;
+    align-items: flex-start;
+  }
+  .review-item.ok { background: var(--green-bg); color: var(--green); }
+  .review-item.bad { background: var(--red-bg); color: var(--red); }
+  .review-icon {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 1px;
+    font-size: 11px; font-weight: 700;
+  }
+  .ok .review-icon { background: var(--green); color: white; }
+  .bad .review-icon { background: var(--red); color: white; }
+  .review-q { flex: 1; }
+  .review-q .q-label { font-weight: 500; }
+  .review-q .q-ans { font-size: 12px; opacity: 0.8; margin-top: 2px; }
+
+  /* Action buttons */
+  .summary-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+  .btn-primary {
+    flex: 1;
+    background: var(--navy);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius);
+    padding: 0.8rem 1.25rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .btn-primary:hover { background: var(--navy-mid); }
+
+  .btn-gold {
+    flex: 1;
+    background: var(--gold);
+    color: var(--navy);
+    border: none;
+    border-radius: var(--radius);
+    padding: 0.8rem 1.25rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .btn-gold:hover { background: var(--gold-light); }
+
+  .email-status {
+    margin-top: 10px;
+    font-size: 13px;
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+    display: none;
+  }
+  .email-status.show { display: block; }
+  .email-status.ok { background: var(--green-bg); color: var(--green); }
+  .email-status.err { background: var(--red-bg); color: var(--red); }
+
+  /* Responsive */
+  @media (max-width: 520px) {
+    .card-body, .summary { padding: 1.5rem 1.25rem 1rem; }
+    .card-top { padding: 1rem 1.25rem; }
+    .card-footer { padding: 0.9rem 1.25rem 1.25rem; }
+    .q-text { font-size: 17px; }
+    .summary-actions { flex-direction: column; }
+    .btn-primary, .btn-gold { flex: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="logo-bar">
+    <div class="logo-icon">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+        <rect x="1" y="6" width="10" height="5" rx="1" fill="#f5a623"/>
+        <rect x="3" y="2" width="6" height="5" rx="1" fill="#f5a623"/>
+      </svg>
+    </div>
+    Garney Construction
+  </div>
+  <h1>Intern Knowledge <em>Assessment</em></h1>
+  <p>12 questions covering safety, policy, evaluations, and program procedures</p>
+</header>
+
+<div class="quiz-card" id="quiz-card">
+  <!-- Injected by JS -->
+</div>
+
+<script>
+const Qs = [
+  {
+    type:"mc",
+    q:"Who is the designated Intern Coordinator at Garney Construction?",
+    choices:["Sarah Mitchell","Christina Lopez","Jennifer Torres","David Garney"],
+    answer:1,
+    explain:"Christina Lopez is the Intern Coordinator. Office: 321.221.2834 · Cell: 407.947.5001 · Email: clopez@garney.com"
+  },
+  {
+    type:"tf",
+    q:"Steel-toe boots are mandatory for all interns on every job site.",
+    choices:["True","False"],
+    answer:1,
+    explain:"False. Steel-toe boots are listed as optional — 'some want and others do not.' Standard leather work boots satisfy the baseline requirement."
+  },
+  {
+    type:"mc",
+    q:"What minimum round-trip mileage triggers travel reimbursement for home-to-site travel?",
+    choices:["25 miles","50 miles","75 miles","100 miles"],
+    answer:2,
+    explain:"Normal home-to-office/site commuting is not reimbursed unless the round trip to a specific location exceeds 75 miles."
+  },
+  {
+    type:"mc",
+    q:"What total score range earns an 'Outstanding' overall evaluation?",
+    choices:["121 – 149","96 – 120","150 – 160","135 – 155"],
+    answer:2,
+    explain:"Outstanding = 150–160 · Significantly Exceeds = 121–149 · Fully Capable = 96–120 · Needs Improvement = 64–95 · Unsatisfactory = 63 and below."
+  },
+  {
+    type:"tf",
+    q:"The intern is responsible for initiating first contact with their mentor before arriving.",
+    choices:["True","False"],
+    answer:0,
+    explain:"True. The manual states: 'You are to initiate this contact.' The pre-arrival checklist (Appendix #1) tracks when the first call took place."
+  },
+  {
+    type:"mc",
+    q:"Which of the following is NOT one of the five major evaluation categories?",
+    choices:["Initiative","Communication","Safety","Leadership"],
+    answer:1,
+    explain:"The five categories are: Safety, Job Skills & Knowledge, Problem Solving, Initiative, and Leadership. Communication is not a standalone category."
+  },
+  {
+    type:"mc",
+    q:"What does 'RFI' stand for in Garney's construction operations?",
+    choices:["Regional Field Inspection","Request for Information","Resource Funding Initiative","Review of Field Issues"],
+    answer:1,
+    explain:"RFI = Request for Information. Learning how to write RFIs is listed as one of the example goals and objectives for interns."
+  },
+  {
+    type:"tf",
+    q:"An intern may enter an excavation without approval as long as another employee is present.",
+    choices:["True","False"],
+    answer:1,
+    explain:"False. The manual is explicit: 'Never enter an excavation of any kind without Superintendent approval.' No exceptions are listed."
+  },
+  {
+    type:"mc",
+    q:"What performance rating applies to an intern who scores 63 points or below?",
+    choices:["Needs Improvement","Probationary","Unsatisfactory","Below Capable"],
+    answer:2,
+    explain:"63 and below = Unsatisfactory. The manual states the intern 'will not be continued in the program' at this level."
+  },
+  {
+    type:"mc",
+    q:"What is the dress code for Garney's corporate and regional offices?",
+    choices:["Full business professional — no jeans","Relaxed business casual — jeans are acceptable","Safety PPE must still be worn","Smart casual — no jeans or sneakers"],
+    answer:1,
+    explain:"The manual says: 'Relaxed business casual — jeans are OK by us.' This contrasts with the strict PPE requirements enforced on project sites."
+  },
+  {
+    type:"tf",
+    q:"The intern's goals and objectives should be posted visibly in their work area throughout the term.",
+    choices:["True","False"],
+    answer:0,
+    explain:"True. The manual instructs interns to 'post the finished goals and objectives worksheet in your work area so it becomes a to-do list' and stays fresh."
+  },
+  {
+    type:"mc",
+    q:"Which performance rating description matches: 'often exceeds established expectations — exhibits mastery of most dimensions'?",
+    choices:["Outstanding (5)","Significantly Exceeds Expectations (4)","Fully Capable (3)","Needs Improvement (2)"],
+    answer:1,
+    explain:"This is the definition of rating 4 — Significantly Exceeds Expectations. Outstanding (5) requires performance 'clearly unique and far in excess' with leadership among peers in all dimensions."
+  }
+];
+
+let current = 0, score = 0, answered = [];
+const letters = ['A','B','C','D'];
+
+function pct() { return Math.round((score / Qs.length) * 100); }
+
+function gradeInfo(p) {
+  if (p >= 92) return { label:"Outstanding", bg:"#edf7f1", color:"#1a5c38" };
+  if (p >= 75) return { label:"Significantly exceeds expectations", bg:"#e8f4fb", color:"#1a4a7a" };
+  if (p >= 58) return { label:"Fully capable", bg:"#fff8eb", color:"#7a4e0a" };
+  if (p >= 40) return { label:"Needs improvement", bg:"#fdf0f0", color:"#7a1a1a" };
+  return { label:"Unsatisfactory", bg:"#fdf0f0", color:"#7a1a1a" };
+}
+
+function renderQuestion() {
+  const q = Qs[current];
+  const isAnswered = answered[current] !== undefined;
+  const chosen = answered[current];
+  const progPct = Math.round((current / Qs.length) * 100);
+
+  document.getElementById('quiz-card').innerHTML = `
+    <div class="card-top">
+      <div class="progress-wrap">
+        <div class="progress-labels">
+          <span>Question ${current+1} of ${Qs.length}</span>
+          <span>${progPct}% complete</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" style="width:${progPct}%"></div>
+        </div>
+      </div>
+      <div class="score-chip"><span>${score}</span> / ${current} correct</div>
+    </div>
+    <div class="card-body">
+      <span class="q-type-badge ${q.type==='mc'?'badge-mc':'badge-tf'}">${q.type==='mc'?'Multiple choice':'True / False'}</span>
+      <div class="q-text">${q.q}</div>
+      <div class="choices">
+        ${q.choices.map((c,i) => {
+          let cls = 'choice';
+          if (isAnswered) {
+            if (i === q.answer) cls += ' correct';
+            else if (i === chosen && chosen !== q.answer) cls += ' wrong';
+          }
+          return `<button class="${cls}" ${isAnswered?'disabled':''} onclick="choose(${i})">
+            <span class="choice-letter">${letters[i]}</span>
+            ${c}
+          </button>`;
+        }).join('')}
+      </div>
+      ${isAnswered ? `<div class="feedback ${chosen===q.answer?'correct':'wrong'}">
+        <strong>${chosen===q.answer?'Correct':'Incorrect'} —</strong> ${q.explain}
+      </div>` : ''}
+    </div>
+    ${isAnswered ? `<div class="card-footer">
+      <button class="btn-next" onclick="next()">
+        ${current < Qs.length-1 ? 'Next question' : 'View my results'}
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>` : ''}
+  `;
+}
+
+function choose(i) {
+  if (answered[current] !== undefined) return;
+  answered[current] = i;
+  if (i === Qs[current].answer) score++;
+  renderQuestion();
+}
+
+function next() {
+  current++;
+  if (current >= Qs.length) renderSummary();
+  else renderQuestion();
+}
+
+function renderSummary() {
+  const p = pct();
+  const g = gradeInfo(p);
+  const circumference = 2 * Math.PI * 44;
+  const offset = circumference - (p / 100) * circumference;
+  const ringColor = p >= 75 ? '#2d7a4e' : p >= 58 ? '#c07a10' : '#b83232';
+
+  const reviewHTML = Qs.map((q, i) => {
+    const ok = answered[i] === q.answer;
+    const yourAns = q.choices[answered[i]] || '(no answer)';
+    const correctAns = q.choices[q.answer];
+    return `<div class="review-item ${ok?'ok':'bad'}">
+      <div class="review-icon">${ok?'✓':'✗'}</div>
+      <div class="review-q">
+        <div class="q-label">Q${i+1}: ${q.q}</div>
+        ${ok ? '' : `<div class="q-ans">Your answer: ${yourAns} · Correct: ${correctAns}</div>`}
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('quiz-card').innerHTML = `
+    <div class="card-top">
+      <div class="progress-wrap">
+        <div class="progress-labels"><span>Assessment complete</span><span>100% complete</span></div>
+        <div class="progress-track"><div class="progress-fill" style="width:100%"></div></div>
+      </div>
+      <div class="score-chip"><span>${score}</span> / ${Qs.length} correct</div>
+    </div>
+    <div class="summary">
+      <div class="summary-top">
+        <svg class="summary-ring" viewBox="0 0 100 100">
+          <circle class="ring-track" cx="50" cy="50" r="44"/>
+          <circle class="ring-fill" cx="50" cy="50" r="44"
+            stroke="${ringColor}"
+            stroke-dasharray="${circumference}"
+            stroke-dashoffset="${circumference}"
+            id="ring-anim"
+            transform="rotate(-90 50 50)"/>
+        </svg>
+        <div class="summary-big">${score} / ${Qs.length}</div>
+        <div class="summary-sub">${p}% — ${Qs.length - score} question${Qs.length-score===1?'':'s'} missed</div>
+        <span class="grade-pill" style="background:${g.bg};color:${g.color}">${g.label}</span>
+      </div>
+
+      <div class="intern-input-area">
+        <label for="intern-name">Your name (included in emailed results)</label>
+        <input type="text" id="intern-name" placeholder="e.g. Jordan Smith" autocomplete="name"/>
+      </div>
+
+      <div class="review-list">
+        <h3>Question breakdown</h3>
+        ${reviewHTML}
+      </div>
+
+      <div class="summary-actions">
+        <button class="btn-primary" onclick="restart()">
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M1.5 7.5A6 6 0 1 1 3 11.5M1.5 7.5V3.5M1.5 7.5H5.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Retake quiz
+        </button>
+        <button class="btn-gold" onclick="sendEmail()">
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><rect x="1" y="3" width="13" height="10" rx="1.5" stroke="#0d1b2a" stroke-width="1.4"/><path d="M1 4l6.5 5L14 4" stroke="#0d1b2a" stroke-width="1.4" stroke-linecap="round"/></svg>
+          Email results to coordinator
+        </button>
+      </div>
+      <div class="email-status" id="email-status"></div>
+    </div>
+  `;
+
+  setTimeout(() => {
+    const ring = document.getElementById('ring-anim');
+    if (ring) ring.style.strokeDashoffset = offset;
+  }, 100);
+}
+
+function buildEmailBody() {
+  const name = (document.getElementById('intern-name')?.value || '').trim() || 'Intern (name not provided)';
+  const dateStr = new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  const timeStr = new Date().toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit' });
+  const p = pct();
+  const g = gradeInfo(p);
+
+  let lines = [];
+  lines.push(`GARNEY CONSTRUCTION — INTERN KNOWLEDGE ASSESSMENT RESULTS`);
+  lines.push(`${'─'.repeat(55)}`);
+  lines.push(`Intern name:  ${name}`);
+  lines.push(`Date / time:  ${dateStr} at ${timeStr}`);
+  lines.push(`Score:        ${score} / ${Qs.length} (${p}%)`);
+  lines.push(`Rating:       ${g.label}`);
+  lines.push('');
+  lines.push(`QUESTION BREAKDOWN`);
+  lines.push(`${'─'.repeat(55)}`);
+  Qs.forEach((q, i) => {
+    const ok = answered[i] === q.answer;
+    lines.push(`Q${i+1}: ${ok ? '[CORRECT]' : '[INCORRECT]'} ${q.q}`);
+    if (!ok) {
+      lines.push(`       Your answer:    ${q.choices[answered[i]] || 'No answer'}`);
+      lines.push(`       Correct answer: ${q.choices[q.answer]}`);
+    }
+    lines.push('');
+  });
+  lines.push(`${'─'.repeat(55)}`);
+  lines.push(`This report was generated automatically by the Garney Intern Assessment tool.`);
+  return lines.join('\n');
+}
+
+function sendEmail() {
+  const name = (document.getElementById('intern-name')?.value || '').trim() || 'Intern';
+  const p = pct();
+  const subject = encodeURIComponent(`Intern Assessment Results — ${name} — ${p}%`);
+  const body = encodeURIComponent(buildEmailBody());
+  const mailto = `mailto:eric@crabbendam.net?subject=${subject}&body=${body}`;
+
+  const status = document.getElementById('email-status');
+  try {
+    window.location.href = mailto;
+    status.textContent = 'Your email client should open with the pre-filled results. Send it to submit to the coordinator.';
+    status.className = 'email-status show ok';
+  } catch(e) {
+    status.textContent = 'Could not open email client. Please email eric@crabbendam.net manually with your score.';
+    status.className = 'email-status show err';
+  }
+}
+
+function restart() {
+  current = 0; score = 0; answered = [];
+  renderQuestion();
+}
+
+renderQuestion();
+</script>
+</body>
+</html>
