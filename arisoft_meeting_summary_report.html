@@ -1,0 +1,502 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans);color:var(--color-text-primary)}
+h2{font-size:18px;font-weight:500;margin-bottom:12px}
+h3{font-size:15px;font-weight:500;margin-bottom:8px}
+.section{margin-bottom:32px}
+.meta-row{display:flex;gap:24px;flex-wrap:wrap;margin-bottom:20px}
+.meta-chip{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--color-text-secondary);background:var(--color-background-secondary);padding:6px 12px;border-radius:20px;border:0.5px solid var(--color-border-tertiary)}
+.meta-chip strong{color:var(--color-text-primary);font-weight:500}
+.participant-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin-bottom:20px}
+.p-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px 12px;display:flex;align-items:center;gap:10px}
+.avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;flex-shrink:0}
+.av-blue{background:#E6F1FB;color:#185FA5}
+.av-teal{background:#E1F5EE;color:#0F6E56}
+.av-coral{background:#FAECE7;color:#993C1D}
+.av-purple{background:#EEEDFE;color:#534AB7}
+.av-amber{background:#FAEEDA;color:#854F0B}
+.av-pink{background:#FBEAF0;color:#993556}
+.p-name{font-size:13px;font-weight:500}
+.p-role{font-size:11px;color:var(--color-text-secondary)}
+.summary-block{background:var(--color-background-secondary);border-left:3px solid #1D9E75;border-radius:0 var(--border-radius-md) var(--border-radius-md) 0;padding:14px 16px;font-size:14px;line-height:1.7;color:var(--color-text-secondary)}
+.findings-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.finding-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:14px 16px}
+.finding-card h4{font-size:13px;font-weight:500;margin-bottom:6px}
+.finding-card p{font-size:12px;color:var(--color-text-secondary);line-height:1.6}
+.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:500;margin-bottom:6px}
+.badge-green{background:#EAF3DE;color:#3B6D11}
+.badge-amber{background:#FAEEDA;color:#854F0B}
+.badge-red{background:#FCEBEB;color:#A32D2D}
+.badge-blue{background:#E6F1FB;color:#185FA5}
+.issues-list{display:flex;flex-direction:column;gap:8px}
+.issue-row{display:grid;grid-template-columns:28px 1fr 90px 120px;gap:10px;align-items:start;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px 14px;font-size:13px}
+.issue-num{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;flex-shrink:0}
+.issue-title{font-weight:500;margin-bottom:2px}
+.issue-desc{font-size:12px;color:var(--color-text-secondary);line-height:1.5}
+.owner-tag{font-size:11px;padding:3px 8px;border-radius:10px;font-weight:500;white-space:nowrap}
+.ot-arisoft{background:#EEEDFE;color:#534AB7}
+.ot-schneider{background:#E6F1FB;color:#185FA5}
+.ot-both{background:#E1F5EE;color:#0F6E56}
+.sev-critical{background:#FCEBEB;color:#A32D2D}
+.sev-high{background:#FAEEDA;color:#854F0B}
+.sev-medium{background:#E6F1FB;color:#185FA5}
+.actions-list{display:flex;flex-direction:column;gap:6px}
+.action-row{display:grid;grid-template-columns:110px 1fr 80px;gap:10px;align-items:center;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px 14px;font-size:13px}
+.action-owner{font-size:12px;font-weight:500;padding:3px 8px;border-radius:10px;text-align:center}
+.action-text{line-height:1.5}
+.action-due{font-size:11px;color:var(--color-text-secondary);text-align:right}
+.tab-row{display:flex;gap:4px;margin-bottom:16px;border-bottom:0.5px solid var(--color-border-tertiary);padding-bottom:0}
+.tab{font-size:13px;padding:8px 14px;cursor:pointer;border-bottom:2px solid transparent;color:var(--color-text-secondary);transition:all .15s;border-radius:var(--border-radius-md) var(--border-radius-md) 0 0}
+.tab.active{color:var(--color-text-primary);border-bottom:2px solid #1D9E75;font-weight:500}
+.tab-pane{display:none}
+.tab-pane.active{display:block}
+.diagram-wrap{overflow:hidden;border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary);background:var(--color-background-secondary)}
+.next-meeting{background:#E1F5EE;border:0.5px solid #5DCAA5;border-radius:var(--border-radius-lg);padding:14px 18px;display:flex;align-items:center;gap:16px;margin-top:8px}
+.nm-icon{font-size:28px}
+.nm-title{font-size:14px;font-weight:500;color:#085041}
+.nm-detail{font-size:12px;color:#0F6E56}
+</style>
+
+<div style="padding:0 0 2rem">
+
+<div class="section">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+    <div style="width:4px;height:40px;background:#1D9E75;border-radius:2px"></div>
+    <div>
+      <div style="font-size:20px;font-weight:500">Arisoft × Schneider — Integration Review</div>
+      <div style="font-size:13px;color:var(--color-text-secondary)">Label App & IQMS Web API — Technical Sync</div>
+    </div>
+  </div>
+  <div class="meta-row">
+    <div class="meta-chip"><i class="ti ti-calendar" aria-hidden="true"></i><strong>Duration</strong> ~2.5 hrs (15:00 – 17:30)</div>
+    <div class="meta-chip"><i class="ti ti-users" aria-hidden="true"></i><strong>Attendees</strong> 6 participants</div>
+    <div class="meta-chip"><i class="ti ti-tool" aria-hidden="true"></i><strong>System</strong> IQMS 2025 Refresh 6 (client)</div>
+    <div class="meta-chip"><i class="ti ti-wifi" aria-hidden="true"></i><strong>Format</strong> Zoom w/ screen share</div>
+  </div>
+
+  <div class="participant-grid">
+    <div class="p-card"><div class="avatar av-purple">TL</div><div><div class="p-name">Taz (Imtiaz Lodhi)</div><div class="p-role">Arisoft — Lead Consultant</div></div></div>
+    <div class="p-card"><div class="avatar av-purple">WZ</div><div><div class="p-name">Waqas Zakai</div><div class="p-role">Arisoft — Developer</div></div></div>
+    <div class="p-card"><div class="avatar av-blue">SP</div><div><div class="p-name">Steve Prefontaine</div><div class="p-role">Schneider — Mfg. Operations</div></div></div>
+    <div class="p-card"><div class="avatar av-blue">EC</div><div><div class="p-name">Eric Crabbendam</div><div class="p-role">Schneider — Project Manager</div></div></div>
+    <div class="p-card"><div class="avatar av-teal">JL</div><div><div class="p-name">Janeczka Lee</div><div class="p-role">Schneider — Business Analyst</div></div></div>
+    <div class="p-card"><div class="avatar av-coral">OZ</div><div><div class="p-name">Ovais Zuberi</div><div class="p-role">Schneider — IT / IIS Support</div></div></div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="tab-row">
+    <div class="tab active" onclick="showTab('summary',this)">Summary</div>
+    <div class="tab" onclick="showTab('issues',this)">Issues (9)</div>
+    <div class="tab" onclick="showTab('actions',this)">Action Items</div>
+    <div class="tab" onclick="showTab('arch',this)">System Architecture</div>
+    <div class="tab" onclick="showTab('mindmap',this)">Mind Map</div>
+  </div>
+
+  <div id="tab-summary" class="tab-pane active">
+    <div class="summary-block" style="margin-bottom:16px">
+      The team conducted a live walkthrough of the Arisoft-built label printing and disposition web application against the Schneider IQMS/DelmiaWorks environment. The session uncovered that the application had never fully functioned end-to-end in the client's environment — errors existed from the beginning but had not been surfaced until today's deep-dive. A total of nine issues were catalogued ranging from data correctness bugs (gross vs. net weight) to blocking infrastructure problems (IQMS Web API not posting disposition transactions). By the end of the meeting, one critical blocker (missing TRANSCODE configuration) was identified as a likely root cause of failed disposition, but full resolution requires further API-level investigation with Schneider's IT and IQMS support team.
+    </div>
+
+    <h2>Key agreed findings</h2>
+    <div class="findings-grid" style="margin-bottom:20px">
+      <div class="finding-card">
+        <div class="badge badge-red">Blocking</div>
+        <h4>Disposition not posting to IQMS</h4>
+        <p>The app creates a label record (serial number) but fails to write disposition data or lot info to the master label record. The Web API returns an error — root cause is likely a missing TRANSCODE inventory parameter in IQMS and possibly an incomplete Web API installation.</p>
+      </div>
+      <div class="finding-card">
+        <div class="badge badge-red">Blocking</div>
+        <h4>API error is API-level, not IIS-level</h4>
+        <p>Ovais (IT) confirmed IIS itself is operating correctly. The error is coming from within the IQMS Web API layer. Waqas and Ovais need to run Postman tests to isolate the exact failing call and involve the IQMS Web API support team.</p>
+      </div>
+      <div class="finding-card">
+        <div class="badge badge-amber">Design gap</div>
+        <h4>Work center must be dynamic</h4>
+        <p>The current select-line dropdown uses hard-coded values. The correct design pulls the work center from the scheduled work order via the CNTSCH table joined to the work center table — matching how Delmia and ShopData already behave.</p>
+      </div>
+      <div class="finding-card">
+        <div class="badge badge-amber">Data bug</div>
+        <h4>Quantity shows gross, not net weight</h4>
+        <p>The label is pulling gross weight instead of net weight. Both the serial number quantity and the transaction quantity fields are affected. Fix is confirmed straightforward but must be deployed.</p>
+      </div>
+      <div class="finding-card">
+        <div class="badge badge-blue">Policy</div>
+        <h4>Serial number alignment opportunity</h4>
+        <p>Janeczka believes internal IQMS serial number and Arisoft barcode serial number can be made the same value, eliminating friction for floor workers who currently need both. She will seek written approval from Jolene to simplify this.</p>
+      </div>
+      <div class="finding-card">
+        <div class="badge badge-blue">Config</div>
+        <h4>Hard-coded values to move to web.config</h4>
+        <p>Several values (including the location and line type) are currently hard-coded in the app. Taz agreed these should be moved to a web config file for maintainability and environment-specific control.</p>
+      </div>
+    </div>
+
+    <div class="next-meeting">
+      <div class="nm-icon"><i class="ti ti-calendar-event" style="font-size:28px;color:#0F6E56" aria-hidden="true"></i></div>
+      <div>
+        <div class="nm-title">Next meeting — May 21st</div>
+        <div class="nm-detail">12:00–1:00 PM Eastern · 9:00–10:00 AM Pacific · Eric to send calendar invite · Weekly touchpoint cadence proposed by Steve</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="tab-issues" class="tab-pane">
+    <div class="issues-list">
+      <div style="display:grid;grid-template-columns:28px 1fr 90px 120px;gap:10px;padding:6px 14px;font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.04em">
+        <div>#</div><div>Issue</div><div>Severity</div><div>Owner</div>
+      </div>
+
+      <div class="issue-row">
+        <div class="issue-num" style="background:#FCEBEB;color:#A32D2D">1</div>
+        <div><div class="issue-title">Quantity shows gross weight instead of net weight</div><div class="issue-desc">Label pulls gross yard/weight value (e.g. 1220) rather than net weight (e.g. 1000). Affects both extruder and laminator label types. Serial number qty and transaction qty also incorrect.</div></div>
+        <div><span class="badge badge-red" style="font-size:11px">Critical</span></div>
+        <div><span class="owner-tag ot-arisoft">Arisoft (Waqas)</span></div>
+      </div>
+
+      <div class="issue-row">
+        <div class="issue-num" style="background:#FCEBEB;color:#A32D2D">2</div>
+        <div><div class="issue-title">Disposition not posting to IQMS — API failure</div><div class="issue-desc">No disposition transaction is written; no lot number or attributes populate the master label record. A second API call to update user-defined fields (species 1–5) is also not executing. Likely caused by missing TRANSCODE setup + possible incomplete Web API install.</div></div>
+        <div><span class="badge badge-red" style="font-size:11px">Blocking</span></div>
+        <div><span class="owner-tag ot-both">Both teams</span></div>
+      </div>
+
+      <div class="issue-row">
+        <div class="issue-num" style="background:#FAEEDA;color:#854F0B">3</div>
+        <div><div class="issue-title">Work center selection is a hard-coded list</div><div class="issue-desc">Should auto-populate from the CNTSCH table (scheduled work order → work center ID → description). Currently a static list from POC phase. Janeczka expects same behavior as Delmia/ShopData — defaults to the scheduled work center.</div></div>
+        <div><span class="badge badge-amber" style="font-size:11px">High</span></div>
+        <div><span class="owner-tag ot-arisoft">Arisoft (Taz)</span></div>
+      </div>
+
+      <div class="issue-row">
+        <div class="issue-num" style="background:#FAEEDA;color:#854F0B">4</div>
+        <div><div class="issue-title">DISPO location set to OUT instead of IN</div><div class="issue-desc">Disposition location defaults to DISPO OUT. For this workflow (finished goods disposition) it should be DISPO IN. Backflush uses DISPO OUT and is a separate future consideration.</div></div>
+        <div><span class="badge badge-amber" style="font-size:11px">High</span></div>
+        <div><span class="owner-tag ot-arisoft">Arisoft (Waqas)</span></div>
+      </div>
+
+      <div class="issue-row">
+        <div class="issue-num" style="background:#FAEEDA;color:#854F0B">5</div>
+        <div><div class="issue-title">Hard-coded values need to move to web.config</div><div class="issue-desc">Location value and several other parameters are hard-coded in application code. Must be configurable per environment via web config file to support training vs. production deployments.</div></div>
+        <div><span class="badge badge-amber" style="font-size:11px">High</span></div>
+        <div><span class="owner-tag ot-arisoft">Arisoft (Taz)</span></div>
+      </div>
+
+      <div class="issue-row">
+        <div class="issue-num" style="background:#E6F1FB;color:#185FA5">6</div>
+        <div><div class="issue-title">Serial number alignment — internal vs. customer barcode</div><div class="issue-desc">Current design creates a separate IQMS serial number (G/LG prefix for extruder/laminator) alongside the Arisoft barcode. Janeczka wants to unify them so operators can use a single barcode for all scanning, reducing friction. Requires Jolene's written approval.</div></div>
+        <div><span class="badge badge-blue" style="font-size:11px">Medium</span></div>
+        <div><span class="owner-tag ot-schneider">Janeczka</span></div>
+      </div>
+
+      <div class="issue-row">
+        <div class="issue-num" style="background:#E6F1FB;color:#185FA5">7</div>
+        <div><div class="issue-title">Work center hierarchy lookup logic not documented</div><div class="issue-desc">Two-step lookup required: (1) active flag + same E-plant as work order; (2) match MFG cell. Janeczka to supply a written specification of the hierarchy so Arisoft can implement correctly.</div></div>
+        <div><span class="badge badge-blue" style="font-size:11px">Medium</span></div>
+        <div><span class="owner-tag ot-schneider">Janeczka</span></div>
+      </div>
+
+      <div class="issue-row">
+        <div class="issue-num" style="background:#E6F1FB;color:#185FA5">8</div>
+        <div><div class="issue-title">Printer selection list too long — needs filtering + default</div><div class="issue-desc">Users are presented with all server printers (30+). Should default to the printer defined in the user's WMS profile and filter the list to production-floor printers only. Steve and Janeczka to confirm hardware and preferred defaulting strategy.</div></div>
+        <div><span class="badge badge-blue" style="font-size:11px">Medium</span></div>
+        <div><span class="owner-tag ot-both">Steve + Janeczka</span></div>
+      </div>
+
+      <div class="issue-row">
+        <div class="issue-num" style="background:#E6F1FB;color:#185FA5">9</div>
+        <div><div class="issue-title">FG inventory record not auto-created when missing</div><div class="issue-desc">Application should force-create an FG multi-location record if one doesn't already exist before attempting the DISPO transaction. This is a dependency for the disposition to succeed.</div></div>
+        <div><span class="badge badge-blue" style="font-size:11px">Medium</span></div>
+        <div><span class="owner-tag ot-arisoft">Arisoft (Waqas)</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="tab-actions" class="tab-pane">
+    <div class="actions-list">
+      <div style="display:grid;grid-template-columns:110px 1fr 80px;gap:10px;padding:4px 14px;font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.04em">
+        <div>Owner</div><div>Action</div><div>By</div>
+      </div>
+
+      <div class="action-row">
+        <span class="action-owner ot-arisoft">Taz / Arisoft</span>
+        <div class="action-text">Fix quantity to use net weight (not gross). Fix transaction quantity and serial number quantity fields.</div>
+        <div class="action-due">Pre May 21</div>
+      </div>
+      <div class="action-row">
+        <span class="action-owner ot-arisoft">Taz / Arisoft</span>
+        <div class="action-text">Change work center selection from hard-coded list to dynamic CNTSCH lookup (work order → center → description).</div>
+        <div class="action-due">Pre May 21</div>
+      </div>
+      <div class="action-row">
+        <span class="action-owner ot-arisoft">Taz / Arisoft</span>
+        <div class="action-text">Move hard-coded location value and other config parameters to web.config file. Remove all hard-codes from application code.</div>
+        <div class="action-due">Pre May 21</div>
+      </div>
+      <div class="action-row">
+        <span class="action-owner ot-arisoft">Waqas / Arisoft</span>
+        <div class="action-text">Fix DISPO location from OUT to IN. Add FG multi-location auto-create logic when record is missing.</div>
+        <div class="action-due">Pre May 21</div>
+      </div>
+      <div class="action-row">
+        <span class="action-owner ot-arisoft">Waqas / Arisoft</span>
+        <div class="action-text">Compile updated code and share build with Schneider team before May 21st meeting.</div>
+        <div class="action-due">Pre May 21</div>
+      </div>
+      <div class="action-row">
+        <span class="action-owner ot-schneider">Janeczka</span>
+        <div class="action-text">Get Jolene's written approval to unify IQMS serial number with Arisoft barcode serial number (eliminate dual-number friction).</div>
+        <div class="action-due">Ongoing</div>
+      </div>
+      <div class="action-row">
+        <span class="action-owner ot-schneider">Janeczka</span>
+        <div class="action-text">Provide written spec for work center hierarchy lookup logic (Issue #7) to Arisoft for implementation.</div>
+        <div class="action-due">Pre May 21</div>
+      </div>
+      <div class="action-row">
+        <span class="action-owner ot-schneider">Janeczka + Steve</span>
+        <div class="action-text">Confirm physical hardware for production workstations and determine preferred printer defaulting strategy (WMS profile vs. other).</div>
+        <div class="action-due">Pre May 21</div>
+      </div>
+      <div class="action-row">
+        <span class="action-owner ot-schneider">Steve</span>
+        <div class="action-text">Send IQMS Web API error message to support team (CC Eric). Ask for assistance identifying cause of failed disposition posting.</div>
+        <div class="action-due">Immediate</div>
+      </div>
+      <div class="action-row">
+        <span class="action-owner ot-schneider">Steve</span>
+        <div class="action-text">Check TRANSCODE (TRANSCE) is enabled as an inventory parameter in IQMS. Confirm with Web API support if it is a required field.</div>
+        <div class="action-due">Immediate</div>
+      </div>
+      <div class="action-row">
+        <span class="action-owner ot-schneider">Ovais / Waqas</span>
+        <div class="action-text">Use Postman to test IQMS Web API calls directly. Determine whether error is an API configuration issue or a dependency on local vs. mapped (M: drive) report files.</div>
+        <div class="action-due">Pre May 21</div>
+      </div>
+      <div class="action-row">
+        <span class="action-owner ot-schneider">Eric</span>
+        <div class="action-text">Contact Jim Snyder to obtain / verify IIS / IQ Alert server credentials. Send calendar invite for May 21st 12–1 PM Eastern weekly touchpoint.</div>
+        <div class="action-due">Immediate</div>
+      </div>
+      <div class="action-row">
+        <span class="action-owner ot-schneider">Eric + Steve</span>
+        <div class="action-text">Internally socialize the Web API error with Schneider's web/API team to find a resource with IQMS Web API expertise (beyond standard HMS support).</div>
+        <div class="action-due">This week</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="tab-arch" class="tab-pane">
+    <div class="diagram-wrap">
+<svg width="100%" viewBox="0 0 680 520" role="img">
+<title>System architecture: Arisoft Label App integration with IQMS</title>
+<desc>Shows the Arisoft label printing web app communicating with the IQMS Web API on IIS, which connects to the IQMS/DelmiaWorks ERP and label printer. The WMS and work center schedule table are also shown.</desc>
+<defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+</defs>
+
+<g class="c-purple">
+  <rect x="30" y="30" width="170" height="80" rx="10" stroke-width="0.5"/>
+  <text class="th" x="115" y="62" text-anchor="middle" dominant-baseline="central">Arisoft Label App</text>
+  <text class="ts" x="115" y="82" text-anchor="middle" dominant-baseline="central">Web-based, mobile-ready</text>
+  <text class="ts" x="115" y="97" text-anchor="middle" dominant-baseline="central">Label creation + disposition</text>
+</g>
+
+<g class="c-teal">
+  <rect x="255" y="30" width="170" height="80" rx="10" stroke-width="0.5"/>
+  <text class="th" x="340" y="58" text-anchor="middle" dominant-baseline="central">IQMS Web API</text>
+  <text class="ts" x="340" y="76" text-anchor="middle" dominant-baseline="central">REST API on IIS Server</text>
+  <text class="ts" x="340" y="93" text-anchor="middle" dominant-baseline="central">Print label · DISPO · Update attrs</text>
+</g>
+
+<g class="c-blue">
+  <rect x="480" y="30" width="170" height="80" rx="10" stroke-width="0.5"/>
+  <text class="th" x="565" y="58" text-anchor="middle" dominant-baseline="central">IQMS / DelmiaWorks</text>
+  <text class="ts" x="565" y="76" text-anchor="middle" dominant-baseline="central">ERP (2025 Refresh 6)</text>
+  <text class="ts" x="565" y="93" text-anchor="middle" dominant-baseline="central">Work orders · Inventory · Labels</text>
+</g>
+
+<line x1="200" y1="70" x2="253" y2="70" stroke="#7F77DD" stroke-width="1.5" marker-end="url(#arrow)" fill="none"/>
+<text class="ts" x="226" y="62" text-anchor="middle">API calls</text>
+
+<line x1="425" y1="70" x2="478" y2="70" stroke="#1D9E75" stroke-width="1.5" marker-end="url(#arrow)" fill="none"/>
+<text class="ts" x="451" y="62" text-anchor="middle">reads/writes</text>
+
+<line x1="253" y1="80" x2="202" y2="80" stroke="#1D9E75" stroke-width="1" marker-end="url(#arrow)" stroke-dasharray="4 3" fill="none"/>
+<text class="ts" x="226" y="94" text-anchor="middle">response</text>
+
+<g class="c-amber">
+  <rect x="255" y="175" width="170" height="60" rx="10" stroke-width="0.5"/>
+  <text class="th" x="340" y="200" text-anchor="middle" dominant-baseline="central">Label Printer</text>
+  <text class="ts" x="340" y="218" text-anchor="middle" dominant-baseline="central">Via IQMS print API call</text>
+</g>
+
+<line x1="340" y1="110" x2="340" y2="173" stroke="#1D9E75" stroke-width="1.5" marker-end="url(#arrow)" fill="none"/>
+<text class="ts" x="356" y="145" text-anchor="start">print label</text>
+
+<g class="c-coral">
+  <rect x="480" y="175" width="170" height="60" rx="10" stroke-width="0.5"/>
+  <text class="th" x="565" y="200" text-anchor="middle" dominant-baseline="central">WMS</text>
+  <text class="ts" x="565" y="218" text-anchor="middle" dominant-baseline="central">User profiles · Printer defaults</text>
+</g>
+
+<line x1="565" y1="110" x2="565" y2="173" stroke="#378ADD" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#arrow)" fill="none"/>
+<text class="ts" x="581" y="148" text-anchor="start">lookup</text>
+
+<g class="c-gray">
+  <rect x="480" y="290" width="170" height="60" rx="10" stroke-width="0.5"/>
+  <text class="th" x="565" y="315" text-anchor="middle" dominant-baseline="central">CNTSCH Table</text>
+  <text class="ts" x="565" y="333" text-anchor="middle" dominant-baseline="central">Work order schedule</text>
+</g>
+
+<line x1="565" y1="235" x2="565" y2="288" stroke="#888780" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#arrow)" fill="none"/>
+<text class="ts" x="581" y="265" text-anchor="start">contains</text>
+
+<g class="c-gray">
+  <rect x="30" y="175" width="170" height="60" rx="10" stroke-width="0.5"/>
+  <text class="th" x="115" y="200" text-anchor="middle" dominant-baseline="central">User / Operator</text>
+  <text class="ts" x="115" y="218" text-anchor="middle" dominant-baseline="central">Production floor tablet/PC</text>
+</g>
+
+<line x1="115" y1="110" x2="115" y2="173" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)" fill="none"/>
+
+<rect x="22" y="290" width="426" height="132" rx="12" fill="none" stroke="#E24B4A" stroke-width="0.5" stroke-dasharray="5 3"/>
+<text class="ts" x="235" y="310" text-anchor="middle" style="fill:#A32D2D;font-weight:500">⚠ Current blocking issues in this zone</text>
+
+<rect x="60" y="320" width="170" height="46" rx="8" fill="#FCEBEB" stroke="#F09595" stroke-width="0.5"/>
+<text class="ts" x="145" y="338" text-anchor="middle" style="fill:#A32D2D;font-weight:500">TRANSCODE missing</text>
+<text class="ts" x="145" y="354" text-anchor="middle" style="fill:#A32D2D">IQMS inventory param required</text>
+
+<rect x="260" y="320" width="170" height="46" rx="8" fill="#FCEBEB" stroke="#F09595" stroke-width="0.5"/>
+<text class="ts" x="345" y="338" text-anchor="middle" style="fill:#A32D2D;font-weight:500">DISPO attributes not writing</text>
+<text class="ts" x="345" y="354" text-anchor="middle" style="fill:#A32D2D">Lot# / user-defined fields empty</text>
+
+<rect x="30" y="390" width="170" height="24" rx="6" fill="#FAEEDA" stroke="#FAC775" stroke-width="0.5"/>
+<text class="ts" x="115" y="406" text-anchor="middle" style="fill:#854F0B">M: drive vs local resource path</text>
+
+<rect x="260" y="390" width="170" height="24" rx="6" fill="#FAEEDA" stroke="#FAC775" stroke-width="0.5"/>
+<text class="ts" x="345" y="406" text-anchor="middle" style="fill:#854F0B">Web API installation completeness</text>
+
+<text class="ts" x="340" y="490" text-anchor="middle" style="fill:var(--color-text-secondary)">Dashed lines = read/lookup · Solid lines = active API calls · Red zone = current blockers</text>
+</svg>
+    </div>
+  </div>
+
+  <div id="tab-mindmap" class="tab-pane">
+    <div class="diagram-wrap">
+<svg width="100%" viewBox="0 0 680 600" role="img">
+<title>Mind map of Arisoft meeting topics</title>
+<desc>Central node: Arisoft-Schneider Integration. Branches: Application (label app features, work center, printer), Data Issues (net weight, serial number, DISPO), Infrastructure (IIS, Web API, TRANSCODE), Process (disposition flow, label types), Next Steps (actions, meeting).</desc>
+<defs>
+  <marker id="arrow2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+    <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+</defs>
+
+<g class="c-teal">
+  <rect x="248" y="260" width="184" height="56" rx="12" stroke-width="1"/>
+  <text class="th" x="340" y="282" text-anchor="middle" dominant-baseline="central">Arisoft × Schneider</text>
+  <text class="ts" x="340" y="301" text-anchor="middle" dominant-baseline="central">Integration Review</text>
+</g>
+
+<line x1="248" y1="290" x2="170" y2="138" stroke="#1D9E75" stroke-width="1.5" fill="none"/>
+<g class="c-purple">
+  <rect x="44" y="88" width="162" height="50" rx="10" stroke-width="0.5"/>
+  <text class="th" x="125" y="108" text-anchor="middle" dominant-baseline="central">Application</text>
+  <text class="ts" x="125" y="126" text-anchor="middle" dominant-baseline="central">Label app features</text>
+</g>
+<line x1="125" y1="88" x2="125" y2="56" stroke="#7F77DD" stroke-width="1" fill="none"/>
+<g class="c-purple"><rect x="60" y="18" width="130" height="38" rx="8" stroke-width="0.5"/><text class="ts" x="125" y="37" text-anchor="middle" dominant-baseline="central">Web-based, mobile-ready</text></g>
+<line x1="44" y1="110" x2="14" y2="130" stroke="#7F77DD" stroke-width="1" fill="none"/>
+<g class="c-purple"><rect x="0" y="118" width="110" height="38" rx="8" stroke-width="0.5"/><text class="ts" x="55" y="137" text-anchor="middle" dominant-baseline="central">Work center dropdown</text></g>
+<line x1="44" y1="126" x2="14" y2="164" stroke="#7F77DD" stroke-width="1" fill="none"/>
+<g class="c-purple"><rect x="0" y="152" width="110" height="38" rx="8" stroke-width="0.5"/><text class="ts" x="55" y="171" text-anchor="middle" dominant-baseline="central">Printer defaulting (WMS)</text></g>
+<line x1="130" y1="138" x2="138" y2="184" stroke="#7F77DD" stroke-width="1" fill="none"/>
+<g class="c-purple"><rect x="80" y="172" width="116" height="38" rx="8" stroke-width="0.5"/><text class="ts" x="138" y="191" text-anchor="middle" dominant-baseline="central">Session timeout config</text></g>
+
+<line x1="340" y1="260" x2="260" y2="138" stroke="#1D9E75" stroke-width="1.5" fill="none"/>
+<g class="c-red">
+  <rect x="162" y="88" width="162" height="50" rx="10" stroke-width="0.5"/>
+  <text class="th" x="243" y="108" text-anchor="middle" dominant-baseline="central">Data Issues</text>
+  <text class="ts" x="243" y="126" text-anchor="middle" dominant-baseline="central">Bugs to fix</text>
+</g>
+<line x1="243" y1="88" x2="210" y2="50" stroke="#E24B4A" stroke-width="1" fill="none"/>
+<g class="c-red"><rect x="156" y="18" width="108" height="32" rx="8" stroke-width="0.5"/><text class="ts" x="210" y="34" text-anchor="middle" dominant-baseline="central">Net weight vs gross</text></g>
+<line x1="243" y1="88" x2="275" y2="50" stroke="#E24B4A" stroke-width="1" fill="none"/>
+<g class="c-red"><rect x="222" y="18" width="106" height="32" rx="8" stroke-width="0.5"/><text class="ts" x="275" y="34" text-anchor="middle" dominant-baseline="central">Serial # alignment</text></g>
+<line x1="315" y1="110" x2="348" y2="68" stroke="#E24B4A" stroke-width="1" fill="none"/>
+<g class="c-red"><rect x="300" y="38" width="96" height="30" rx="8" stroke-width="0.5"/><text class="ts" x="348" y="53" text-anchor="middle" dominant-baseline="central">DISPO IN vs OUT</text></g>
+
+<line x1="432" y1="260" x2="510" y2="138" stroke="#1D9E75" stroke-width="1.5" fill="none"/>
+<g class="c-amber">
+  <rect x="434" y="88" width="162" height="50" rx="10" stroke-width="0.5"/>
+  <text class="th" x="515" y="108" text-anchor="middle" dominant-baseline="central">Infrastructure</text>
+  <text class="ts" x="515" y="126" text-anchor="middle" dominant-baseline="central">Server & API</text>
+</g>
+<line x1="515" y1="88" x2="482" y2="52" stroke="#BA7517" stroke-width="1" fill="none"/>
+<g class="c-amber"><rect x="424" y="20" width="116" height="32" rx="8" stroke-width="0.5"/><text class="ts" x="482" y="36" text-anchor="middle" dominant-baseline="central">TRANSCODE required</text></g>
+<line x1="515" y1="88" x2="548" y2="52" stroke="#BA7517" stroke-width="1" fill="none"/>
+<g class="c-amber"><rect x="490" y="20" width="130" height="32" rx="8" stroke-width="0.5"/><text class="ts" x="555" y="36" text-anchor="middle" dominant-baseline="central">Local vs M: drive paths</text></g>
+<line x1="596" y1="110" x2="638" y2="138" stroke="#BA7517" stroke-width="1" fill="none"/>
+<g class="c-amber"><rect x="566" y="88" width="114" height="64" rx="8" stroke-width="0.5"/>
+<text class="ts" x="623" y="112" text-anchor="middle" dominant-baseline="central">Web API install</text>
+<text class="ts" x="623" y="130" text-anchor="middle" dominant-baseline="central">validation (Postman)</text></g>
+
+<line x1="248" y1="310" x2="134" y2="418" stroke="#1D9E75" stroke-width="1.5" fill="none"/>
+<g class="c-blue">
+  <rect x="44" y="392" width="162" height="50" rx="10" stroke-width="0.5"/>
+  <text class="th" x="125" y="412" text-anchor="middle" dominant-baseline="central">Disposition Flow</text>
+  <text class="ts" x="125" y="430" text-anchor="middle" dominant-baseline="central">3-step API sequence</text>
+</g>
+<line x1="90" y1="442" x2="55" y2="478" stroke="#378ADD" stroke-width="1" fill="none"/>
+<g class="c-blue"><rect x="10" y="466" width="90" height="30" rx="8" stroke-width="0.5"/><text class="ts" x="55" y="481" text-anchor="middle" dominant-baseline="central">1. Print label</text></g>
+<line x1="125" y1="442" x2="125" y2="484" stroke="#378ADD" stroke-width="1" fill="none"/>
+<g class="c-blue"><rect x="66" y="472" width="118" height="30" rx="8" stroke-width="0.5"/><text class="ts" x="125" y="487" text-anchor="middle" dominant-baseline="central">2. DISPO in IQMS</text></g>
+<line x1="162" y1="442" x2="188" y2="478" stroke="#378ADD" stroke-width="1" fill="none"/>
+<g class="c-blue"><rect x="130" y="466" width="116" height="30" rx="8" stroke-width="0.5"/><text class="ts" x="188" y="481" text-anchor="middle" dominant-baseline="central">3. Update attributes</text></g>
+
+<line x1="340" y1="316" x2="340" y2="392" stroke="#1D9E75" stroke-width="1.5" fill="none"/>
+<g class="c-coral">
+  <rect x="244" y="392" width="192" height="50" rx="10" stroke-width="0.5"/>
+  <text class="th" x="340" y="412" text-anchor="middle" dominant-baseline="central">Label Types</text>
+  <text class="ts" x="340" y="430" text-anchor="middle" dominant-baseline="central">3 variants in scope</text>
+</g>
+<line x1="300" y1="442" x2="285" y2="478" stroke="#993C1D" stroke-width="1" fill="none"/>
+<g class="c-coral"><rect x="234" y="466" width="100" height="30" rx="8" stroke-width="0.5"/><text class="ts" x="284" y="481" text-anchor="middle" dominant-baseline="central">Firsts</text></g>
+<line x1="340" y1="442" x2="340" y2="474" stroke="#993C1D" stroke-width="1" fill="none"/>
+<g class="c-coral"><rect x="286" y="462" width="108" height="30" rx="8" stroke-width="0.5"/><text class="ts" x="340" y="477" text-anchor="middle" dominant-baseline="central">Seconds</text></g>
+<line x1="375" y1="442" x2="405" y2="478" stroke="#993C1D" stroke-width="1" fill="none"/>
+<g class="c-coral"><rect x="352" y="466" width="106" height="30" rx="8" stroke-width="0.5"/><text class="ts" x="405" y="481" text-anchor="middle" dominant-baseline="central">Scrap / Regrind</text></g>
+
+<line x1="432" y1="310" x2="540" y2="418" stroke="#1D9E75" stroke-width="1.5" fill="none"/>
+<g class="c-green">
+  <rect x="464" y="392" width="180" height="50" rx="10" stroke-width="0.5"/>
+  <text class="th" x="554" y="412" text-anchor="middle" dominant-baseline="central">Next Steps</text>
+  <text class="ts" x="554" y="430" text-anchor="middle" dominant-baseline="central">Actions &amp; follow-up</text>
+</g>
+<line x1="510" y1="442" x2="490" y2="478" stroke="#3B6D11" stroke-width="1" fill="none"/>
+<g class="c-green"><rect x="434" y="466" width="112" height="30" rx="8" stroke-width="0.5"/><text class="ts" x="490" y="481" text-anchor="middle" dominant-baseline="central">May 21 touchpoint</text></g>
+<line x1="554" y1="442" x2="554" y2="470" stroke="#3B6D11" stroke-width="1" fill="none"/>
+<g class="c-green"><rect x="496" y="458" width="116" height="30" rx="8" stroke-width="0.5"/><text class="ts" x="554" y="473" text-anchor="middle" dominant-baseline="central">Weekly cadence</text></g>
+<line x1="598" y1="442" x2="624" y2="478" stroke="#3B6D11" stroke-width="1" fill="none"/>
+<g class="c-green"><rect x="568" y="466" width="112" height="30" rx="8" stroke-width="0.5"/><text class="ts" x="624" y="481" text-anchor="middle" dominant-baseline="central">IQMS support SR</text></g>
+
+<text class="ts" x="340" y="576" text-anchor="middle" style="fill:var(--color-text-secondary)">IQMS 2025 Refresh 6 (Schneider) · Arisoft Refresh 2 · App: web-based label + disposition solution</text>
+</svg>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<script>
+function showTab(id,el){
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  el.classList.add('active');
+}
+</script>
