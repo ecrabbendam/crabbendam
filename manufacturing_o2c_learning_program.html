@@ -1,0 +1,239 @@
+
+<h2 class="sr-only">Manufacturing Order-to-Cash Learning Program — 8 interactive modules covering every stage from customer order to cash collection</h2>
+<style>
+.o2c{padding:.5rem 0}
+.o2c-head{margin-bottom:1.25rem}
+.o2c-title{font-size:22px;font-weight:500;color:var(--color-text-primary);margin:0 0 4px}
+.o2c-sub{font-size:14px;color:var(--color-text-secondary);margin:0}
+.flow-strip{display:flex;align-items:stretch;gap:2px;margin-bottom:1.25rem;overflow-x:auto;padding:2px 0}
+.flow-cell{flex:1;min-width:65px;padding:8px 4px;text-align:center;border-radius:var(--border-radius-md);cursor:pointer;font-size:11px;font-weight:500;border:0.5px solid var(--color-border-tertiary);background:var(--color-background-secondary);color:var(--color-text-secondary);transition:all .15s;line-height:1.3}
+.flow-cell:hover{background:var(--color-background-primary);color:var(--color-text-primary)}
+.flow-cell.active{background:var(--color-background-primary);color:var(--color-text-primary);border-color:var(--color-border-primary)}
+.flow-cell i{display:block;font-size:16px;margin-bottom:3px}
+.flow-arrow{display:flex;align-items:center;color:var(--color-text-secondary);font-size:10px;flex-shrink:0;padding:0 1px}
+.module{display:none}
+.module.active{display:block;animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+.mod-header{display:flex;align-items:flex-start;gap:14px;padding:1.25rem;margin-bottom:1rem;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg)}
+.mod-badge{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.mod-badge i{font-size:22px}
+.mod-title{font-size:18px;font-weight:500;color:var(--color-text-primary);margin:0 0 6px}
+.mod-overview{font-size:14px;color:var(--color-text-secondary);margin:0;line-height:1.6}
+.sec-label{font-size:11px;font-weight:500;color:var(--color-text-secondary);letter-spacing:.6px;margin:1.25rem 0 .5rem}
+.concepts-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:8px;margin-bottom:.25rem}
+.con-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:.875rem;border-left-width:2px}
+.con-title{font-size:13px;font-weight:500;color:var(--color-text-primary);margin:0 0 5px}
+.con-body{font-size:12px;color:var(--color-text-secondary);line-height:1.55;margin:0}
+.kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:.25rem}
+.kpi-card{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:.875rem;text-align:center}
+.kpi-name{font-size:10px;color:var(--color-text-secondary);margin:0 0 5px;font-weight:500}
+.kpi-val{font-size:20px;font-weight:500;color:var(--color-text-primary);margin:0 0 3px}
+.kpi-desc{font-size:10px;color:var(--color-text-secondary);margin:0;line-height:1.4}
+.gloss{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);overflow:hidden;margin-bottom:.75rem}
+.gloss-head{padding:9px 14px;font-size:12px;font-weight:500;border-bottom:0.5px solid var(--color-border-tertiary);color:var(--color-text-secondary);display:flex;align-items:center;gap:6px}
+.gloss-row{display:grid;grid-template-columns:140px 1fr;padding:7px 14px;border-bottom:0.5px solid var(--color-border-tertiary);font-size:12px}
+.gloss-row:last-child{border-bottom:none}
+.gloss-term{font-weight:500;color:var(--color-text-primary)}
+.gloss-def{color:var(--color-text-secondary);line-height:1.5}
+.ask-btn{width:100%;padding:10px 16px;background:transparent;cursor:pointer;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);font-size:13px;color:var(--color-text-primary);text-align:left;transition:background .15s;margin-bottom:.75rem;display:flex;align-items:center;gap:8px}
+.ask-btn:hover{background:var(--color-background-secondary)}
+.mod-nav{display:flex;justify-content:space-between;align-items:center;gap:8px;padding-top:.5rem}
+.nav-btn{padding:7px 14px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:transparent;cursor:pointer;font-size:12px;color:var(--color-text-primary);transition:all .15s}
+.nav-btn:hover{background:var(--color-background-secondary)}
+.nav-counter{font-size:12px;color:var(--color-text-secondary)}
+.stage-track{display:flex;align-items:center;gap:0;margin-bottom:1.25rem;overflow-x:auto}
+.s-dot{width:24px;height:24px;border-radius:50%;border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;cursor:pointer;color:var(--color-text-secondary);transition:all .2s;flex-shrink:0}
+.s-dot.active{border-color:var(--color-border-primary);background:var(--color-background-primary);color:var(--color-text-primary)}
+.s-dot.done{background:var(--color-background-success);border-color:var(--color-border-success);color:var(--color-text-success)}
+.s-line{flex:1;height:1px;background:var(--color-border-tertiary);min-width:8px}
+.s-line.done{background:var(--color-border-success)}
+</style>
+
+<div class="o2c">
+  <div class="o2c-head">
+    <p class="o2c-title">Manufacturing: Order-to-Cash</p>
+    <p class="o2c-sub">8 modules · From customer order through cash collection · Click any stage to begin</p>
+  </div>
+  <div class="flow-strip" id="flowStrip"></div>
+  <div class="stage-track" id="stageTrack"></div>
+  <div id="modContent"></div>
+</div>
+
+<script>
+const S=[
+{name:"Order entry",short:"Order",icon:"ti-file-invoice",color:"info",
+overview:"A customer submits a purchase order — via EDI, portal, email, or direct sales entry. The team checks credit availability, confirms ATP (Available to Promise) against inventory or capacity, locks pricing from the contract, and creates a Sales Order in the ERP. This document anchors everything that follows.",
+concepts:[
+{t:"Credit check",b:"Before accepting an order, verify the customer has available credit and no overdue balances that would trigger a hold. Unblocked orders keep production moving."},
+{t:"ATP check",b:"Available to Promise confirms whether finished goods are on hand or whether production can meet the requested ship date given current load."},
+{t:"Order acknowledgment",b:"Formal confirmation sent back to the customer with agreed quantity, price, and delivery date — the foundation of the customer's expectations."},
+{t:"Pricing logic",b:"The ERP applies contract price books, volume breaks, and promotional pricing to generate line values automatically from the customer's master data."}
+],
+kpis:[{n:"Order fill rate",v:"98%",d:"Orders filled complete, first attempt"},{n:"Entry cycle time",v:"< 2h",d:"Receipt to acknowledgment"},{n:"Entry accuracy",v:"99.5%",d:"Orders entered without errors"}],
+terms:[{t:"Sales Order (SO)",d:"Internal ERP document created when a customer order is accepted"},{t:"EDI",d:"Electronic Data Interchange — machine-to-machine automated order transmission"},{t:"ATP",d:"Available to Promise — quantity available to commit for a given date"},{t:"Credit hold",d:"Block placed on an order when a customer exceeds their credit limit"},{t:"Customer PO",d:"The customer's purchase order authorizing the purchase"}],
+ask:"Explain what happens during order entry in a manufacturing company and common failure points"},
+
+{name:"Planning & scheduling",short:"Planning",icon:"ti-calendar-stats",color:"info",
+overview:"Confirmed orders feed demand into MRP (Material Requirements Planning), which explodes Bills of Materials to calculate exactly what raw materials and sub-components are needed, and when. Production schedulers assign work orders to machines and work centers, validate capacity, and release jobs to the shop floor.",
+concepts:[
+{t:"MRP run",b:"Material Requirements Planning explodes BOM demand against on-hand inventory and open POs to generate planned work orders and purchase orders for every component."},
+{t:"Bill of Materials (BOM)",b:"The complete recipe for a finished product — every component, sub-assembly, raw material, quantity, and unit of measure organized in a hierarchy."},
+{t:"Routing",b:"Defines the exact sequence of manufacturing operations, which work center each runs on, and the standard setup and run times for scheduling."},
+{t:"Capacity planning",b:"Validates that scheduled work orders fit within available machine and labor hours. Identifies overloads before they become late orders."}
+],
+kpis:[{n:"Schedule adherence",v:"92%",d:"% jobs completed on planned date"},{n:"Planner nervousness",v:"< 10%",d:"Unplanned schedule changes per week"},{n:"WO release lead time",v:"3 days",d:"Advance release before start date"}],
+terms:[{t:"BOM",d:"Bill of Materials — hierarchical list of all components in a finished product"},{t:"MRP",d:"Material Requirements Planning — calculates component demand from finished goods demand"},{t:"Routing",d:"Step-by-step operations sequence needed to manufacture a product"},{t:"Work center",d:"A production resource — machine, cell, or labor pool — with defined capacity"},{t:"Planned order",d:"An MRP-generated recommendation to buy or make a component"}],
+ask:"How does MRP work and how does it connect sales demand to production and purchasing?"},
+
+{name:"Procurement",short:"Procure",icon:"ti-truck-delivery",color:"success",
+overview:"MRP-generated planned orders for purchased items become Purchase Requisitions, which buyers convert to Purchase Orders sent to approved suppliers. When goods arrive at the dock, a receiving transaction creates the three-way match (PO + receipt + invoice), updates on-hand inventory, and clears the liability to pay.",
+concepts:[
+{t:"Purchase requisition",b:"An internal request to buy something, triggered by MRP or a department. Requires approval workflow before becoming an authorized PO."},
+{t:"Purchase order",b:"The legally binding document sent to a supplier specifying item, quantity, price, delivery date, and destination. Creates the obligation to receive and pay."},
+{t:"Three-way match",b:"Matching the PO, the packing list or ASN, and the supplier invoice before releasing payment. Prevents paying for unordered or unreceived goods."},
+{t:"Supplier lead time",b:"Time from PO issue to dock receipt. MRP uses this to back-schedule PO release dates so materials arrive when production needs them."}
+],
+kpis:[{n:"Supplier OTIF",v:"95%",d:"On-time, in-full delivery rate"},{n:"PO accuracy",v:"99%",d:"POs issued without errors"},{n:"Dock-to-stock",v:"< 4h",d:"Receiving to putaway cycle time"}],
+terms:[{t:"PR / PO",d:"Purchase Requisition (internal request) → Purchase Order (sent to supplier)"},{t:"ASN",d:"Advanced Shipment Notice — supplier's pre-notification of inbound shipment contents"},{t:"Three-way match",d:"Verification that PO, goods receipt, and invoice all agree before payment"},{t:"VMI",d:"Vendor Managed Inventory — supplier autonomously monitors and replenishes stock"},{t:"Lead time",d:"Total elapsed time from order placement to receipt of goods on your dock"}],
+ask:"Walk me through the procure-to-pay cycle in a manufacturing environment, step by step"},
+
+{name:"Production",short:"Produce",icon:"ti-settings-2",color:"warning",
+overview:"Work Orders released to the shop floor authorize production of a specific quantity. Materials are issued from the warehouse into WIP, operators execute operations against the routing, and quality inspections check conformance at key checkpoints. The work order closes when operations are complete and finished units are received into inventory.",
+concepts:[
+{t:"Work order",b:"The shop floor authorization to produce a specific quantity. It carries the BOM and routing, tracks actual vs. standard costs, and captures labor and material consumption."},
+{t:"Material issue",b:"Transaction that moves raw materials from the warehouse to WIP (Work in Process) for consumption. Drives inventory decrements and job costing."},
+{t:"Labor reporting",b:"Operators clock in/out against work order operations. Captures actual hours for cost variance analysis, payroll, and efficiency measurement."},
+{t:"Quality inspection",b:"Inline and end-of-line checks — dimensional, functional, visual — that classify output as conforming, rework, or scrap. Gates the next operation."}
+],
+kpis:[{n:"First pass yield",v:"97%",d:"Units passing inspection first time"},{n:"OEE",v:"75–85%",d:"Overall Equipment Effectiveness"},{n:"Cost variance",v:"< 3%",d:"Actual vs. standard cost deviation"}],
+terms:[{t:"Work order",d:"Authorization to manufacture a quantity, with BOM and routing attached"},{t:"WIP",d:"Work In Process — inventory that has entered production but is not yet finished"},{t:"OEE",d:"Overall Equipment Effectiveness = Availability × Performance × Quality"},{t:"First pass yield",d:"% of units passing quality inspection without rework or scrap"},{t:"Standard cost",d:"Pre-set expected cost per unit; variances to actuals are tracked and analyzed"}],
+ask:"What is OEE and how is it calculated? Give me a real manufacturing example with numbers"},
+
+{name:"Inventory",short:"Inventory",icon:"ti-package",color:"success",
+overview:"Finished goods from production are received into the warehouse — tagged, binned, and lot-controlled. Accurate inventory management through cycle counting, FIFO/FEFO rotation, and serial traceability ensures the right stock is always available. Inventory levels are balanced against demand signals and the cost of carrying excess stock.",
+concepts:[
+{t:"Lot & serial traceability",b:"Tracking which production lot or serial number shipped on which sales order. Critical for recalls, warranty claims, and compliance in regulated industries."},
+{t:"FIFO / FEFO",b:"First In First Out / First Expired First Out — rotation rules that ensure oldest or soonest-expiring stock is consumed first to minimize waste and obsolescence."},
+{t:"Cycle counting",b:"Rolling physical counts of rotating subsets of SKUs instead of annual wall-to-wall counts. Maintains accuracy with minimal production disruption."},
+{t:"Safety stock",b:"Buffer inventory above the reorder point to absorb demand variability and supply uncertainty. Sized using service level targets and lead time variability."}
+],
+kpis:[{n:"Inventory accuracy",v:"99%+",d:"System vs. physical count match rate"},{n:"Inventory turns",v:"8–12×",d:"Annual turns (industry dependent)"},{n:"Days on hand",v:"30–45d",d:"Average days of supply in stock"}],
+terms:[{t:"SKU",d:"Stock Keeping Unit — unique identifier for a specific product variant in inventory"},{t:"FIFO / FEFO",d:"Rotation rules ensuring oldest or soonest-expiring lots are consumed first"},{t:"Safety stock",d:"Buffer inventory to prevent stockouts during demand or supply variability"},{t:"Cycle count",d:"Partial physical inventory count of a rotating selection of SKUs"},{t:"Bin location",d:"Physical address in the warehouse (aisle-bay-level) for a specific item"}],
+ask:"How do you calculate the right safety stock level? What statistical formula is used?"},
+
+{name:"Shipping",short:"Ship",icon:"ti-box",color:"danger",
+overview:"A pick list generated from the sales order drives warehouse staff to pull specific lots and quantities, pack them per customer requirements, and print shipping labels and a Bill of Lading. The shipment is tendered to a carrier, an ASN is transmitted to the customer, and ERP updates the order to Shipped — triggering invoice creation.",
+concepts:[
+{t:"Pick, pack & ship",b:"Three sequential operations: selecting items from bin locations (pick), assembling them into cartons or pallets per ship requirements (pack), and handing off to carrier (ship)."},
+{t:"Bill of Lading (BOL)",b:"Legal document issued to the carrier itemizing the goods in the shipment. Serves as receipt, contract of carriage, and title document for ownership transfer."},
+{t:"OTIF",b:"On Time In Full — the percentage of deliveries arriving at the customer on or before the promised date with the complete ordered quantity. The primary customer service metric."},
+{t:"Advanced Shipment Notice",b:"Electronic pre-notification sent to the customer when the shipment departs your dock. Enables their WMS to pre-receive and schedule dock appointments."}
+],
+kpis:[{n:"OTIF",v:"95%+",d:"On Time In Full delivery rate"},{n:"Pick accuracy",v:"99.8%",d:"Lines picked without error"},{n:"Dock-to-ship",v:"< 2h",d:"Order release to truck departure"}],
+terms:[{t:"BOL",d:"Bill of Lading — legal shipment document and carrier receipt"},{t:"ASN",d:"Advanced Shipment Notice — electronic pre-notification to customer of inbound shipment"},{t:"OTIF",d:"On Time In Full — primary delivery performance metric"},{t:"Freight terms",d:"Who pays freight (FOB Origin = buyer pays, FOB Destination = seller pays)"},{t:"Packing slip",d:"Document inside the shipment listing contents, quantities, and lot numbers"}],
+ask:"What is OTIF and what are the most effective ways to improve it?"},
+
+{name:"Invoicing",short:"Invoice",icon:"ti-receipt",color:"info",
+overview:"The shipment confirmation triggers automatic invoice generation in the ERP — pulling pricing, quantity, and terms from the sales order. The invoice is transmitted to the customer via EDI, email, or AP portal. Revenue is recognized per accounting policy (typically at ship or delivery). Disputes and credit memos are managed before payment is expected.",
+concepts:[
+{t:"Invoice generation",b:"Typically automated off the shipment transaction — pricing, quantity, and payment terms flow from the sales order into a billable invoice with minimal manual entry."},
+{t:"Revenue recognition",b:"Per ASC 606, revenue is recognized when the performance obligation is satisfied — at shipment (FOB Origin) or confirmed delivery (FOB Destination)."},
+{t:"Credit memos",b:"Issued to reduce a customer balance for returns, pricing corrections, or goodwill adjustments. Applied against open invoices in Accounts Receivable."},
+{t:"Payment terms",b:"Negotiated collection window (e.g., Net 30, 2/10 Net 30). Early payment discounts reduce revenue slightly but accelerate cash flow — a deliberate trade-off."}
+],
+kpis:[{n:"Invoice accuracy",v:"99%+",d:"Invoices issued without disputes"},{n:"Invoice cycle time",v:"< 24h",d:"Ship to invoice transmission"},{n:"Dispute rate",v:"< 2%",d:"Invoices disputed by customers"}],
+terms:[{t:"Invoice",d:"Bill sent to customer for goods delivered, referencing the PO and delivery"},{t:"Credit memo",d:"Document reducing customer balance for returns, pricing errors, or adjustments"},{t:"Net 30",d:"Payment due within 30 calendar days of invoice date"},{t:"2/10 Net 30",d:"2% discount if paid within 10 days; full amount due in 30 days"},{t:"ASC 606",d:"Revenue recognition standard — match revenue to satisfaction of performance obligation"}],
+ask:"What is ASC 606 revenue recognition and how does it apply to a typical manufacturer?"},
+
+{name:"Collections",short:"Cash",icon:"ti-currency-dollar",color:"danger",
+overview:"Accounts Receivable tracks every open invoice, sends statements, and follows up on overdue balances. When payments arrive, cash application clears them against the correct invoices. DSO measures how efficiently the company converts receivables to cash. Disputes are resolved quickly, and uncollectible accounts are written off only as a last resort.",
+concepts:[
+{t:"Cash application",b:"Matching incoming customer payments to open invoices to clear the AR balance. Automated matching uses remittance data; exceptions require manual review."},
+{t:"AR aging report",b:"Categorizes outstanding invoices by days open: Current, 1–30, 31–60, 61–90, 90+. The primary tool for prioritizing collection calls and escalation."},
+{t:"DSO",b:"Days Sales Outstanding = (AR Balance ÷ Annual Revenue) × 365. Measures how quickly the company collects after a sale. Lower is better — it means faster cash."},
+{t:"Dispute management",b:"Customer disputes on price, quantity, or quality delay payment. Fast, documented resolution protects DSO performance and the customer relationship."}
+],
+kpis:[{n:"DSO",v:"35–45d",d:"Days Sales Outstanding (lower is better)"},{n:"Collection rate",v:"98%+",d:"% of AR successfully collected"},{n:"Bad debt rate",v:"< 0.5%",d:"Uncollectible as % of revenue"}],
+terms:[{t:"DSO",d:"Days Sales Outstanding — average days from invoice date to cash receipt"},{t:"AR aging",d:"Report showing outstanding invoices grouped by days overdue"},{t:"Cash application",d:"Matching incoming payments to open invoices to clear AR balance"},{t:"Write-off",d:"Removing an uncollectible invoice from AR as a bad debt expense"},{t:"Dunning",d:"Systematic escalating collection communications to delinquent customers"}],
+ask:"How do you calculate DSO and what are the most effective strategies to reduce it?"}
+];
+
+const colorMap={info:{bg:"var(--color-background-info)",text:"var(--color-text-info)",border:"var(--color-border-info)"},success:{bg:"var(--color-background-success)",text:"var(--color-text-success)",border:"var(--color-border-success)"},warning:{bg:"var(--color-background-warning)",text:"var(--color-text-warning)",border:"var(--color-border-warning)"},danger:{bg:"var(--color-background-danger)",text:"var(--color-text-danger)",border:"var(--color-border-danger)"}};
+
+let cur=0;
+const visited=new Set([0]);
+
+function renderStrip(){
+  const el=document.getElementById('flowStrip');
+  el.innerHTML='';
+  S.forEach((s,i)=>{
+    const d=document.createElement('div');
+    d.className='flow-cell'+(i===cur?' active':'');
+    d.innerHTML=`<i class="ti ${s.icon}" aria-hidden="true"></i>${s.short}`;
+    d.onclick=()=>go(i);
+    el.appendChild(d);
+    if(i<S.length-1){const a=document.createElement('div');a.className='flow-arrow';a.textContent='›';el.appendChild(a);}
+  });
+}
+
+function renderTrack(){
+  const el=document.getElementById('stageTrack');
+  el.innerHTML='';
+  S.forEach((s,i)=>{
+    const d=document.createElement('div');
+    d.className='s-dot'+(i===cur?' active':visited.has(i)?' done':'');
+    d.textContent=visited.has(i)&&i!==cur?'✓':(i+1);
+    d.onclick=()=>go(i);
+    el.appendChild(d);
+    if(i<S.length-1){const l=document.createElement('div');l.className='s-line'+(visited.has(i+1)?' done':'');el.appendChild(l);}
+  });
+}
+
+function renderMods(){
+  const el=document.getElementById('modContent');
+  el.innerHTML='';
+  S.forEach((s,i)=>{
+    const c=colorMap[s.color];
+    const mod=document.createElement('div');
+    mod.className='module'+(i===cur?' active':'');
+    mod.id=`mod-${i}`;
+    const conc=s.concepts.map(c2=>`<div class="con-card" style="border-left-color:${c.border}"><p class="con-title">${c2.t}</p><p class="con-body">${c2.b}</p></div>`).join('');
+    const kpis=s.kpis.map(k=>`<div class="kpi-card"><p class="kpi-name">${k.n}</p><p class="kpi-val">${k.v}</p><p class="kpi-desc">${k.d}</p></div>`).join('');
+    const terms=s.terms.map(t=>`<div class="gloss-row"><span class="gloss-term">${t.t}</span><span class="gloss-def">${t.d}</span></div>`).join('');
+    const prev=i>0?`<button class="nav-btn" onclick="go(${i-1})">← ${S[i-1].short}</button>`:`<span></span>`;
+    const next=i<S.length-1?`<button class="nav-btn" onclick="go(${i+1})">${S[i+1].short} →</button>`:`<button class="nav-btn" onclick="sendPrompt('Quiz me on the full manufacturing order-to-cash process across all 8 stages')">Take the O2C quiz ↗</button>`;
+    mod.innerHTML=`
+<div class="mod-header">
+  <div class="mod-badge" style="background:${c.bg}"><i class="ti ${s.icon}" aria-hidden="true" style="color:${c.text}"></i></div>
+  <div>
+    <p class="mod-title">Stage ${i+1}: ${s.name}</p>
+    <p class="mod-overview">${s.overview}</p>
+  </div>
+</div>
+<p class="sec-label">Key concepts</p>
+<div class="concepts-grid">${conc}</div>
+<p class="sec-label">Key metrics</p>
+<div class="kpi-row">${kpis}</div>
+<p class="sec-label">Terminology</p>
+<div class="gloss">
+  <div class="gloss-head"><i class="ti ti-notes" aria-hidden="true"></i>Quick reference glossary</div>
+  ${terms}
+</div>
+<button class="ask-btn" onclick="sendPrompt('${s.ask}')"><i class="ti ti-message-question" aria-hidden="true"></i>Ask Claude: ${s.ask} ↗</button>
+<div class="mod-nav">${prev}<span class="nav-counter">${i+1} of ${S.length}</span>${next}</div>`;
+    el.appendChild(mod);
+  });
+}
+
+function go(i){
+  cur=i;
+  visited.add(i);
+  renderStrip();
+  renderTrack();
+  document.querySelectorAll('.module').forEach((m,j)=>m.classList.toggle('active',j===i));
+  const cells=document.getElementById('flowStrip').querySelectorAll('.flow-cell');
+  if(cells[i])cells[i].scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
+}
+
+renderStrip();renderTrack();renderMods();
+</script>
