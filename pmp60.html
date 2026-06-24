@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PMP Practice Exam — 60 Questions</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --purple-50:#EEEDFE; --purple-200:#AFA9EC; --purple-400:#7F77DD; --purple-600:#534AB7; --purple-800:#3C3489; --purple-900:#26215C;
+    --teal-50:#E1F5EE; --teal-400:#1D9E75; --teal-600:#0F6E56; --teal-800:#085041;
+    --coral-50:#FAECE7; --coral-400:#D85A30; --coral-800:#4A1B0C;
+    --amber-50:#FAEEDA; --amber-400:#BA7517; --amber-800:#633806;
+    --gray-50:#F1EFE8; --gray-100:#D3D1C7; --gray-400:#888780; --gray-800:#2C2C2A;
+    --bg:#FFFFFF; --bg2:#F7F6F2; --bg3:#F1EFE8;
+    --text:#1A1A18; --text2:#5F5E5A; --text3:#888780;
+    --border:rgba(0,0,0,0.12); --border2:rgba(0,0,0,0.2);
+    --radius:10px; --radius-lg:14px;
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg2); color: var(--text); font-size: 15px; line-height: 1.65; }
+  .shell { max-width: 860px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+
+  /* Header */
+  .page-header { background: var(--purple-900); color: #fff; border-radius: var(--radius-lg); padding: 2rem 2rem 1.75rem; margin-bottom: 2rem; }
+  .page-header h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.3px; margin-bottom: .35rem; }
+  .page-header p { font-size: 13px; color: var(--purple-200); margin-bottom: 1.25rem; }
+  .meta-strip { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .meta-item { font-size: 12px; color: var(--purple-200); }
+  .meta-item strong { color: #fff; display: block; font-size: 18px; font-weight: 600; }
+
+  /* Progress */
+  .sticky-bar { position: sticky; top: 0; z-index: 100; background: var(--bg); border-bottom: 0.5px solid var(--border); padding: .6rem 1rem; display: flex; align-items: center; gap: 1rem; }
+  .pbar-wrap { flex: 1; height: 6px; background: var(--bg3); border-radius: 999px; overflow: hidden; }
+  .pbar-fill { height: 6px; border-radius: 999px; background: var(--purple-400); transition: width .3s; }
+  .pbar-label { font-size: 12px; color: var(--text3); white-space: nowrap; }
+
+  /* Domain section headers */
+  .domain-header { display: flex; align-items: center; gap: 10px; margin: 2rem 0 1rem; padding-bottom: .5rem; border-bottom: 2px solid; }
+  .domain-header.predict { border-color: var(--purple-400); }
+  .domain-header.perf    { border-color: var(--teal-400); }
+  .domain-header.bus     { border-color: var(--amber-400); }
+  .domain-header h2 { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; }
+  .domain-header.predict h2 { color: var(--purple-600); }
+  .domain-header.perf    h2 { color: var(--teal-600); }
+  .domain-header.bus     h2 { color: var(--amber-400); }
+  .domain-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .domain-header.predict .domain-dot { background: var(--purple-400); }
+  .domain-header.perf    .domain-dot { background: var(--teal-400); }
+  .domain-header.bus     .domain-dot { background: var(--amber-400); }
+
+  /* Question cards */
+  .q-card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 1rem; transition: border-color .15s; }
+  .q-card:hover { border-color: var(--border2); }
+  .q-num { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: .06em; margin-bottom: .6rem; }
+  .q-text { font-size: 15px; font-weight: 500; color: var(--text); line-height: 1.65; margin-bottom: 1.1rem; }
+  .options { display: flex; flex-direction: column; gap: 7px; }
+  .opt { display: flex; align-items: flex-start; gap: 10px; padding: .65rem 1rem; border: 0.5px solid var(--border); border-radius: var(--radius); cursor: pointer; font-size: 14px; color: var(--text); line-height: 1.5; background: var(--bg); transition: background .12s, border-color .12s; }
+  .opt:hover { background: var(--bg2); border-color: var(--border2); }
+  .opt.selected { border-color: var(--purple-400); background: var(--purple-50); color: var(--purple-900); }
+  .opt.correct  { border-color: var(--teal-400); background: var(--teal-50); color: var(--teal-800); }
+  .opt.wrong    { border-color: var(--coral-400); background: var(--coral-50); color: var(--coral-800); }
+  .opt.reveal   { border-color: var(--teal-400); background: var(--teal-50); color: var(--teal-800); }
+  .opt-letter { font-weight: 600; min-width: 18px; font-size: 13px; }
+  .rationale { margin-top: .9rem; padding: .75rem 1rem; background: var(--bg2); border-left: 3px solid var(--purple-400); border-radius: 0 var(--radius) var(--radius) 0; font-size: 13px; color: var(--text2); line-height: 1.6; display: none; }
+  .rationale.show { display: block; }
+  .rationale strong { color: var(--purple-600); }
+
+  /* Controls */
+  .controls { display: flex; gap: 10px; margin: 2rem 0 1rem; flex-wrap: wrap; }
+  .btn { padding: .6rem 1.25rem; border: 0.5px solid var(--border2); border-radius: var(--radius); background: var(--bg); color: var(--text); font-size: 14px; cursor: pointer; transition: background .12s, transform .1s; }
+  .btn:hover { background: var(--bg2); }
+  .btn:active { transform: scale(.98); }
+  .btn.primary { background: var(--purple-400); color: #fff; border-color: var(--purple-400); }
+  .btn.primary:hover { background: var(--purple-600); }
+  .btn.danger { background: var(--coral-50); color: var(--coral-800); border-color: var(--coral-400); }
+  .btn.danger:hover { background: #f5c4b3; }
+
+  /* Score panel */
+  .score-panel { display: none; background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 2rem; margin-top: 2rem; }
+  .score-panel.show { display: block; }
+  .score-top { display: flex; align-items: center; gap: 2rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+  .score-circle { width: 110px; height: 110px; border-radius: 50%; border: 4px solid var(--purple-400); background: var(--purple-50); display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; }
+  .score-pct { font-size: 28px; font-weight: 700; color: var(--purple-800); }
+  .score-lbl { font-size: 11px; color: var(--purple-600); text-transform: uppercase; letter-spacing: .05em; }
+  .score-info h3 { font-size: 18px; font-weight: 600; margin-bottom: .3rem; }
+  .score-info p { font-size: 14px; color: var(--text2); }
+  .domain-scores { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 1.25rem; }
+  .ds-card { background: var(--bg2); border-radius: var(--radius); padding: .9rem 1rem; }
+  .ds-name { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
+  .ds-val { font-size: 22px; font-weight: 600; color: var(--text); }
+  .ds-bar { height: 4px; border-radius: 2px; background: var(--gray-100); margin-top: 6px; overflow: hidden; }
+  .ds-bar-fill { height: 4px; border-radius: 2px; }
+  .score-actions { display: flex; gap: 10px; margin-top: 1.5rem; flex-wrap: wrap; }
+
+  /* Answer key */
+  .key-section { margin-top: 3rem; page-break-before: always; }
+  .key-section h2 { font-size: 18px; font-weight: 600; margin-bottom: 1.5rem; padding-bottom: .75rem; border-bottom: 2px solid var(--gray-100); }
+  .key-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px; margin-bottom: 2rem; }
+  .key-item { display: flex; gap: 8px; align-items: baseline; font-size: 13px; padding: .5rem .75rem; background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius); }
+  .key-qnum { font-weight: 600; color: var(--text3); min-width: 28px; }
+  .key-ans { font-weight: 700; color: var(--purple-600); min-width: 16px; }
+  .key-text { color: var(--text2); line-height: 1.4; }
+  .key-domain { font-size: 10px; margin-left: auto; padding: 1px 6px; border-radius: 999px; white-space: nowrap; }
+  .key-domain.predict { background: var(--purple-50); color: var(--purple-600); }
+  .key-domain.perf    { background: var(--teal-50); color: var(--teal-600); }
+  .key-domain.bus     { background: var(--amber-50); color: var(--amber-400); }
+
+  @media print {
+    .sticky-bar, .controls, .score-actions, #score-panel { display: none !important; }
+    .q-card { break-inside: avoid; }
+    .key-section { break-before: page; }
+  }
+  @media (max-width: 600px) {
+    .domain-scores { grid-template-columns: 1fr 1fr; }
+    .score-top { flex-direction: column; align-items: flex-start; }
+    .meta-strip { gap: 1rem; }
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <div class="page-header">
+    <h1>PMP Practice Exam</h1>
+    <p>Project Management Professional — Full-length practice with 60 scenario-based questions</p>
+    <div class="meta-strip">
+      <div class="meta-item"><strong>60</strong>Questions</div>
+      <div class="meta-item"><strong>3</strong>ECO Domains</div>
+      <div class="meta-item"><strong>~75 min</strong>Suggested time</div>
+      <div class="meta-item"><strong>80%</strong>Target passing score</div>
+    </div>
+  </div>
+
+  <div class="sticky-bar">
+    <div class="pbar-wrap"><div class="pbar-fill" id="pbar" style="width:0%"></div></div>
+    <span class="pbar-label" id="pbar-label">0 / 60 answered</span>
+  </div>
+
+  <div class="controls">
+    <button class="btn primary" onclick="submitExam()">Submit &amp; Score</button>
+    <button class="btn" onclick="resetExam()">Reset</button>
+    <button class="btn" onclick="window.print()">Print / Save PDF</button>
+  </div>
+
+  <div id="exam-body"></div>
+
+  <div id="score-panel" class="score-panel">
+    <div class="score-top">
+      <div class="score-circle"><span class="score-pct" id="r-pct">—</span><span class="score-lbl">score</span></div>
+      <div class="score-info">
+        <h3 id="r-msg">—</h3>
+        <p id="r-sub">—</p>
+      </div>
+    </div>
+    <div class="domain-scores">
+      <div class="ds-card">
+        <div class="ds-name">Predictive (Q1–20)</div>
+        <div class="ds-val" id="d-pred">—</div>
+        <div class="ds-bar"><div class="ds-bar-fill" id="db-pred" style="background:var(--purple-400)"></div></div>
+      </div>
+      <div class="ds-card">
+        <div class="ds-name">Performance (Q21–40)</div>
+        <div class="ds-val" id="d-perf">—</div>
+        <div class="ds-bar"><div class="ds-bar-fill" id="db-perf" style="background:var(--teal-400)"></div></div>
+      </div>
+      <div class="ds-card">
+        <div class="ds-name">Business Env. (Q41–60)</div>
+        <div class="ds-val" id="d-bus">—</div>
+        <div class="ds-bar"><div class="ds-bar-fill" id="db-bus" style="background:var(--amber-400)"></div></div>
+      </div>
+    </div>
+    <div class="score-actions">
+      <button class="btn primary" onclick="scrollToTop()">Review answers</button>
+      <button class="btn" onclick="resetExam()">Retake exam</button>
+    </div>
+  </div>
+
+  <div class="key-section" id="answer-key"></div>
+
+</div>
+
+<script>
+const Q = [
+  // ── DOMAIN 1: PREDICTIVE (Q1-20) ────────────────────────────────────
+  { d:"predict", q:"A project manager is creating a Work Breakdown Structure (WBS). What is the LOWEST level of the WBS?", opts:["Activity","Work package","Milestone","Deliverable"], ans:1, rat:"The work package is the lowest level of the WBS. Activities are decomposed FROM work packages during activity definition but are NOT part of the WBS itself." },
+  { d:"predict", q:"Your project has BAC = $500,000, EV = $300,000, PV = $350,000, and AC = $340,000. What is the Schedule Variance (SV)?", opts:["–$50,000","–$40,000","$50,000","$10,000"], ans:0, rat:"SV = EV – PV = $300,000 – $350,000 = –$50,000. A negative SV means the project is behind schedule." },
+  { d:"predict", q:"Which document captures high-level risks, assumptions, and constraints identified during project initiation?", opts:["Risk Register","Project Management Plan","Project Charter","Stakeholder Register"], ans:2, rat:"The project charter documents high-level risks, assumptions, and constraints known at initiation. The risk register is developed later during planning." },
+  { d:"predict", q:"A project manager learns that a critical resource is being pulled from the project. The PM updates the schedule, communicates impacts, and logs it in the issue log. Which process is BEST described?", opts:["Perform Integrated Change Control","Monitor and Control Project Work","Direct and Manage Project Work","Control Scope"], ans:1, rat:"Monitoring and Controlling Project Work involves tracking, reviewing, and reporting on project performance — including identifying and communicating deviations from the plan." },
+  { d:"predict", q:"A risk response strategy where the project team shifts the negative impact of a risk to a third party (such as an insurance company) is called:", opts:["Avoid","Mitigate","Transfer","Accept"], ans:2, rat:"Transferring risk passes the financial consequence (and ownership) to a third party via insurance, warranties, or contracts. The risk still exists but the impact is shifted." },
+  { d:"predict", q:"Using the formula EAC = AC + (BAC – EV), what assumption is being made?", opts:["Future work will be performed at the same efficiency as the past","Future work will be performed according to the original budget","The project will not encounter further variances","The current CPI will continue for the rest of the project"], ans:1, rat:"EAC = AC + (BAC – EV) assumes the remaining work will be completed at the originally budgeted rate — past performance is ignored for future estimates." },
+  { d:"predict", q:"Which tool is BEST for visually displaying the probability and impact of risks in two dimensions?", opts:["Risk Register","Probability and Impact Matrix","Monte Carlo Simulation","Risk Burndown Chart"], ans:1, rat:"The probability and impact matrix maps risks on two axes (likelihood × impact) to prioritize them for response planning. It is the standard tool for qualitative risk analysis." },
+  { d:"predict", q:"A PM wants to compress the schedule by adding resources to critical path activities. This technique is called:", opts:["Fast tracking","Crashing","Schedule compression","Resource leveling"], ans:1, rat:"Crashing adds resources (people, equipment, overtime) to critical path activities to shorten duration, usually at increased cost. Fast tracking overlaps activities instead." },
+  { d:"predict", q:"What is the PRIMARY purpose of a project baseline?", opts:["To document the approved project budget only","To serve as the foundation for measuring and communicating project performance","To define roles and responsibilities of team members","To identify stakeholder communication requirements"], ans:1, rat:"Baselines (scope, schedule, cost) are approved snapshots of the plan used to measure performance and report variances throughout the project." },
+  { d:"predict", q:"During planning, the PM identifies that two activities must finish before a third can begin. What type of dependency is this?", opts:["Finish-to-Start","Start-to-Start","Finish-to-Finish","Start-to-Finish"], ans:0, rat:"Finish-to-Start (FS) means a successor activity cannot start until its predecessor finishes. It is the most common dependency type in project scheduling." },
+  { d:"predict", q:"A project manager is calculating the float of an activity. Free float is defined as:", opts:["The total time an activity can be delayed without delaying the project end date","The time an activity can be delayed without delaying the early start of any successor","The difference between late finish and early start","The maximum time available to complete an activity"], ans:1, rat:"Free float is how long an activity can slip without impacting its immediate successor. Total float is delay without impacting the project end date." },
+  { d:"predict", q:"Which estimating technique multiplies quantity of work by the historical rate per unit to produce an estimate?", opts:["Analogous","Bottom-up","Parametric","Three-point (PERT)"], ans:2, rat:"Parametric estimating uses a statistical relationship between historical data and scope variables (e.g., cost per square foot, hours per function point) to calculate estimates." },
+  { d:"predict", q:"A project has a SPI of 1.10 and a CPI of 0.90. The BEST interpretation is:", opts:["The project is ahead of schedule and under budget","The project is ahead of schedule and over budget","The project is behind schedule and over budget","The project is on schedule and on budget"], ans:1, rat:"SPI > 1 = ahead of schedule; CPI < 1 = over budget (spending more than planned for the work accomplished)." },
+  { d:"predict", q:"A change request is submitted to add a new feature after the project baseline is set. The CCB approves it. What should the PM update FIRST?", opts:["Risk Register","Project Schedule","Project Management Plan and Baselines","Lessons Learned Register"], ans:2, rat:"Approved changes must be reflected in the Project Management Plan and the relevant baselines (scope, cost, schedule) before any work begins on the change." },
+  { d:"predict", q:"Which process involves obtaining seller responses, selecting a seller, and awarding a contract?", opts:["Plan Procurement Management","Conduct Procurements","Control Procurements","Close Procurements"], ans:1, rat:"Conduct Procurements is the process of obtaining seller responses (bids/proposals), evaluating them, and awarding contracts to selected vendors." },
+  { d:"predict", q:"The cost performance index (CPI) for a project is 0.75. To find the Estimate to Complete (ETC), the PM should use:", opts:["ETC = BAC – EV","ETC = (BAC – EV) / CPI","ETC = AC + BAC","ETC = EV / AC"], ans:1, rat:"When current CPI is expected to continue, ETC = (BAC – EV) / CPI. This accounts for the fact that future work will also be performed inefficiently." },
+  { d:"predict", q:"What is the purpose of the critical path method (CPM)?", opts:["To identify all risks on the project","To calculate the longest path through the network, determining the shortest project duration","To assign resources to all project activities","To calculate the total budget for the project"], ans:1, rat:"CPM identifies the sequence of activities with zero float — the longest path through the network — which determines the minimum project duration." },
+  { d:"predict", q:"A stakeholder analysis matrix that maps stakeholders on interest vs. influence axes is used to:", opts:["Approve project scope changes","Prioritize stakeholder engagement strategies","Create the communication management plan","Document stakeholder risks"], ans:1, rat:"A power/interest grid helps PMs determine how to engage each stakeholder — high power/high interest stakeholders need close management; others get lighter-touch approaches." },
+  { d:"predict", q:"During scope verification, a deliverable is inspected and accepted by the customer. This acceptance is documented in:", opts:["The quality management plan","The accepted deliverables output of Validate Scope","The project charter","The scope statement"], ans:1, rat:"Accepted deliverables are a formal output of Validate Scope. This documented acceptance is then used as input to Close Project or Phase." },
+  { d:"predict", q:"Which contract type places the MOST financial risk on the buyer?", opts:["Firm Fixed Price (FFP)","Fixed Price Incentive Fee (FPIF)","Cost Plus Fixed Fee (CPFF)","Time and Material (T&M)"], ans:2, rat:"In CPFF contracts, the seller is reimbursed for all allowable costs plus a fixed fee regardless of performance. The buyer absorbs all cost overruns, placing maximum risk on the buyer." },
+
+  // ── DOMAIN 2: PERFORMANCE (Q21-40) ──────────────────────────────────
+  { d:"perf", q:"A project team is working remotely across four time zones. Team cohesion is low and communication is suffering. What should the PM do FIRST?", opts:["Replace remote team members with local resources","Establish a team charter with agreed communication norms and working agreements","Escalate to the sponsor","Require all team members to work the same hours"], ans:1, rat:"A team charter establishes shared norms, values, and ground rules that build cohesion and alignment. It is the foundational tool for team development, especially in distributed environments." },
+  { d:"perf", q:"A project manager is facilitating a daily standup and notices that discussions frequently run long. The BEST action is to:", opts:["Cancel the standup and send status emails instead","Enforce a time-box and take detailed discussions to a separate session","Reduce team size to reduce discussion volume","Ask the sponsor to attend and keep discussions focused"], ans:1, rat:"Time-boxing ceremonies is a core Agile practice. Extended topics should be 'parked' for offline follow-up to keep the standup to its purpose: brief status sync." },
+  { d:"perf", q:"According to Maslow's Hierarchy, a team member who is concerned about job security after rumors of layoffs is motivated primarily by:", opts:["Physiological needs","Safety needs","Social belonging","Esteem needs"], ans:1, rat:"Job security falls under Safety needs (the second tier) in Maslow's hierarchy — protection from threat, job stability, and financial security." },
+  { d:"perf", q:"A team member consistently delivers high-quality work but rarely speaks up in meetings. According to Herzberg's Motivation-Hygiene theory, recognition for this team member would be a:", opts:["Hygiene factor","Motivator","Demotivator","Maintenance factor"], ans:1, rat:"Recognition is a motivator (satisfier) in Herzberg's model. It drives higher performance. Hygiene factors (salary, working conditions) prevent dissatisfaction but don't motivate." },
+  { d:"perf", q:"During execution, two team members have a persistent disagreement about technical standards. The PM has tried collaborative problem-solving without success. The NEXT best step is:", opts:["Force one team member's approach to keep the project moving","Document the issue and ignore it","Escalate to a technical authority or senior management for a binding decision","Remove both team members from the project"], ans:2, rat:"When collaborative resolution fails, escalating to a subject matter expert or senior authority is appropriate. This provides a binding resolution without permanently damaging relationships." },
+  { d:"perf", q:"In Agile, a velocity chart is PRIMARILY used to:", opts:["Track individual team member output","Forecast how much work the team can complete in future sprints","Identify risks in the backlog","Report progress to executives"], ans:1, rat:"Velocity measures the average story points completed per sprint. It is used to forecast capacity in future sprints and plan releases with reasonable confidence." },
+  { d:"perf", q:"A project manager uses a RACI matrix. The 'C' stands for:", opts:["Confirmed","Consulted","Controlled","Communicated"], ans:1, rat:"In a RACI chart: R = Responsible, A = Accountable, C = Consulted (provides input), I = Informed (receives updates). Each task must have exactly one A." },
+  { d:"perf", q:"Which leadership style is MOST appropriate when team members are highly skilled and self-motivated?", opts:["Directive","Coaching","Delegating","Transactional"], ans:2, rat:"Delegating (laissez-faire) is appropriate for high-competence, high-commitment team members who need autonomy. The PM provides minimal direction and maximum trust." },
+  { d:"perf", q:"A project manager is leading a hybrid project. The planning phase uses waterfall and delivery uses Agile sprints. Which artifact bridges both approaches?", opts:["Project charter","Release roadmap","Risk register","Change log"], ans:1, rat:"A release roadmap aligns the waterfall-planned scope with sprint-based delivery by defining milestones, release windows, and feature priorities across both methodologies." },
+  { d:"perf", q:"A newly formed team is experiencing confusion about roles and competing for position. According to Tuckman's model, this stage is called:", opts:["Forming","Storming","Norming","Performing"], ans:1, rat:"Storming is characterized by conflict, competition, and clarification of roles. The PM's role is to mediate and guide the team toward alignment and shared norms." },
+  { d:"perf", q:"A project manager holds a brief ceremony to acknowledge a team member's exceptional contribution in front of the whole team. This technique is known as:", opts:["Reward and recognition","Formal performance review","Co-location","Resource histogram"], ans:0, rat:"Reward and recognition systems are tools in Manage Team. Public acknowledgment reinforces desired behaviors and boosts morale, especially during long or challenging projects." },
+  { d:"perf", q:"In a Kanban system, a Work in Progress (WIP) limit is designed to:", opts:["Limit the number of team members on a project","Prevent too many items from being worked on simultaneously, improving flow","Track team velocity","Define the sprint backlog size"], ans:1, rat:"WIP limits constrain the number of items in any workflow state. This reduces multitasking, exposes bottlenecks, and improves throughput and flow efficiency." },
+  { d:"perf", q:"A project manager identifies that team morale has dropped because of unclear project goals. The BEST tool to address this is:", opts:["Resource calendar","Team charter and kick-off session","Issue log","Responsibility Assignment Matrix"], ans:1, rat:"A team charter establishes shared purpose, goals, and ground rules. A kick-off session aligns the team around objectives and reinvigorates commitment — addressing unclear goals directly." },
+  { d:"perf", q:"A project's earned value data shows that the project will finish significantly over budget. The sponsor asks for an updated estimate. The PM provides:", opts:["The original BAC","The EAC (Estimate at Completion)","The ETC (Estimate to Complete)","The VAC (Variance at Completion)"], ans:1, rat:"EAC is the forecasted total cost of the project at completion. It is the PM's revised estimate of what the project will actually cost, communicated to the sponsor." },
+  { d:"perf", q:"During a lessons learned session, team members are reluctant to speak up. The BEST facilitation technique is:", opts:["Cancel the session and document observations independently","Use anonymous surveys or silent brainstorming before group discussion","Ask only high performers to contribute","Record the session and share with the team later"], ans:1, rat:"Anonymous input (surveys, sticky notes, silent brainstorming) reduces social pressure and encourages candid feedback, especially in team environments where hierarchy or blame culture exists." },
+  { d:"perf", q:"A stakeholder raises a concern in the middle of a status meeting that is out of scope. The PM should:", opts:["Dismiss the concern immediately","Acknowledge it, capture it in a parking lot, and address it separately","Add it to the scope without a change request","Adjourn the meeting to investigate"], ans:1, rat:"A parking lot captures out-of-scope or off-agenda items without derailing the meeting, signaling the concern is taken seriously and will be addressed appropriately." },
+  { d:"perf", q:"A PM notices that a team member is dominating sprint planning and others are disengaged. The BEST response is:", opts:["Reassign the dominant team member","Privately coach the dominant member on inclusive behaviors; use structured techniques like round-robin","Ignore it if the output is acceptable","Report the behavior to HR"], ans:1, rat:"Servant leaders coach behaviors and use facilitation techniques to create inclusive, psychologically safe environments — addressing the dynamic constructively rather than punitively." },
+  { d:"perf", q:"Which process involves monitoring the status of project and product quality, and identifying and resolving defects?", opts:["Plan Quality Management","Manage Quality","Control Quality","Validate Scope"], ans:2, rat:"Control Quality involves measuring results, identifying defects, and verifying that deliverables meet quality standards. Manage Quality audits processes; Control Quality inspects outputs." },
+  { d:"perf", q:"A project has multiple stakeholders with conflicting requirements. The PM should address this by:", opts:["Choosing the requirements of the most senior stakeholder","Facilitating a requirements workshop and documenting prioritized, agreed-upon requirements","Accepting all requirements to keep all stakeholders satisfied","Escalating to the PMO for a ruling"], ans:1, rat:"Requirements workshops bring stakeholders together to surface conflicts, negotiate priorities, and reach consensus — resulting in a documented, agreed-upon requirements baseline." },
+  { d:"perf", q:"A PM wants to measure customer satisfaction at the end of each sprint. The BEST tool is:", opts:["Net Promoter Score survey","Sprint burndown chart","Definition of Done","Retrospective action log"], ans:0, rat:"NPS and satisfaction surveys measure the customer or stakeholder perception of value delivered. This is a direct measure of stakeholder satisfaction, distinct from internal quality metrics." },
+
+  // ── DOMAIN 3: BUSINESS ENVIRONMENT (Q41-60) ──────────────────────────
+  { d:"bus", q:"A project sponsor requests a formal document to evaluate whether a proposed project is worth initiating. This document is:", opts:["Project Charter","Project Management Plan","Business Case","Feasibility Study"], ans:2, rat:"The business case justifies the project by outlining the business need, benefits, costs, risks, and expected ROI. It precedes the charter and informs the go/no-go decision." },
+  { d:"bus", q:"Which of the following BEST describes organizational process assets (OPAs)?", opts:["Physical resources available to the project","Plans, processes, policies, procedures, and knowledge bases from the performing organization","Stakeholder registers from past projects only","Software tools available to the project team"], ans:1, rat:"OPAs are the collective stored knowledge of an organization — templates, policies, historical data, and lessons learned — that are inputs to project planning processes." },
+  { d:"bus", q:"A project is nearing completion when a new law requires the product to meet additional safety standards. The BEST first step is:", opts:["Terminate the project","Ignore the regulation until after go-live","Assess the compliance gap and submit a change request with full impact analysis","Immediately implement changes without going through change control"], ans:2, rat:"Regulatory changes are mandatory. The PM must assess the impact, document the gap, and submit a change request so the CCB can formally approve scope, cost, and schedule adjustments." },
+  { d:"bus", q:"What does the term 'governance' refer to in the context of project management?", opts:["Managing day-to-day project activities","The framework of policies, processes, and decision-making structures that guide project and organizational performance","The role of the PMO in assigning project managers","Tracking project milestones and deliverables"], ans:1, rat:"Governance is the overarching system of rules, practices, and processes that direct and control how projects are authorized, prioritized, and overseen within an organization." },
+  { d:"bus", q:"A project manager is comparing two projects. Project A has an NPV of $200,000 and Project B has an NPV of $350,000. If only one can be selected, which should be chosen and why?", opts:["Project A, because lower NPV means lower risk","Project B, because higher NPV means greater value in today's dollars","Project A, because it likely has a shorter duration","Both projects should be funded"], ans:1, rat:"Net Present Value (NPV) represents the value of future cash flows in today's dollars. A higher NPV means the project is expected to generate more value and should be preferred." },
+  { d:"bus", q:"Which of the following is an example of an Enterprise Environmental Factor (EEF)?", opts:["Lessons learned from a past project","An existing project management template","The organization's risk tolerance","A policy manual stored in the project archive"], ans:2, rat:"EEFs are conditions outside the project team's control that influence the project. Risk tolerance, culture, marketplace conditions, and regulations are EEFs. Templates and lessons learned are OPAs." },
+  { d:"bus", q:"A project has successfully delivered all scope on time and budget. However, benefits have not been realized 6 months post-delivery. This is BEST addressed through:", opts:["A project audit","Benefits realization management and a post-implementation review","A new project charter","Updated risk register entries"], ans:1, rat:"Benefits realization management extends beyond project close to track whether the intended strategic outcomes have been achieved. A post-implementation review evaluates actual vs. expected benefits." },
+  { d:"bus", q:"The PMO wants to ensure that projects align with organizational strategy. The BEST mechanism is:", opts:["Requiring all PMs to attend quarterly strategy meetings","Establishing a project portfolio review process tied to strategic objectives","Issuing a company-wide risk register","Mandating Agile methodology for all projects"], ans:1, rat:"Portfolio management reviews ensure that projects approved and funded are those best aligned with organizational strategy. It is the governance mechanism for strategic alignment." },
+  { d:"bus", q:"A project manager is told that the organization is shifting to a new enterprise system mid-project. This is an example of:", opts:["A project risk","An Enterprise Environmental Factor changing","A scope change","A stakeholder conflict"], ans:1, rat:"A shift in enterprise systems is an external, organizational-level change that falls under EEFs. It must be assessed for its impact on the project and managed through change control if it affects scope, cost, or schedule." },
+  { d:"bus", q:"Which of the following is TRUE about a project's relationship to operations?", opts:["Projects and operations both produce ongoing, repeatable outputs","Projects are temporary endeavors; operations are ongoing repetitive activities","Projects can run indefinitely if the sponsor approves","Operations always precede projects in an organization"], ans:1, rat:"By definition, projects are temporary (they have a defined beginning and end); operations are permanent ongoing activities that sustain the business. Projects often create or improve operational capabilities." },
+  { d:"bus", q:"During a phase gate review, the steering committee decides to pause the project for 60 days due to budget constraints. The PM should:", opts:["Close the project immediately","Maintain the project team and continue working","Place the project in a suspended state and document all outstanding items","Escalate to the project sponsor to reverse the decision"], ans:2, rat:"A project suspension requires the PM to preserve project state: document progress, outstanding items, risks, and decisions so the project can restart without loss. Resources may be temporarily reassigned." },
+  { d:"bus", q:"A project charter is signed by the project sponsor. This means the sponsor has:", opts:["Reviewed and accepted the final project deliverables","Formally authorized the project and granted the PM authority to apply resources","Completed the project closeout process","Approved the WBS and project schedule"], ans:1, rat:"Signing the charter is the formal act of project authorization. It establishes the PM's authority, the project's legitimacy, and the sponsor's executive commitment to the effort." },
+  { d:"bus", q:"Which of the following scenarios BEST illustrates organizational agility?", opts:["The organization follows the same SDLC methodology for every project","The organization rapidly pivots resource allocation in response to a shift in market conditions","The organization has a stable PMO with standardized templates","The organization defers all project changes until annual planning cycles"], ans:1, rat:"Organizational agility is the ability to sense and respond quickly to environmental changes. Rapid resource reallocation in response to market shifts is a direct demonstration of this capability." },
+  { d:"bus", q:"When closing a project, the PM is responsible for all of the following EXCEPT:", opts:["Obtaining formal acceptance from the customer","Archiving project documents","Approving the next phase of work","Releasing project resources and updating resource availability"], ans:2, rat:"Approving the next phase of work is a sponsor or governance decision, not a PM close-out responsibility. The PM's closure duties include acceptance, archiving, lessons learned, and resource release." },
+  { d:"bus", q:"A project manager must report to a regulatory agency about environmental impact. This is an example of:", opts:["An internal governance requirement","An external compliance requirement","A stakeholder communication preference","A risk mitigation strategy"], ans:1, rat:"Reporting to a regulatory body is an external compliance requirement imposed by law or regulation — an Enterprise Environmental Factor that the project must accommodate." },
+  { d:"bus", q:"Which technique is used to prioritize a portfolio of project proposals based on strategic value, risk, and resource requirements?", opts:["MoSCoW prioritization","Weighted scoring model","Three-point estimating","Net Promoter Score"], ans:1, rat:"A weighted scoring model assigns criteria weights (strategic alignment, risk, ROI, etc.) and scores each project against them to produce a ranked, defensible portfolio prioritization." },
+  { d:"bus", q:"An organization adopts a new project management methodology mid-year. The PM must update the team on new processes. This change is BEST managed by:", opts:["Issuing a formal change request to all active projects","Developing a change management plan that includes communication, training, and transition support","Immediately stopping all active projects until training is complete","Asking each PM to self-learn the new methodology"], ans:1, rat:"Organizational change management requires a structured approach: communication of the why, training on the how, and support during transition. Without it, adoption fails and projects are disrupted." },
+  { d:"bus", q:"A PM is asked to calculate the payback period for a project that costs $600,000 and generates $150,000 annually. The payback period is:", opts:["2 years","4 years","6 years","3 years"], ans:1, rat:"Payback period = Cost ÷ Annual benefit = $600,000 ÷ $150,000 = 4 years. It measures how long before the project's costs are recovered through its benefits." },
+  { d:"bus", q:"A project will impact 12 departments across the organization. To ensure alignment, the PM should FIRST:", opts:["Create a detailed WBS for each department","Identify and map all affected stakeholders and assess their interest and influence","Send a project overview email to all department heads","Request a mandate from the CEO to enforce compliance"], ans:1, rat:"Stakeholder identification and analysis is the critical first step when a project has broad organizational reach. Understanding each department's concerns and influence informs engagement strategy and change planning." },
+  { d:"bus", q:"At project completion, the sponsor wants to ensure the product is successfully handed off to operations. The PM should create:", opts:["A lessons learned register","A transition plan and operational readiness documentation","A project closeout report only","A new project charter for the operations team"], ans:1, rat:"A transition plan and operational readiness documentation ensure operations teams understand the new product, have the training, support, and runbooks needed, and formally accept ownership at handoff." }
+];
+
+const LETTERS = ["A","B","C","D"];
+let userAnswers = new Array(60).fill(null);
+
+function buildExam() {
+  const body = document.getElementById("exam-body");
+  let html = "";
+  const domains = [
+    { key:"predict", label:"Domain 1 — Predictive Planning & Execution", range:[0,19] },
+    { key:"perf",    label:"Domain 2 — Project Performance",              range:[20,39] },
+    { key:"bus",     label:"Domain 3 — Business Environment",             range:[40,59] }
+  ];
+  domains.forEach(dom => {
+    html += `<div class="domain-header ${dom.key}"><div class="domain-dot"></div><h2>${dom.label}</h2></div>`;
+    for (let i = dom.range[0]; i <= dom.range[1]; i++) {
+      const q = Q[i];
+      html += `<div class="q-card" id="qcard-${i}">
+        <div class="q-num">Question ${i+1}</div>
+        <div class="q-text">${q.q}</div>
+        <div class="options" id="opts-${i}">
+          ${q.opts.map((o,j) => `<div class="opt" id="opt-${i}-${j}" onclick="pick(${i},${j})"><span class="opt-letter">${LETTERS[j]}.</span><span>${o}</span></div>`).join("")}
+        </div>
+        <div class="rationale" id="rat-${i}"><strong>Explanation:</strong> ${q.rat}</div>
+      </div>`;
+    }
+  });
+  body.innerHTML = html;
+  buildKey();
+}
+
+function pick(qi, oi) {
+  if (document.getElementById(`opt-${qi}-0`).classList.contains("correct") ||
+      document.getElementById(`opt-${qi}-0`).classList.contains("wrong") ||
+      document.getElementById(`opt-${qi}-0`).classList.contains("reveal")) return;
+  userAnswers[qi] = oi;
+  for (let j = 0; j < 4; j++) {
+    document.getElementById(`opt-${qi}-${j}`).classList.remove("selected");
+  }
+  document.getElementById(`opt-${qi}-${oi}`).classList.add("selected");
+  updateProgress();
+}
+
+function updateProgress() {
+  const answered = userAnswers.filter(a => a !== null).length;
+  document.getElementById("pbar").style.width = (answered / 60 * 100) + "%";
+  document.getElementById("pbar-label").textContent = `${answered} / 60 answered`;
+}
+
+function submitExam() {
+  const unanswered = userAnswers.filter(a => a === null).length;
+  if (unanswered > 0) {
+    if (!confirm(`You have ${unanswered} unanswered question(s). Submit anyway?`)) return;
+  }
+  // Reveal answers
+  let total = 0, pred = [0,0], perf = [0,0], bus = [0,0];
+  Q.forEach((q, i) => {
+    const correct = userAnswers[i] === q.ans;
+    if (correct) total++;
+    const bucket = q.d === "predict" ? pred : q.d === "perf" ? perf : bus;
+    bucket[1]++;
+    if (correct) bucket[0]++;
+    for (let j = 0; j < 4; j++) {
+      const el = document.getElementById(`opt-${i}-${j}`);
+      el.classList.remove("selected");
+      if (j === q.ans) el.classList.add("correct");
+      else if (j === userAnswers[i]) el.classList.add("wrong");
+    }
+    document.getElementById(`rat-${i}`).classList.add("show");
+  });
+
+  const pct = Math.round(total / 60 * 100);
+  document.getElementById("r-pct").textContent = pct + "%";
+  const msgs = pct >= 80 ? ["Above target — PMP ready!", `${total}/60 correct. Strong performance across domains.`]
+             : pct >= 70 ? ["Good — needs polish", `${total}/60 correct. Review weaker domain areas before your exam.`]
+             : ["Below passing threshold", `${total}/60 correct. Focus on foundational concepts and retake.`];
+  document.getElementById("r-msg").textContent = msgs[0];
+  document.getElementById("r-sub").textContent = msgs[1];
+
+  const fmtD = (d) => `${d[0]}/${d[1]} (${Math.round(d[0]/d[1]*100)}%)`;
+  document.getElementById("d-pred").textContent = fmtD(pred);
+  document.getElementById("d-perf").textContent = fmtD(perf);
+  document.getElementById("d-bus").textContent  = fmtD(bus);
+  document.getElementById("db-pred").style.width = Math.round(pred[0]/pred[1]*100) + "%";
+  document.getElementById("db-perf").style.width = Math.round(perf[0]/perf[1]*100) + "%";
+  document.getElementById("db-bus").style.width  = Math.round(bus[0]/bus[1]*100) + "%";
+
+  document.getElementById("score-panel").classList.add("show");
+  document.getElementById("score-panel").scrollIntoView({ behavior:"smooth" });
+}
+
+function resetExam() {
+  if (!confirm("Reset all answers?")) return;
+  userAnswers = new Array(60).fill(null);
+  Q.forEach((q, i) => {
+    for (let j = 0; j < 4; j++) {
+      const el = document.getElementById(`opt-${i}-${j}`);
+      el.className = "opt";
+    }
+    document.getElementById(`rat-${i}`).classList.remove("show");
+  });
+  document.getElementById("score-panel").classList.remove("show");
+  updateProgress();
+  window.scrollTo({ top:0, behavior:"smooth" });
+}
+
+function scrollToTop() {
+  window.scrollTo({ top:0, behavior:"smooth" });
+}
+
+function buildKey() {
+  const keyEl = document.getElementById("answer-key");
+  const domainLabels = { predict:"Predictive", perf:"Performance", bus:"Business Env." };
+  let html = `<h2>Answer Key</h2><div class="key-grid">`;
+  Q.forEach((q, i) => {
+    html += `<div class="key-item">
+      <span class="key-qnum">Q${i+1}</span>
+      <span class="key-ans">${LETTERS[q.ans]}</span>
+      <span class="key-text">${q.opts[q.ans]}</span>
+      <span class="key-domain ${q.d}">${domainLabels[q.d]}</span>
+    </div>`;
+  });
+  html += `</div>`;
+  keyEl.innerHTML = html;
+}
+
+buildExam();
+</script>
+</body>
+</html>
