@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Crucigrama: Colombia en Datos y Noticias</title>
+<style>
+  :root {
+    --amarillo: #FFD100;
+    --azul: #003893;
+    --rojo: #CE1126;
+    --azul-oscuro: #001F4D;
+    --paper: #FFF9E8;
+    --cell-empty: #0b1c3d;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: radial-gradient(circle at 15% 0%, #123a7a 0%, #071a3d 45%, #030d20 100%);
+    color: var(--paper);
+    min-height: 100vh;
+    padding: 24px 16px 60px;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; }
+
+  header { text-align: center; margin-bottom: 28px; }
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--rojo);
+    color: white;
+    font-weight: 800;
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    padding: 6px 14px;
+    border-radius: 20px;
+    text-transform: uppercase;
+  }
+  .flag-dot { display:flex; gap:2px; }
+  .flag-dot span { width: 8px; height: 8px; border-radius: 2px; }
+  h1 {
+    font-size: clamp(26px, 4.6vw, 44px);
+    margin: 14px 0 6px;
+    background: linear-gradient(100deg, var(--amarillo), #FFE873 40%, #7FA6FF, var(--rojo));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-weight: 900;
+    letter-spacing: -0.01em;
+  }
+  .sub { color: #c7d6f5; font-size: 15px; max-width: 580px; margin: 0 auto; }
+
+  .status-row {
+    display: flex; justify-content: center; gap: 14px;
+    margin: 18px 0 6px; flex-wrap: wrap;
+  }
+  .pill {
+    background: #0f2653; border: 1px solid #234a92;
+    padding: 8px 16px; border-radius: 12px;
+    font-size: 13px; font-weight: 600; color: #d9e4fb;
+  }
+  .pill b { color: var(--amarillo); }
+
+  .main-layout {
+    display: grid; grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 26px; margin-top: 20px; align-items: start;
+  }
+  @media (max-width: 880px) { .main-layout { grid-template-columns: 1fr; } }
+
+  .board-card {
+    background: linear-gradient(155deg, #102a58, #08183a);
+    border: 1px solid #234a92; border-radius: 20px; padding: 18px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+  }
+
+  #grid {
+    display: grid; gap: 2px; background: var(--cell-empty);
+    border: 3px solid #234a92; border-radius: 10px; overflow: hidden;
+    width: 100%; aspect-ratio: 1 / 1; max-width: 640px; margin: 0 auto;
+  }
+  .cell { position: relative; background: var(--cell-empty); }
+  .cell.active { background: #163564; }
+  .cell.active input { background: var(--paper); color: var(--azul-oscuro); }
+  .cell input {
+    width: 100%; height: 100%; border: none; background: transparent;
+    text-align: center; text-transform: uppercase; font-weight: 800;
+    font-size: clamp(9px, 2.6vw, 17px); color: transparent; outline: none;
+    caret-color: var(--rojo); border-radius: 2px;
+  }
+  .cell.highlight input { background: #FFF3B0; }
+  .cell.focused input { background: var(--amarillo); color: var(--azul-oscuro) !important; }
+  .cell input.correct { background: #8CE99A !important; color: var(--azul-oscuro) !important; }
+  .cell input.wrong { background: #FF8787 !important; color: white !important; }
+  .num {
+    position: absolute; top: 1px; left: 2px;
+    font-size: clamp(6px, 1.4vw, 9px); font-weight: 700;
+    color: var(--rojo); z-index: 2; pointer-events: none;
+  }
+
+  .controls { display: flex; gap: 10px; justify-content: center; margin-top: 16px; flex-wrap: wrap; }
+  button {
+    font-family: inherit; font-weight: 700; font-size: 13px;
+    border: none; border-radius: 10px; padding: 10px 16px;
+    cursor: pointer; transition: transform .12s ease;
+  }
+  button:hover { transform: translateY(-2px); }
+  .btn-check { background: var(--amarillo); color: var(--azul-oscuro); }
+  .btn-reveal { background: var(--rojo); color: white; }
+  .btn-clear { background: #234a92; color: #d9e4fb; }
+
+  .clues-card {
+    background: linear-gradient(155deg, #102a58, #08183a);
+    border: 1px solid #234a92; border-radius: 20px; padding: 20px;
+    max-height: 720px; overflow-y: auto;
+  }
+  .clues-card h2 {
+    font-size: 14px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--amarillo); margin: 0 0 10px;
+    border-bottom: 1px solid #234a92; padding-bottom: 8px;
+  }
+  .clues-card h2.second { margin-top: 20px; }
+  .clue-item {
+    display: flex; gap: 10px; padding: 8px 8px; border-radius: 8px;
+    cursor: pointer; font-size: 13.5px; line-height: 1.35; color: #d9e4fb;
+  }
+  .clue-item:hover { background: #163564; }
+  .clue-item.active { background: var(--amarillo); color: var(--azul-oscuro); }
+  .clue-item .n { font-weight: 800; color: var(--amarillo); min-width: 22px; }
+  .clue-item.active .n { color: var(--azul-oscuro); }
+
+  footer.done-banner {
+    display: none; text-align: center; margin-top: 20px;
+    font-size: 18px; font-weight: 800; color: var(--amarillo);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="eyebrow">
+      <span class="flag-dot"><span style="background:var(--amarillo)"></span><span style="background:var(--azul)"></span><span style="background:var(--rojo)"></span></span>
+      Colombia
+    </span>
+    <h1>Crucigrama: Colombia en Datos y Noticias</h1>
+    <p class="sub">22 respuestas sobre geografia, cultura y la actualidad politica de 2026 &mdash; de las montanas al Caribe, del cafe a las elecciones.</p>
+  </header>
+
+  <div class="status-row">
+    <div class="pill">Progreso: <b id="progressText">0 / 22</b></div>
+    <div class="pill" id="feedback">Toca una casilla para empezar</div>
+  </div>
+
+  <div class="main-layout">
+    <div class="board-card">
+      <div id="grid"></div>
+      <div class="controls">
+        <button class="btn-check" onclick="checkPuzzle()">Comprobar</button>
+        <button class="btn-reveal" onclick="revealPuzzle()">Revelar</button>
+        <button class="btn-clear" onclick="clearPuzzle()">Borrar</button>
+      </div>
+    </div>
+
+    <div class="clues-card">
+      <h2>Horizontales</h2>
+      <div id="acrossClues"></div>
+      <h2 class="second">Verticales</h2>
+      <div id="downClues"></div>
+    </div>
+  </div>
+
+  <footer class="done-banner" id="doneBanner">🎉 ¡Lo resolviste! Eres todo un experto en Colombia.</footer>
+</div>
+
+<script>
+const SIZE = 15;
+const PLACEMENTS = [
+    {"word":"PARAMO","clue":"Ecosistema de alta montaña único de los Andes tropicales","row":7,"col":4,"dir":"H"},
+    {"word":"GUAJIRA","clue":"Departamento desértico en el extremo norte del país","row":1,"col":5,"dir":"V"},
+    {"word":"CEPEDA","clue":"Candidato de izquierda que perdió la segunda vuelta presidencial de 2026","row":2,"col":7,"dir":"V"},
+    {"word":"ORQUIDEA","clue":"Flor nacional de Colombia","row":5,"col":1,"dir":"H"},
+    {"word":"ECUADOR","clue":"País vecino al sur de Colombia","row":0,"col":1,"dir":"V"},
+    {"word":"PANAMA","clue":"País que se separó de Colombia en 1903","row":3,"col":0,"dir":"H"},
+    {"word":"PETRO","clue":"Apellido del presidente colombiano elegido en 2022, saliente en 2026","row":0,"col":0,"dir":"H"},
+    {"word":"BOGOTA","clue":"Capital de Colombia, situada en la cordillera Oriental","row":6,"col":9,"dir":"V"},
+    {"word":"PACIFICO","clue":"Océano que baña la costa occidental de Colombia","row":7,"col":4,"dir":"V"},
+    {"word":"PESO","clue":"Moneda oficial de Colombia","row":9,"col":6,"dir":"H"},
+    {"word":"TOLIMA","clue":"Departamento conocido por el Nevado del Ruiz","row":10,"col":9,"dir":"H"},
+    {"word":"LLANOS","clue":"Región de extensas sabanas en el oriente del país","row":8,"col":14,"dir":"V"},
+    {"word":"TAYRONA","clue":"Parque natural en la costa Caribe con playas y selva","row":14,"col":0,"dir":"H"},
+    {"word":"COLOMBIA","clue":"País suramericano bañado por dos océanos, el Pacífico y el Caribe","row":2,"col":7,"dir":"H"},
+    {"word":"BANANO","clue":"Fruta tropical, importante producto de exportación","row":1,"col":14,"dir":"V"},
+    {"word":"ORINOCO","clue":"Río que nace en Colombia y desemboca en Venezuela","row":8,"col":12,"dir":"V"},
+    {"word":"FUTBOL","clue":"El deporte más popular del país","row":14,"col":8,"dir":"H"},
+    {"word":"CARIBE","clue":"Mar que baña la costa norte de Colombia","row":12,"col":1,"dir":"H"},
+    {"word":"CUMBIA","clue":"Ritmo tradicional colombiano con raíces indígenas y africanas","row":0,"col":11,"dir":"V"},
+    {"word":"AREPA","clue":"Alimento tradicional a base de maíz, infaltable en la mesa colombiana","row":8,"col":0,"dir":"H"},
+    {"word":"CAUCA","clue":"Departamento y río del suroccidente colombiano","row":0,"col":8,"dir":"H"},
+    {"word":"CAFE","clue":"Producto de exportación insignia, cultivado en el eje cafetero","row":7,"col":0,"dir":"V"}
+];
+
+let solution = Array.from({length:SIZE}, () => Array(SIZE).fill(null));
+PLACEMENTS.forEach(p => {
+  for (let i=0;i<p.word.length;i++){
+    const r = p.dir==='H'?p.row:p.row+i;
+    const c = p.dir==='H'?p.col+i:p.col;
+    solution[r][c] = p.word[i];
+  }
+});
+
+let counter = 1;
+let cellNumber = {};
+let startCells = [];
+PLACEMENTS.forEach(p => startCells.push([p.row,p.col]));
+let uniqueStarts = Array.from(new Set(startCells.map(x=>x.join(',')))).map(s=>s.split(',').map(Number));
+uniqueStarts.sort((a,b)=> a[0]-b[0] || a[1]-b[1]);
+uniqueStarts.forEach(([r,c]) => { cellNumber[`${r}-${c}`] = counter++; });
+PLACEMENTS.forEach(p => { p.number = cellNumber[`${p.row}-${p.col}`]; });
+
+const gridEl = document.getElementById('grid');
+gridEl.style.gridTemplateColumns = `repeat(${SIZE}, 1fr)`;
+gridEl.style.gridTemplateRows = `repeat(${SIZE}, 1fr)`;
+
+let inputs = Array.from({length:SIZE}, () => Array(SIZE).fill(null));
+
+for (let r=0;r<SIZE;r++){
+  for (let c=0;c<SIZE;c++){
+    const cellDiv = document.createElement('div');
+    if (solution[r][c]) {
+      cellDiv.className = 'cell active';
+      cellDiv.dataset.r = r;
+      cellDiv.dataset.c = c;
+      const num = cellNumber[`${r}-${c}`];
+      if (num) {
+        const numSpan = document.createElement('div');
+        numSpan.className = 'num';
+        numSpan.textContent = num;
+        cellDiv.appendChild(numSpan);
+      }
+      const input = document.createElement('input');
+      input.maxLength = 1;
+      input.dataset.r = r;
+      input.dataset.c = c;
+      cellDiv.appendChild(input);
+      inputs[r][c] = input;
+    } else {
+      cellDiv.className = 'cell';
+    }
+    gridEl.appendChild(cellDiv);
+  }
+}
+
+let currentDir = 'H';
+
+function wordsAt(r,c){
+  return PLACEMENTS.filter(p => {
+    for (let i=0;i<p.word.length;i++){
+      const rr = p.dir==='H'?p.row:p.row+i;
+      const cc = p.dir==='H'?p.col+i:p.col;
+      if (rr===r && cc===c) return true;
+    }
+    return false;
+  });
+}
+
+function clearHighlights(){
+  document.querySelectorAll('.cell.highlight').forEach(el=>el.classList.remove('highlight'));
+  document.querySelectorAll('.cell.focused').forEach(el=>el.classList.remove('focused'));
+  document.querySelectorAll('.clue-item.active').forEach(el=>el.classList.remove('active'));
+}
+
+function highlightWord(p){
+  clearHighlights();
+  for (let i=0;i<p.word.length;i++){
+    const rr = p.dir==='H'?p.row:p.row+i;
+    const cc = p.dir==='H'?p.col+i:p.col;
+    const cellDiv = inputs[rr][cc].parentElement;
+    cellDiv.classList.add('highlight');
+  }
+  const clueEl = document.getElementById(`clue-${p.dir}-${p.number}`);
+  if (clueEl) { clueEl.classList.add('active'); clueEl.scrollIntoView({block:'nearest'}); }
+}
+
+function focusCell(r,c, preferDir){
+  const options = wordsAt(r,c);
+  if (options.length === 0) return;
+  let chosen = options.find(p => p.dir === preferDir) || options[0];
+  currentDir = chosen.dir;
+  highlightWord(chosen);
+  document.querySelectorAll('.cell.focused').forEach(el=>el.classList.remove('focused'));
+  inputs[r][c].parentElement.classList.add('focused');
+  inputs[r][c].focus();
+}
+
+for (let r=0;r<SIZE;r++){
+  for (let c=0;c<SIZE;c++){
+    if (!inputs[r][c]) continue;
+    const input = inputs[r][c];
+    input.addEventListener('focus', () => focusCell(r,c,currentDir));
+    input.addEventListener('click', () => {
+      const options = wordsAt(r,c);
+      if (options.length > 1 && inputs[r][c].parentElement.classList.contains('focused')) {
+        currentDir = currentDir === 'H' ? 'V' : 'H';
+      }
+      focusCell(r,c,currentDir);
+    });
+    input.addEventListener('input', (e) => {
+      let val = e.target.value.toUpperCase().replace(/[^A-ZÑ]/g,'');
+      e.target.value = val.slice(-1);
+      e.target.classList.remove('correct','wrong');
+      updateProgress();
+      if (val) moveNext(r,c);
+    });
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' && !input.value) {
+        movePrev(r,c);
+      } else if (e.key === 'ArrowRight') moveDir(r,c,0,1);
+      else if (e.key === 'ArrowLeft') moveDir(r,c,0,-1);
+      else if (e.key === 'ArrowDown') moveDir(r,c,1,0);
+      else if (e.key === 'ArrowUp') moveDir(r,c,-1,0);
+    });
+  }
+}
+
+function moveNext(r,c){
+  if (currentDir === 'H') {
+    let nc = c+1;
+    while(nc < SIZE && !inputs[r][nc]) nc++;
+    if (nc < SIZE && inputs[r][nc]) inputs[r][nc].focus();
+  } else {
+    let nr = r+1;
+    while(nr < SIZE && !inputs[nr][c]) nr++;
+    if (nr < SIZE && inputs[nr][c]) inputs[nr][c].focus();
+  }
+}
+function movePrev(r,c){
+  if (currentDir === 'H') {
+    let nc = c-1;
+    while(nc >= 0 && !inputs[r][nc]) nc--;
+    if (nc >= 0 && inputs[r][nc]) inputs[r][nc].focus();
+  } else {
+    let nr = r-1;
+    while(nr >= 0 && !inputs[nr][c]) nr--;
+    if (nr >= 0 && inputs[nr][c]) inputs[nr][c].focus();
+  }
+}
+function moveDir(r,c,dr,dc){
+  let nr=r+dr, nc=c+dc;
+  if (nr>=0 && nr<SIZE && nc>=0 && nc<SIZE && inputs[nr][nc]) {
+    if (dr!==0) currentDir='V'; else currentDir='H';
+    inputs[nr][nc].focus();
+  }
+}
+
+const acrossList = PLACEMENTS.filter(p=>p.dir==='H').sort((a,b)=>a.number-b.number);
+const downList = PLACEMENTS.filter(p=>p.dir==='V').sort((a,b)=>a.number-b.number);
+
+const acrossDiv = document.getElementById('acrossClues');
+acrossList.forEach(p => {
+  const item = document.createElement('div');
+  item.className = 'clue-item';
+  item.id = `clue-H-${p.number}`;
+  item.innerHTML = `<span class="n">${p.number}.</span><span>${p.clue}</span>`;
+  item.addEventListener('click', () => { currentDir='H'; focusCell(p.row,p.col,'H'); });
+  acrossDiv.appendChild(item);
+});
+const downDiv = document.getElementById('downClues');
+downList.forEach(p => {
+  const item = document.createElement('div');
+  item.className = 'clue-item';
+  item.id = `clue-V-${p.number}`;
+  item.innerHTML = `<span class="n">${p.number}.</span><span>${p.clue}</span>`;
+  item.addEventListener('click', () => { currentDir='V'; focusCell(p.row,p.col,'V'); });
+  downDiv.appendChild(item);
+});
+
+function updateProgress(){
+  let solvedWords = 0;
+  PLACEMENTS.forEach(p => {
+    let complete = true;
+    for (let i=0;i<p.word.length;i++){
+      const rr = p.dir==='H'?p.row:p.row+i;
+      const cc = p.dir==='H'?p.col+i:p.col;
+      if (inputs[rr][cc].value.toUpperCase() !== p.word[i]) { complete = false; break; }
+    }
+    if (complete) solvedWords++;
+  });
+  document.getElementById('progressText').textContent = `${solvedWords} / ${PLACEMENTS.length}`;
+  if (solvedWords === PLACEMENTS.length) {
+    document.getElementById('doneBanner').style.display = 'block';
+    document.getElementById('feedback').textContent = "¡Las 22 resueltas! 🎉";
+  }
+}
+
+function checkPuzzle(){
+  let anyFilled = false;
+  let allCorrectSoFar = true;
+  for (let r=0;r<SIZE;r++){
+    for (let c=0;c<SIZE;c++){
+      if (!inputs[r][c]) continue;
+      const val = inputs[r][c].value.toUpperCase();
+      inputs[r][c].classList.remove('correct','wrong');
+      if (val) {
+        anyFilled = true;
+        if (val === solution[r][c]) {
+          inputs[r][c].classList.add('correct');
+        } else {
+          inputs[r][c].classList.add('wrong');
+          allCorrectSoFar = false;
+        }
+      }
+    }
+  }
+  const fb = document.getElementById('feedback');
+  if (!anyFilled) fb.textContent = '¡Primero escribe algunas letras!';
+  else if (allCorrectSoFar) fb.textContent = 'Vas muy bien ✅';
+  else fb.textContent = 'Algunas letras no son correctas ❌';
+}
+
+function revealPuzzle(){
+  for (let r=0;r<SIZE;r++){
+    for (let c=0;c<SIZE;c++){
+      if (!inputs[r][c]) continue;
+      inputs[r][c].value = solution[r][c];
+      inputs[r][c].classList.remove('wrong');
+      inputs[r][c].classList.add('correct');
+    }
+  }
+  updateProgress();
+  document.getElementById('feedback').textContent = 'Se revelaron todas las respuestas.';
+}
+
+function clearPuzzle(){
+  for (let r=0;r<SIZE;r++){
+    for (let c=0;c<SIZE;c++){
+      if (!inputs[r][c]) continue;
+      inputs[r][c].value = '';
+      inputs[r][c].classList.remove('correct','wrong');
+    }
+  }
+  document.getElementById('doneBanner').style.display = 'none';
+  document.getElementById('feedback').textContent = '¡Borrado! Empecemos de nuevo.';
+  updateProgress();
+}
+</script>
+</body>
+</html>
