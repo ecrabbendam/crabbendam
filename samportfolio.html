@@ -179,6 +179,62 @@
         .cert-card h4 { margin: 0 0 10px 0; text-transform: uppercase; font-weight: 800; }
         .cert-card p { font-size: 0.9rem; color: var(--slate); margin-bottom: 20px; }
 
+        /* --- TABS --- */
+        .tab-nav {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 50px;
+            border-bottom: 2px solid rgba(0,0,0,0.1);
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 10px 0 20px 0;
+            font-family: 'Inter', sans-serif;
+            font-size: clamp(1.2rem, 3vw, 1.6rem); 
+            font-weight: 900;
+            text-transform: uppercase;
+            color: var(--slate);
+            cursor: pointer;
+            position: relative;
+            transition: color 0.3s ease;
+        }
+
+        .tab-btn:hover {
+            color: var(--obsidian);
+        }
+
+        .tab-btn.active {
+            color: var(--obsidian);
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px; /* aligns exactly with the border-bottom of tab-nav */
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background-color: var(--obsidian);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         .project-block { display: flex; gap: 40px; margin-bottom: 80px; align-items: flex-start; }
         .project-info { flex: 1; }
         @media (max-width: 1100px) { 
@@ -320,44 +376,49 @@
             </section>
 
             <section>
-                <h2 class="section-title">Aerospace Analysis</h2>
-                <div class="project-block">
-                    <div class="project-info">
-                        <h3>Failure Analysis Paper</h3>
-                        <p>A technical investigation into the Apollo 1 cabin fire, examining root causes and safety impact.</p>
-                        <a href="images/SamuelCrabbendam_FailureAnalysisPaper.pdf" target="_blank" class="view-btn">Open Full Document</a>
+                <div class="tab-nav">
+                    <button class="tab-btn active" onclick="openTab(event, 'aerospace')">Aerospace Analysis</button>
+                    <button class="tab-btn" onclick="openTab(event, 'uas')">UAS Design & Build Personal Project</button>
+                </div>
+
+                <div id="aerospace" class="tab-content active">
+                    <div class="project-block">
+                        <div class="project-info">
+                            <h3>Failure Analysis Paper</h3>
+                            <p>A technical investigation into the Apollo 1 cabin fire, examining root causes and safety impact.</p>
+                            <a href="images/SamuelCrabbendam_FailureAnalysisPaper.pdf" target="_blank" class="view-btn">Open Full Document</a>
+                        </div>
+                        <div class="preview-window">
+                            <iframe src="images/SamuelCrabbendam_FailureAnalysisPaper.pdf#toolbar=0"></iframe>
+                        </div>
                     </div>
-                    <div class="preview-window">
-                        <iframe src="images/SamuelCrabbendam_FailureAnalysisPaper.pdf#toolbar=0"></iframe>
+
+                    <div class="project-block">
+                        <div class="project-info">
+                            <h3>Aircraft Performance Analysis</h3>
+                            <p>Detailed evaluation of aerodynamic efficiency, flight envelopes, and structural data.</p>
+                            <a href="images/EAS2011 Project.pdf" target="_blank" class="view-btn">Open Full Document</a>
+                        </div>
+                        <div class="preview-window">
+                            <iframe src="images/EAS2011 Project.pdf#toolbar=0"></iframe>
+                        </div>
                     </div>
                 </div>
 
-                <div class="project-block">
-                    <div class="project-info">
-                        <h3>Aircraft Performance Analysis</h3>
-                        <p>Detailed evaluation of aerodynamic efficiency, flight envelopes, and structural data.</p>
-                        <a href="images/EAS2011 Project.pdf" target="_blank" class="view-btn">Open Full Document</a>
-                    </div>
-                    <div class="preview-window">
-                        <iframe src="images/EAS2011 Project.pdf#toolbar=0"></iframe>
-                    </div>
-                </div>
-            </section>
-
-            <section>
-                <h2 class="section-title">UAS Design & Build Personal Project</h2>
-                <div class="project-block">
-                    <div class="project-info">
-                        <h3>Features</h3>
-                        <p>GPS-guided autonomous flight, independent camera control via a hemispherical camera gimbal, FPV capability, 2 foot wingspan. Constructed from XPM foam & PLA.</p>
-                        
-                        <h3>Current Status</h3>
-                        <p>Design phase, looking to analyze aerodynamics of preliminary model to make adjustments as required for initial construction.</p>
-                        
-                        <a href="images/UAS General Model.png" target="_blank" class="view-btn" style="margin-top: 15px;">View Image</a>
-                    </div>
-                    <div class="preview-window">
-                        <img src="images/UAS General Model.png" alt="Current Status of my Design">
+                <div id="uas" class="tab-content">
+                    <div class="project-block">
+                        <div class="project-info">
+                            <h3>Features</h3>
+                            <p>GPS-guided autonomous flight, independent camera control via a hemispherical camera gimbal, FPV capability, 2 foot wingspan. Constructed from XPM foam & PLA.</p>
+                            
+                            <h3>Current Status</h3>
+                            <p>Design phase, looking to analyze aerodynamics of preliminary model to make adjustments as required for initial construction.</p>
+                            
+                            <a href="images/UAS General Model.png" target="_blank" class="view-btn" style="margin-top: 15px;">View Image</a>
+                        </div>
+                        <div class="preview-window">
+                            <img src="images/UAS General Model.png" alt="Current Status of my Design">
+                        </div>
                     </div>
                 </div>
             </section>
@@ -390,6 +451,21 @@
         }
         window.addEventListener('load', finishLoading);
         setTimeout(finishLoading, 4000); 
+
+        function openTab(evt, tabName) {
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+            });
+
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            tabBtns.forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            document.getElementById(tabName).classList.add('active');
+            evt.currentTarget.classList.add('active');
+        }
     </script>
 </body>
 </html>
