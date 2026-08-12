@@ -113,16 +113,25 @@
             .hero-reveal-container { height: 40vh; }
             .hero-image { background-attachment: scroll; }
             
-            /* Mobile Tabs Block Fix */
+            /* Mobile Integrated Tabs Fix */
             .tab-nav {
                 flex-direction: column;
-                gap: 10px !important;
+                gap: 2px !important;
                 border-bottom: none !important;
                 margin-bottom: 30px !important;
+                background: #e6e6e3;
+                border: 2px solid var(--obsidian);
             }
             .tab-btn {
                 width: 100% !important;
                 text-align: center;
+                border-bottom: 1px solid rgba(0,0,0,0.1);
+                border-top: none;
+                border-left: none;
+                border-right: none;
+            }
+            .tab-btn.active {
+                border-bottom: 1px solid var(--obsidian);
             }
         }
 
@@ -160,14 +169,8 @@
         }
 
         section {
-            padding: 80px 8%;
+            padding: 60px 8%;
             border-bottom: 1px solid rgba(0,0,0,0.05);
-        }
-
-        .section-title {
-            font-size: clamp(1.8rem, 5vw, 2.5rem); 
-            font-weight: 900;
-            text-transform: uppercase; margin-bottom: 40px;
         }
 
         .cert-grid {
@@ -191,38 +194,44 @@
         .cert-card h4 { margin: 0 0 10px 0; text-transform: uppercase; font-weight: 800; }
         .cert-card p { font-size: 0.9rem; color: var(--slate); margin-bottom: 20px; }
 
-        /* --- BLOCK TABS --- */
+        /* --- INTEGRATED TABS --- */
         .tab-nav {
             display: flex;
-            gap: 15px;
-            margin-bottom: 50px;
-            border-bottom: none;
+            gap: 0;
+            margin-bottom: 40px;
+            border-bottom: 2px solid var(--obsidian);
             flex-wrap: wrap; 
         }
 
         .tab-btn {
-            background: #fff;
+            background: #e6e6e3;
             border: 2px solid var(--obsidian);
-            padding: 14px 20px;
+            border-bottom: none;
+            padding: 16px 20px;
             font-family: 'Inter', sans-serif;
-            font-size: 0.85rem; 
+            font-size: 0.8rem; 
             font-weight: 800;
             text-transform: uppercase;
-            color: var(--obsidian);
+            color: var(--slate);
             cursor: pointer;
-            box-shadow: 3px 3px 0px rgba(0,0,0,0.1);
+            margin-right: 4px;
+            border-top-left-radius: 6px;
+            border-top-right-radius: 6px;
             transition: all 0.2s ease;
+            position: relative;
+            top: 2px;
         }
 
         .tab-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 5px 5px 0px var(--obsidian);
+            color: var(--obsidian);
+            background: #f0f0ed;
         }
 
         .tab-btn.active {
-            background-color: var(--obsidian);
-            color: white;
-            box-shadow: 3px 3px 0px var(--slate);
+            background-color: var(--cream);
+            color: var(--obsidian);
+            border-bottom: 2px solid var(--cream);
+            z-index: 2;
         }
 
         .tab-content {
@@ -384,42 +393,31 @@
 
         <div class="content-roll-up">
             <section>
-                <h2 class="section-title">Certifications</h2>
-                <div class="cert-grid">
-                    <div class="cert-card">
-                        <i class="fas fa-cube"></i>
-                        <h4>CSWA SolidWorks</h4>
-                        <p>Certified SolidWorks Associate in Mechanical Design. Expert in complex part modeling and assembly analysis.</p>
-                        <a href="images/SolidWorks Certification.pdf" target="_blank" style="text-decoration:none; color:inherit; font-weight:bold; font-size:0.8rem;">
-                            VIEW CERTIFICATE <i class="fas fa-external-link-alt"></i>
-                        </a>
-                    </div>
-                    <div class="cert-card">
-                        <i class="fas fa-id-card"></i>
-                        <h4>Private Pilot</h4>
-                        <p>Licensed Private Pilot (PPL). Proficient in VFR navigation, cross-country planning, and cockpit resource management.</p>
-                    </div>
-                    <div class="cert-card">
-                        <i class="fas fa-id-badge"></i>
-                        <h4>Commercial Drone Pilot</h4>
-                        <p>FAA Part 107 certified remote pilot for commercial small Unmanned Aircraft Systems (sUAS) operations.</p>
-                    </div>
-                    <div class="cert-card">
-                        <i class="fas fa-first-aid"></i>
-                        <h4>First Aid / AED / CPR</h4>
-                        <p>Certified in emergency medical response and life-saving AED/CPR procedures.</p>
-                    </div>
-                </div>
-            </section>
-
-            <section>
                 <div class="tab-nav">
-                    <button class="tab-btn active" onclick="openTab(event, 'aerospace')">Aerospace Analysis</button>
-                    <button class="tab-btn" onclick="openTab(event, 'uas')">UAS Design & Build Project</button>
-                    <button class="tab-btn" onclick="openTab(event, 'garney')">Garney Construction Internship</button>
+                    <button class="tab-btn active" onclick="openTab(event, 'uas')">UAS Design & Build Project</button>
+                    <button class="tab-btn" onclick="openTab(event, 'aerospace')">Aerospace Analysis</button>
+                    <button class="tab-btn" onclick="openTab(event, 'certifications')">Certifications</button>
+                    <button class="tab-btn" onclick="openTab(event, 'garney')">Project Engineering Internship</button>
                 </div>
 
-                <div id="aerospace" class="tab-content active">
+                <div id="uas" class="tab-content active">
+                    <div class="project-block">
+                        <div class="project-info">
+                            <h3>Features</h3>
+                            <p>GPS-guided autonomous flight, independent camera control via a hemispherical camera gimbal, FPV capability, 2 foot wingspan. Constructed from XPM foam & PLA.</p>
+                            
+                            <h3>Current Status</h3>
+                            <p>Design phase, looking to analyze aerodynamics of preliminary model to make adjustments as required for initial construction.</p>
+                            
+                            <a href="images/UAS General Model.png" target="_blank" class="view-btn">View Image</a>
+                        </div>
+                        <div class="preview-window">
+                            <img src="images/UAS General Model.png" alt="Current Status of my Design">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="aerospace" class="tab-content">
                     <div class="project-block">
                         <div class="project-info">
                             <h3>Failure Analysis Paper</h3>
@@ -443,19 +441,30 @@
                     </div>
                 </div>
 
-                <div id="uas" class="tab-content">
-                    <div class="project-block">
-                        <div class="project-info">
-                            <h3>Features</h3>
-                            <p>GPS-guided autonomous flight, independent camera control via a hemispherical camera gimbal, FPV capability, 2 foot wingspan. Constructed from XPM foam & PLA.</p>
-                            
-                            <h3>Current Status</h3>
-                            <p>Design phase, looking to analyze aerodynamics of preliminary model to make adjustments as required for initial construction.</p>
-                            
-                            <a href="images/UAS General Model.png" target="_blank" class="view-btn">View Image</a>
+                <div id="certifications" class="tab-content">
+                    <div class="cert-grid">
+                        <div class="cert-card">
+                            <i class="fas fa-cube"></i>
+                            <h4>CSWA SolidWorks</h4>
+                            <p>Certified SolidWorks Associate in Mechanical Design. Expert in complex part modeling and assembly analysis.</p>
+                            <a href="images/SolidWorks Certification.pdf" target="_blank" style="text-decoration:none; color:inherit; font-weight:bold; font-size:0.8rem;">
+                                VIEW CERTIFICATE <i class="fas fa-external-link-alt"></i>
+                            </a>
                         </div>
-                        <div class="preview-window">
-                            <img src="images/UAS General Model.png" alt="Current Status of my Design">
+                        <div class="cert-card">
+                            <i class="fas fa-id-card"></i>
+                            <h4>Private Pilot</h4>
+                            <p>Licensed Private Pilot (PPL). Proficient in VFR navigation, cross-country planning, and cockpit resource management.</p>
+                        </div>
+                        <div class="cert-card">
+                            <i class="fas fa-id-badge"></i>
+                            <h4>Commercial Drone Pilot</h4>
+                            <p>FAA Part 107 certified remote pilot for commercial small Unmanned Aircraft Systems (sUAS) operations.</p>
+                        </div>
+                        <div class="cert-card">
+                            <i class="fas fa-first-aid"></i>
+                            <h4>First Aid / AED / CPR</h4>
+                            <p>Certified in emergency medical response and life-saving AED/CPR procedures.</p>
                         </div>
                     </div>
                 </div>
