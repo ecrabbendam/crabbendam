@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,6 +10,7 @@
     <style>
         :root {
             --cream: #f9f9f7;
+            --folder-bg: #ecece6;
             --obsidian: #1a1a1a;
             --slate: #5a5a5e;
             --accent-green: #28a745;
@@ -89,10 +91,10 @@
             color: var(--obsidian);
         }
 
-        /* --- HERO IMAGE & MOBILE FIX --- */
+        /* --- HERO IMAGE (Shorter & Wider Aspect Ratio) --- */
         .hero-reveal-container {
             position: relative;
-            height: 65vh;
+            height: 30vh;
             width: 100%;
             overflow: hidden;
         }
@@ -107,40 +109,21 @@
             background-repeat: no-repeat;
             background-attachment: fixed;
             z-index: -1;
+            opacity: 0.85; /* Slightly less in-your-face */
         }
 
         @media (max-width: 768px) {
-            .hero-reveal-container { height: 40vh; }
+            .hero-reveal-container { height: 22vh; }
             .hero-image { background-attachment: scroll; }
-            
-            /* Mobile Integrated Tabs Fix */
-            .tab-nav {
-                flex-direction: column;
-                gap: 2px !important;
-                border-bottom: none !important;
-                margin-bottom: 30px !important;
-                background: #e6e6e3;
-                border: 2px solid var(--obsidian);
-            }
-            .tab-btn {
-                width: 100% !important;
-                text-align: center;
-                border-bottom: 1px solid rgba(0,0,0,0.1);
-                border-top: none;
-                border-left: none;
-                border-right: none;
-            }
-            .tab-btn.active {
-                border-bottom: 1px solid var(--obsidian);
-            }
         }
 
-        /* --- CONTENT --- */
+        /* --- CONTENT & MANILA FOLDER CONTAINER --- */
         .content-roll-up {
             position: relative;
             z-index: 2;
             background-color: var(--cream);
             box-shadow: 0 -15px 40px rgba(0,0,0,0.3);
+            margin-top: -35px; /* Overlap slightly onto the hero image */
         }
 
         body, html {
@@ -169,7 +152,7 @@
         }
 
         section {
-            padding: 60px 8%;
+            padding: 50px 8%;
             border-bottom: 1px solid rgba(0,0,0,0.05);
         }
 
@@ -194,49 +177,58 @@
         .cert-card h4 { margin: 0 0 10px 0; text-transform: uppercase; font-weight: 800; }
         .cert-card p { font-size: 0.9rem; color: var(--slate); margin-bottom: 20px; }
 
-        /* --- INTEGRATED TABS --- */
+        /* --- MANILA FOLDER TABS POKING OUT --- */
+        .tab-container-wrapper {
+            padding: 0 8%;
+        }
+
         .tab-nav {
             display: flex;
-            gap: 0;
-            margin-bottom: 40px;
-            border-bottom: 2px solid var(--obsidian);
+            gap: 8px;
+            position: relative;
+            top: -42px; /* Pulls the tabs up to poke out over the top lip of the section */
+            margin-bottom: -20px;
             flex-wrap: wrap; 
+            z-index: 10;
         }
 
         .tab-btn {
-            background: #e6e6e3;
+            background: var(--folder-bg);
             border: 2px solid var(--obsidian);
             border-bottom: none;
-            padding: 16px 20px;
+            padding: 12px 18px;
             font-family: 'Inter', sans-serif;
-            font-size: 0.8rem; 
+            font-size: 0.75rem; 
             font-weight: 800;
             text-transform: uppercase;
             color: var(--slate);
             cursor: pointer;
-            margin-right: 4px;
-            border-top-left-radius: 6px;
-            border-top-right-radius: 6px;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            box-shadow: 0 -3px 0px rgba(0,0,0,0.05) inset;
             transition: all 0.2s ease;
             position: relative;
-            top: 2px;
         }
 
         .tab-btn:hover {
             color: var(--obsidian);
-            background: #f0f0ed;
+            background: #f4f4f0;
+            top: -45px; /* Slight lift effect on hover */
         }
 
         .tab-btn.active {
             background-color: var(--cream);
             color: var(--obsidian);
-            border-bottom: 2px solid var(--cream);
-            z-index: 2;
+            border-top: 3px solid var(--obsidian);
+            padding-top: 14px;
+            top: -46px; /* Active folder tab sits highest */
+            z-index: 11;
+            box-shadow: none;
         }
 
         .tab-content {
             display: none;
-            animation: fadeIn 0.5s ease-in-out;
+            animation: fadeIn 0.4s ease-in-out;
         }
 
         .tab-content.active {
@@ -244,14 +236,13 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(15px); }
+            from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
         .project-block { display: flex; gap: 40px; margin-bottom: 80px; align-items: flex-start; }
         .project-info { flex: 1; }
         
-        /* Standard Preview Window (No Scrolling) */
         .preview-window { 
             width: 100%; 
             background: #fff; 
@@ -299,6 +290,23 @@
         @media (max-width: 1100px) { 
             .project-block { flex-direction: column; gap: 20px; } 
             .preview-window iframe { height: 320px; }
+        }
+
+        @media (max-width: 768px) {
+            .tab-nav {
+                top: -30px;
+                gap: 4px;
+            }
+            .tab-btn {
+                font-size: 0.65rem;
+                padding: 10px 12px;
+                flex: 1;
+                text-align: center;
+                top: 0 !important;
+            }
+            .tab-btn.active {
+                top: 0 !important;
+            }
         }
 
         /* --- FOOTER --- */
@@ -392,14 +400,16 @@
         </div>
 
         <div class="content-roll-up">
-            <section>
+            <div class="tab-container-wrapper">
                 <div class="tab-nav">
                     <button class="tab-btn active" onclick="openTab(event, 'uas')">UAS Design & Build Project</button>
                     <button class="tab-btn" onclick="openTab(event, 'aerospace')">Aerospace Analysis</button>
                     <button class="tab-btn" onclick="openTab(event, 'certifications')">Certifications</button>
                     <button class="tab-btn" onclick="openTab(event, 'garney')">Project Engineering Internship</button>
                 </div>
+            </div>
 
+            <section>
                 <div id="uas" class="tab-content active">
                     <div class="project-block">
                         <div class="project-info">
@@ -581,3 +591,5 @@
     </script>
 </body>
 </html>
+
+```
