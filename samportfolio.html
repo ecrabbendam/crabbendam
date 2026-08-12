@@ -9,7 +9,7 @@
     <style>
         :root {
             --cream: #f9f9f7;
-            --folder-bg: #e2e2da; /* Darkened slightly for better inactive tab contrast */
+            --folder-bg: #e2e2da;
             --obsidian: #1a1a1a;
             --slate: #5a5a5e;
             --accent-green: #28a745;
@@ -93,7 +93,7 @@
         body, html {
             margin: 0; padding: 0;
             font-family: 'Inter', sans-serif;
-            background-color: var(--cream); /* Changed from obsidian to prevent dark grey bleed at the top */
+            background-color: var(--cream);
             color: var(--obsidian);
             overflow-x: hidden;
         }
@@ -122,7 +122,7 @@
             height: 40vh; 
             width: 100%;
             overflow: hidden;
-            background-color: var(--obsidian); /* Base dark background behind the image */
+            background-color: var(--obsidian);
         }
 
         .hero-image {
@@ -130,8 +130,8 @@
             top: 0; left: 0;
             width: 100%; height: 100%;
             background-image: url('images/flowviz.jpg');
-            background-size: contain; /* Changed from cover to zoom out and show the full airfoil */
-            background-position: center center; 
+            background-size: cover; /* Restored background coverage */
+            background-position: center 75%; /* Shifted down to display the airfoil cross section properly */
             background-repeat: no-repeat;
             background-attachment: fixed; 
             z-index: -1;
@@ -152,7 +152,7 @@
 
         .tab-nav {
             display: flex;
-            gap: 6px;
+            gap: 0; /* Removed gaps between tabs to eliminate small squares/separators */
             padding: 0 8%;
             position: relative;
             z-index: 10; 
@@ -175,12 +175,13 @@
             background: var(--folder-bg);
             border: 2px solid var(--obsidian);
             border-bottom: none;
+            border-left: none; /* Removes left border so adjacent tabs merge seamlessly without small square artifacts */
             padding: 12px 18px;
             font-family: 'Inter', sans-serif;
             font-size: 0.75rem; 
-            font-weight: 900; /* Increased for better visibility */
+            font-weight: 900;
             text-transform: uppercase;
-            color: var(--obsidian); /* Starker contrast for inactive tabs */
+            color: var(--obsidian);
             cursor: pointer;
             border-top-left-radius: 8px;
             border-top-right-radius: 8px;
@@ -192,6 +193,11 @@
             top: 2px; 
             flex-shrink: 0; 
             white-space: nowrap; 
+        }
+
+        /* Ensure the very first tab keeps its left border */
+        .tab-nav .tab-btn:first-child {
+            border-left: 2px solid var(--obsidian);
         }
 
         .tab-btn:hover {
@@ -206,9 +212,14 @@
             z-index: 11;
         }
 
+        /* Adjust adjacent borders when an active tab is present to keep clean lines */
+        .tab-btn.active + .tab-btn {
+            border-left: 2px solid var(--obsidian);
+        }
+
         @media (max-width: 768px) {
             .tab-nav {
-                gap: 4px;
+                gap: 0;
             }
             .tab-btn {
                 font-size: 0.65rem;
