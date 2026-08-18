@@ -15,7 +15,7 @@
             --accent-green: #28a745;
         }
 
-        /* --- PRELOADER (1.5s FADE IN & CENTER SHRINK) --- */
+        /* --- PRELOADER (Extremely Fast - 375ms Max) --- */
         #preloader {
             position: fixed;
             top: 0; left: 0;
@@ -28,7 +28,7 @@
             background-repeat: no-repeat;
             clip-path: circle(150% at 50% 50%);
             opacity: 0;
-            animation: fadeInPreloader 0.4s ease forwards;
+            animation: fadeInPreloader 0.15s ease forwards;
         }
 
         @keyframes fadeInPreloader {
@@ -39,14 +39,14 @@
         .loaded #preloader { 
             clip-path: circle(0% at 50% 50%);
             opacity: 0;
-            transition: clip-path 1s cubic-bezier(0.77, 0, 0.175, 1), opacity 0.4s ease 0.5s;
+            transition: clip-path 0.3s cubic-bezier(0.77, 0, 0.175, 1), opacity 0.15s ease 0.1s;
             pointer-events: none;
         }
 
         #main-wrapper {
-            filter: blur(15px);
+            filter: blur(10px);
             opacity: 0;
-            transition: filter 1s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.8s ease;
+            transition: filter 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
         }
 
         .loaded #main-wrapper { 
@@ -60,17 +60,18 @@
             background-color: var(--cream);
             color: var(--obsidian);
             overflow-x: hidden;
-            padding-top: 45px; /* Reduced to match slimmer header */
+            padding-top: 42px; /* Matches fixed thin header */
         }
 
-        /* --- INTEGRATED HEADER NAV (Slimmer) --- */
+        /* --- INTEGRATED HEADER NAV (Seiko Proportions) --- */
         nav {
             position: fixed;
             top: 0; left: 0; right: 0;
             display: flex; 
             justify-content: space-between; 
             align-items: center;
-            padding: 8px 3%; /* Reduced vertical padding */
+            height: 42px; /* Strict slim height */
+            padding: 0 4%; 
             box-sizing: border-box;
             z-index: 100;
             background: rgba(249, 249, 247, 0.98);
@@ -84,6 +85,7 @@
             font-size: 0.85rem; display: flex; align-items: center; gap: 8px;
             white-space: nowrap;
             flex: 1;
+            height: 100%;
         }
 
         /* --- SEIKO-STYLE TABS --- */
@@ -99,6 +101,7 @@
             scrollbar-width: none; 
             touch-action: pan-x; 
             flex: 2; 
+            height: 100%;
         }
 
         .tab-nav::-webkit-scrollbar { 
@@ -109,15 +112,19 @@
             background: transparent;
             border: none;
             border-bottom: 2px solid transparent; 
-            padding: 5px 0; /* Tightened padding */
+            padding: 0 2px;
+            height: 100%; /* Stretches top to bottom of nav */
+            display: flex;
+            align-items: center;
             font-family: 'Inter', sans-serif;
-            font-size: 0.75rem; 
+            font-size: 0.75rem; /* Seiko sized font relative to height */
             font-weight: 800;
             text-transform: uppercase;
             color: var(--slate); 
             cursor: pointer;
             transition: color 0.2s ease, border-color 0.2s ease; 
             white-space: nowrap; 
+            box-sizing: border-box;
         }
 
         .tab-btn:hover {
@@ -135,27 +142,29 @@
             justify-content: flex-end;
             white-space: nowrap;
             flex: 1;
+            height: 100%;
         }
 
         /* Mobile Adjustments for Header */
         @media (max-width: 900px) {
-            body, html { padding-top: 85px; } /* Adjusted for mobile stacked header */
+            body, html { padding-top: 84px; } 
             nav { 
                 flex-direction: column; 
-                padding: 10px 3%; /* Reduced padding */
-                gap: 10px; /* Tighter gap */
+                height: auto;
+                padding: 0 3%;
             }
             .back-btn, .social-links { 
                 flex: none; 
                 width: 100%; 
-                justify-content: center; 
+                justify-content: center;
+                height: 42px;
             }
             .tab-nav { 
                 flex: none; 
                 width: 100%; 
                 justify-content: flex-start; 
                 gap: 20px;
-                padding-bottom: 2px;
+                height: 42px;
             }
         }
 
@@ -263,7 +272,7 @@
             .preview-window iframe { height: 500px; min-height: 400px; }
         }
 
-        /* --- FOOTER (Wider Edges) --- */
+        /* --- FOOTER --- */
         footer {
             background-color: white;
             padding: 60px 3%;
@@ -521,9 +530,9 @@
             document.body.classList.add('loaded');
         }
 
-        // Trigger load as soon as assets are ready, with a strict max timeout of 1.5 seconds
+        // Trigger load as soon as assets are ready, with a strict max timeout of 375ms (reduced by 75%)
         window.addEventListener('load', finishLoading);
-        setTimeout(finishLoading, 1500); 
+        setTimeout(finishLoading, 375); 
 
         function openTab(evt, tabName) {
             const tabContents = document.querySelectorAll('.tab-content');
