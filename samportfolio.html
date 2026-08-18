@@ -60,17 +60,17 @@
             background-color: var(--cream);
             color: var(--obsidian);
             overflow-x: hidden;
-            padding-top: 70px; 
+            padding-top: 45px; /* Reduced to match slimmer header */
         }
 
-        /* --- INTEGRATED HEADER NAV (Wider Edges, Mobile Friendly) --- */
+        /* --- INTEGRATED HEADER NAV (Slimmer) --- */
         nav {
             position: fixed;
             top: 0; left: 0; right: 0;
             display: flex; 
             justify-content: space-between; 
             align-items: center;
-            padding: 15px 3%; /* Brought closer to edges */
+            padding: 8px 3%; /* Reduced vertical padding */
             box-sizing: border-box;
             z-index: 100;
             background: rgba(249, 249, 247, 0.98);
@@ -89,7 +89,7 @@
         /* --- SEIKO-STYLE TABS --- */
         .tab-nav {
             display: flex;
-            gap: 30px; /* Clean spacing between tabs */
+            gap: 30px; 
             align-items: center; 
             justify-content: center;
             flex-wrap: nowrap; 
@@ -98,7 +98,7 @@
             -ms-overflow-style: none;  
             scrollbar-width: none; 
             touch-action: pan-x; 
-            flex: 2; /* Centers the tabs between home/socials */
+            flex: 2; 
         }
 
         .tab-nav::-webkit-scrollbar { 
@@ -108,13 +108,13 @@
         .tab-btn {
             background: transparent;
             border: none;
-            border-bottom: 2px solid transparent; /* Placeholder for active underline */
-            padding: 8px 0;
+            border-bottom: 2px solid transparent; 
+            padding: 5px 0; /* Tightened padding */
             font-family: 'Inter', sans-serif;
             font-size: 0.75rem; 
             font-weight: 800;
             text-transform: uppercase;
-            color: var(--slate); /* Dimmer color for inactive tabs */
+            color: var(--slate); 
             cursor: pointer;
             transition: color 0.2s ease, border-color 0.2s ease; 
             white-space: nowrap; 
@@ -126,7 +126,7 @@
 
         .tab-btn.active {
             color: var(--obsidian);
-            border-bottom: 2px solid var(--obsidian); /* Seiko style active underline */
+            border-bottom: 2px solid var(--obsidian);
         }
 
         .social-links {
@@ -139,11 +139,11 @@
 
         /* Mobile Adjustments for Header */
         @media (max-width: 900px) {
-            body, html { padding-top: 110px; }
+            body, html { padding-top: 85px; } /* Adjusted for mobile stacked header */
             nav { 
                 flex-direction: column; 
-                padding: 15px 3%; 
-                gap: 15px; 
+                padding: 10px 3%; /* Reduced padding */
+                gap: 10px; /* Tighter gap */
             }
             .back-btn, .social-links { 
                 flex: none; 
@@ -153,9 +153,9 @@
             .tab-nav { 
                 flex: none; 
                 width: 100%; 
-                justify-content: flex-start; /* Allows smooth horizontal scrolling on mobile */
+                justify-content: flex-start; 
                 gap: 20px;
-                padding-bottom: 5px;
+                padding-bottom: 2px;
             }
         }
 
@@ -266,7 +266,7 @@
         /* --- FOOTER (Wider Edges) --- */
         footer {
             background-color: white;
-            padding: 60px 3%; /* Brought closer to edges */
+            padding: 60px 3%;
             text-align: center;
             border-top: 2px solid var(--obsidian);
         }
