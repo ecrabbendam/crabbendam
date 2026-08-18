@@ -15,7 +15,7 @@
             --accent-green: #28a745;
         }
 
-        /* --- PRELOADER (FADE IN & CENTER SHRINK) --- */
+        /* --- PRELOADER (1.5s FADE IN & CENTER SHRINK) --- */
         #preloader {
             position: fixed;
             top: 0; left: 0;
@@ -28,7 +28,7 @@
             background-repeat: no-repeat;
             clip-path: circle(150% at 50% 50%);
             opacity: 0;
-            animation: fadeInPreloader 0.8s ease forwards;
+            animation: fadeInPreloader 0.4s ease forwards;
         }
 
         @keyframes fadeInPreloader {
@@ -39,14 +39,14 @@
         .loaded #preloader { 
             clip-path: circle(0% at 50% 50%);
             opacity: 0;
-            transition: clip-path 1.2s cubic-bezier(0.77, 0, 0.175, 1), opacity 0.4s ease 0.8s;
+            transition: clip-path 1s cubic-bezier(0.77, 0, 0.175, 1), opacity 0.4s ease 0.5s;
             pointer-events: none;
         }
 
         #main-wrapper {
             filter: blur(15px);
             opacity: 0;
-            transition: filter 1.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 1s ease;
+            transition: filter 1s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.8s ease;
         }
 
         .loaded #main-wrapper { 
@@ -60,22 +60,22 @@
             background-color: var(--cream);
             color: var(--obsidian);
             overflow-x: hidden;
-            padding-top: 80px; /* Accounts for fixed header */
+            padding-top: 70px; 
         }
 
-        /* --- INTEGRATED HEADER NAV --- */
+        /* --- INTEGRATED HEADER NAV (Wider Edges, Mobile Friendly) --- */
         nav {
             position: fixed;
             top: 0; left: 0; right: 0;
             display: flex; 
             justify-content: space-between; 
             align-items: center;
-            padding: 12px 5%;
+            padding: 15px 3%; /* Brought closer to edges */
             box-sizing: border-box;
             z-index: 100;
-            background: rgba(249, 249, 247, 0.95);
+            background: rgba(249, 249, 247, 0.98);
             backdrop-filter: blur(10px);
-            border-bottom: 2px solid var(--obsidian);
+            border-bottom: 1px solid rgba(0,0,0,0.1);
         }
 
         .back-btn {
@@ -83,20 +83,22 @@
             font-weight: 700; text-transform: uppercase;
             font-size: 0.85rem; display: flex; align-items: center; gap: 8px;
             white-space: nowrap;
+            flex: 1;
         }
 
-        /* --- INTEGRATED TABS IN NAV --- */
+        /* --- SEIKO-STYLE TABS --- */
         .tab-nav {
             display: flex;
-            gap: 0; 
-            align-items: flex-end; 
+            gap: 30px; /* Clean spacing between tabs */
+            align-items: center; 
+            justify-content: center;
             flex-wrap: nowrap; 
             overflow-x: auto;
             overflow-y: hidden;
             -ms-overflow-style: none;  
             scrollbar-width: none; 
             touch-action: pan-x; 
-            margin: 0 15px;
+            flex: 2; /* Centers the tabs between home/socials */
         }
 
         .tab-nav::-webkit-scrollbar { 
@@ -104,58 +106,57 @@
         }
 
         .tab-btn {
-            background: var(--folder-bg);
-            border: 2px solid var(--obsidian);
-            border-bottom: none;
-            border-left: none; 
-            padding: 8px 14px;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent; /* Placeholder for active underline */
+            padding: 8px 0;
             font-family: 'Inter', sans-serif;
-            font-size: 0.7rem; 
-            font-weight: 900;
+            font-size: 0.75rem; 
+            font-weight: 800;
             text-transform: uppercase;
-            color: var(--obsidian);
+            color: var(--slate); /* Dimmer color for inactive tabs */
             cursor: pointer;
-            border-top-left-radius: 6px;
-            border-top-right-radius: 6px;
-            transition: background-color 0.2s ease, color 0.2s ease; 
-            height: 38px; 
-            box-sizing: border-box;
-            position: relative;
-            top: 2px; 
-            flex-shrink: 0; 
+            transition: color 0.2s ease, border-color 0.2s ease; 
             white-space: nowrap; 
         }
 
-        .tab-nav .tab-btn:first-child {
-            border-left: 2px solid var(--obsidian);
-        }
-
         .tab-btn:hover {
-            background: #d4d4cd;
+            color: var(--obsidian);
         }
 
         .tab-btn.active {
-            background-color: var(--cream);
             color: var(--obsidian);
-            border-top: 4px solid var(--obsidian);
-            height: 42px; 
-            z-index: 11;
-        }
-
-        .tab-btn.active + .tab-btn {
-            border-left: 2px solid var(--obsidian);
+            border-bottom: 2px solid var(--obsidian); /* Seiko style active underline */
         }
 
         .social-links {
             display: flex;
             align-items: center;
+            justify-content: flex-end;
             white-space: nowrap;
+            flex: 1;
         }
 
+        /* Mobile Adjustments for Header */
         @media (max-width: 900px) {
-            nav { padding: 10px 3%; }
-            .tab-btn { font-size: 0.6rem; padding: 6px 10px; height: 34px; }
-            .tab-btn.active { height: 38px; }
+            body, html { padding-top: 110px; }
+            nav { 
+                flex-direction: column; 
+                padding: 15px 3%; 
+                gap: 15px; 
+            }
+            .back-btn, .social-links { 
+                flex: none; 
+                width: 100%; 
+                justify-content: center; 
+            }
+            .tab-nav { 
+                flex: none; 
+                width: 100%; 
+                justify-content: flex-start; /* Allows smooth horizontal scrolling on mobile */
+                gap: 20px;
+                padding-bottom: 5px;
+            }
         }
 
         .portfolio-interface {
@@ -262,10 +263,10 @@
             .preview-window iframe { height: 500px; min-height: 400px; }
         }
 
-        /* --- FOOTER --- */
+        /* --- FOOTER (Wider Edges) --- */
         footer {
             background-color: white;
-            padding: 60px 8%;
+            padding: 60px 3%; /* Brought closer to edges */
             text-align: center;
             border-top: 2px solid var(--obsidian);
         }
@@ -334,7 +335,7 @@
         <nav>
             <a href="https://crabbendam.net/sam" class="back-btn"><i class="fas fa-arrow-left"></i> Home</a>
             
-            <!-- Integrated Header Tabs -->
+            <!-- Seiko Style Tabs -->
             <div class="tab-nav">
                 <button class="tab-btn active" onclick="openTab(event, 'uas')">UAS Design & Build</button>
                 <button class="tab-btn" onclick="openTab(event, 'aerospace')">Aerospace Analysis</button>
@@ -520,9 +521,9 @@
             document.body.classList.add('loaded');
         }
 
-        // Trigger load as soon as assets are ready, with a strict max timeout of 3 seconds
+        // Trigger load as soon as assets are ready, with a strict max timeout of 1.5 seconds
         window.addEventListener('load', finishLoading);
-        setTimeout(finishLoading, 3000); 
+        setTimeout(finishLoading, 1500); 
 
         function openTab(evt, tabName) {
             const tabContents = document.querySelectorAll('.tab-content');
