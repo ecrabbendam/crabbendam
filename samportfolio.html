@@ -15,7 +15,7 @@
             --accent-green: #28a745;
         }
 
-        /* --- PRELOADER (CINEMATIC AIRFOIL SHRINK) --- */
+        /* --- PRELOADER (FADE IN & CENTER SHRINK) --- */
         #preloader {
             position: fixed;
             top: 0; left: 0;
@@ -26,16 +26,21 @@
             background-size: cover;
             background-position: center center;
             background-repeat: no-repeat;
-            /* Starts covering the whole screen */
             clip-path: circle(150% at 50% 50%);
-            transition: clip-path 1.5s cubic-bezier(0.77, 0, 0.175, 1), opacity 0.5s ease 1.5s;
+            opacity: 0;
+            animation: fadeInPreloader 0.8s ease forwards;
+        }
+
+        @keyframes fadeInPreloader {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         .loaded #preloader { 
-            /* Shrinks to center */
             clip-path: circle(0% at 50% 50%);
-            pointer-events: none;
             opacity: 0;
+            transition: clip-path 1.2s cubic-bezier(0.77, 0, 0.175, 1), opacity 0.4s ease 0.8s;
+            pointer-events: none;
         }
 
         #main-wrapper {
@@ -55,47 +60,43 @@
             background-color: var(--cream);
             color: var(--obsidian);
             overflow-x: hidden;
+            padding-top: 80px; /* Accounts for fixed header */
         }
 
+        /* --- INTEGRATED HEADER NAV --- */
         nav {
             position: fixed;
             top: 0; left: 0; right: 0;
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 18px 8%;
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            padding: 12px 5%;
             box-sizing: border-box;
             z-index: 100;
-            background: rgba(249, 249, 247, 0.9);
+            background: rgba(249, 249, 247, 0.95);
             backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(0,0,0,0.1);
+            border-bottom: 2px solid var(--obsidian);
         }
 
         .back-btn {
             text-decoration: none; color: var(--obsidian);
             font-weight: 700; text-transform: uppercase;
-            font-size: 0.9rem; display: flex; align-items: center; gap: 10px;
+            font-size: 0.85rem; display: flex; align-items: center; gap: 8px;
+            white-space: nowrap;
         }
 
-        /* --- PORTFOLIO INTERFACE --- */
-        .portfolio-interface {
-            position: relative;
-            z-index: 2;
-            padding-top: 100px; /* Provides space below the fixed nav now that hero is gone */
-        }
-
+        /* --- INTEGRATED TABS IN NAV --- */
         .tab-nav {
             display: flex;
             gap: 0; 
-            padding: 0 8%;
-            position: relative;
-            z-index: 10; 
             align-items: flex-end; 
-            
             flex-wrap: nowrap; 
             overflow-x: auto;
             overflow-y: hidden;
             -ms-overflow-style: none;  
             scrollbar-width: none; 
             touch-action: pan-x; 
+            margin: 0 15px;
         }
 
         .tab-nav::-webkit-scrollbar { 
@@ -107,18 +108,17 @@
             border: 2px solid var(--obsidian);
             border-bottom: none;
             border-left: none; 
-            padding: 12px 18px;
+            padding: 8px 14px;
             font-family: 'Inter', sans-serif;
-            font-size: 0.75rem; 
+            font-size: 0.7rem; 
             font-weight: 900;
             text-transform: uppercase;
             color: var(--obsidian);
             cursor: pointer;
-            border-top-left-radius: 8px;
-            border-top-right-radius: 8px;
+            border-top-left-radius: 6px;
+            border-top-right-radius: 6px;
             transition: background-color 0.2s ease, color 0.2s ease; 
-            
-            height: 42px; 
+            height: 38px; 
             box-sizing: border-box;
             position: relative;
             top: 2px; 
@@ -138,7 +138,7 @@
             background-color: var(--cream);
             color: var(--obsidian);
             border-top: 4px solid var(--obsidian);
-            height: 48px; 
+            height: 42px; 
             z-index: 11;
         }
 
@@ -146,22 +146,31 @@
             border-left: 2px solid var(--obsidian);
         }
 
-        @media (max-width: 768px) {
-            .tab-nav { gap: 0; }
-            .tab-btn { font-size: 0.65rem; padding: 10px 14px; height: 38px; }
-            .tab-btn.active { height: 44px; }
+        .social-links {
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 900px) {
+            nav { padding: 10px 3%; }
+            .tab-btn { font-size: 0.6rem; padding: 6px 10px; height: 34px; }
+            .tab-btn.active { height: 38px; }
+        }
+
+        .portfolio-interface {
+            position: relative;
+            z-index: 2;
         }
 
         .content-roll-up {
             position: relative;
             z-index: 5;
             background-color: var(--cream);
-            border-top: 2px solid var(--obsidian);
-            box-shadow: 0 -15px 40px rgba(0,0,0,0.3);
         }
 
         section {
-            padding: 50px 8%;
+            padding: 40px 8%;
         }
 
         .tab-content {
@@ -204,7 +213,6 @@
             border: 1px solid rgba(0,0,0,0.1);
         }
 
-        /* Adjusted iframe to be much taller to fit a full page properly */
         .preview-window iframe { 
             width: 100%; 
             height: 75vh; 
@@ -325,22 +333,22 @@
     <div id="main-wrapper">
         <nav>
             <a href="https://crabbendam.net/sam" class="back-btn"><i class="fas fa-arrow-left"></i> Home</a>
+            
+            <!-- Integrated Header Tabs -->
+            <div class="tab-nav">
+                <button class="tab-btn active" onclick="openTab(event, 'uas')">UAS Design & Build</button>
+                <button class="tab-btn" onclick="openTab(event, 'aerospace')">Aerospace Analysis</button>
+                <button class="tab-btn" onclick="openTab(event, 'certifications')">Certifications</button>
+                <button class="tab-btn" onclick="openTab(event, 'garney')">Project Engineering</button>
+            </div>
+
             <div class="social-links">
-                <a href="https://www.linkedin.com/in/samuel-crabbendam-93ab33349" target="_blank" style="color:var(--obsidian); margin-right:20px;"><i class="fab fa-linkedin"></i></a>
+                <a href="https://www.linkedin.com/in/samuel-crabbendam-93ab33349" target="_blank" style="color:var(--obsidian); margin-right:15px;"><i class="fab fa-linkedin"></i></a>
                 <a href="https://instagram.com/samm_crabb" target="_blank" style="color:var(--obsidian);"><i class="fab fa-instagram"></i></a>
             </div>
         </nav>
 
         <div class="portfolio-interface">
-            
-            <!-- TABS -->
-            <div class="tab-nav">
-                <button class="tab-btn active" onclick="openTab(event, 'uas')">UAS Design & Build Project</button>
-                <button class="tab-btn" onclick="openTab(event, 'aerospace')">Aerospace Analysis</button>
-                <button class="tab-btn" onclick="openTab(event, 'certifications')">Certifications</button>
-                <button class="tab-btn" onclick="openTab(event, 'garney')">Project Engineering Internship</button>
-            </div>
-
             <!-- CONTENT BODY -->
             <div class="content-roll-up">
                 <section>
@@ -371,7 +379,6 @@
                                 <a href="images/SamuelCrabbendam_FailureAnalysisPaper.pdf" target="_blank" class="view-btn">Open Full Document</a>
                             </div>
                             <div class="preview-window">
-                                <!-- Added view=Fit to ensure scaling shows the entire page -->
                                 <iframe src="images/SamuelCrabbendam_FailureAnalysisPaper.pdf#toolbar=0&view=Fit"></iframe>
                             </div>
                         </div>
@@ -510,16 +517,12 @@
     <script>
         function finishLoading() {
             if (document.body.classList.contains('loaded')) return;
-            
-            // Added a small initial delay so the user registers the image before it starts to shrink
-            setTimeout(() => {
-                document.body.classList.add('loaded');
-            }, 500); 
+            document.body.classList.add('loaded');
         }
-        
-        // Trigger load animation once assets are ready, or force it after 2 seconds
+
+        // Trigger load as soon as assets are ready, with a strict max timeout of 3 seconds
         window.addEventListener('load', finishLoading);
-        setTimeout(finishLoading, 2000); 
+        setTimeout(finishLoading, 3000); 
 
         function openTab(evt, tabName) {
             const tabContents = document.querySelectorAll('.tab-content');
