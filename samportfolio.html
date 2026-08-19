@@ -148,43 +148,47 @@
             font-size: 0.95rem;
         }
 
-        /* --- MOBILE ADJUSTMENTS (No Horizontal Scroll) --- */
+        /* --- MOBILE ADJUSTMENTS (Strict Grid Layout to kill dead space) --- */
         @media (max-width: 900px) {
-            /* Increase body padding to account for the wrapped header height */
-            body, html { padding-top: 85px; } 
+            /* Increased padding so the newly wrapped header clears all body text */
+            body, html { padding-top: 100px; } 
             
             nav { 
-                flex-wrap: wrap; 
+                /* Swap flex for a strict 2-column grid */
+                display: grid;
+                grid-template-columns: 1fr 1fr;
                 height: auto;
                 padding: 12px 4%;
-                row-gap: 15px;
+                gap: 12px 0; /* 12px vertical spacing, 0 horizontal */
+                align-items: start;
             }
             
             .back-btn { 
-                flex: 1 1 45%; 
+                grid-column: 1; /* Locks to top left */
+                grid-row: 1;
                 justify-content: flex-start;
                 height: auto;
             }
             
             .social-links { 
-                flex: 1 1 45%; 
+                grid-column: 2; /* Locks to top right */
+                grid-row: 1;
                 justify-content: flex-end;
                 height: auto;
             }
             
-            /* Forces tabs to break to the next line and wrap to fit the screen */
             .tab-nav { 
-                flex: 1 1 100%; 
-                order: 3; /* Puts tabs below the home/social links */
+                grid-column: 1 / 3; /* Spans across the entire bottom row */
+                grid-row: 2;
                 justify-content: center;
                 flex-wrap: wrap; 
                 gap: 8px 15px;
                 height: auto;
-                overflow: visible; /* Removes the scrollbar */
+                overflow: visible; 
             }
 
             .tab-btn {
-                font-size: 0.75rem; /* Slightly smaller text to fit standard phones easily */
+                font-size: 0.75rem; 
                 padding: 4px 2px;
                 height: auto;
             }
