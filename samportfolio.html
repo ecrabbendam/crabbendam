@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -60,17 +61,17 @@
             background-color: var(--cream);
             color: var(--obsidian);
             overflow-x: hidden;
-            padding-top: 42px; /* Matches fixed thin header */
+            padding-top: 38px; /* Tightly matched to header height so content sits right below it */
         }
 
-        /* --- INTEGRATED HEADER NAV (Seiko Proportions) --- */
+        /* --- INTEGRATED HEADER NAV (Minimal Dead Space) --- */
         nav {
             position: fixed;
             top: 0; left: 0; right: 0;
             display: flex; 
             justify-content: space-between; 
             align-items: center;
-            height: 42px; /* Strict slim height */
+            height: 38px; /* Kept compact to eliminate empty vertical space */
             padding: 0 4%; 
             box-sizing: border-box;
             z-index: 100;
@@ -82,13 +83,13 @@
         .back-btn {
             text-decoration: none; color: var(--obsidian);
             font-weight: 700; text-transform: uppercase;
-            font-size: 0.85rem; display: flex; align-items: center; gap: 8px;
+            font-size: 0.85rem; display: flex; align-items: center; gap: 6px;
             white-space: nowrap;
             flex: 1;
             height: 100%;
         }
 
-        /* --- SEIKO-STYLE TABS --- */
+        /* --- SEIKO-STYLE TABS (Maximized Text, Zero Dead Space) --- */
         .tab-nav {
             display: flex;
             gap: 30px; 
@@ -100,7 +101,7 @@
             -ms-overflow-style: none;  
             scrollbar-width: none; 
             touch-action: pan-x; 
-            flex: 2; 
+            flex: 3; 
             height: 100%;
         }
 
@@ -113,13 +114,14 @@
             border: none;
             border-bottom: 2px solid transparent; 
             padding: 0 2px;
-            height: 100%; /* Stretches top to bottom of nav */
+            height: 100%; 
             display: flex;
             align-items: center;
             font-family: 'Inter', sans-serif;
-            font-size: 0.75rem; /* Seiko sized font relative to height */
+            font-size: 0.92rem; /* Large font that completely fills the compact header height */
             font-weight: 800;
             text-transform: uppercase;
+            letter-spacing: 0.3px;
             color: var(--slate); 
             cursor: pointer;
             transition: color 0.2s ease, border-color 0.2s ease; 
@@ -143,28 +145,29 @@
             white-space: nowrap;
             flex: 1;
             height: 100%;
+            font-size: 1rem;
         }
 
         /* Mobile Adjustments for Header */
         @media (max-width: 900px) {
-            body, html { padding-top: 84px; } 
+            body, html { padding-top: 78px; } 
             nav { 
                 flex-direction: column; 
                 height: auto;
-                padding: 0 3%;
+                padding: 4px 3%;
             }
             .back-btn, .social-links { 
                 flex: none; 
                 width: 100%; 
                 justify-content: center;
-                height: 42px;
+                height: 32px;
             }
             .tab-nav { 
                 flex: none; 
                 width: 100%; 
                 justify-content: flex-start; 
-                gap: 20px;
-                height: 42px;
+                gap: 18px;
+                height: 38px;
             }
         }
 
@@ -180,7 +183,7 @@
         }
 
         section {
-            padding: 40px 8%;
+            padding: 30px 8%; /* Compact top padding so content is right where it should be */
         }
 
         .tab-content {
@@ -344,7 +347,7 @@
         <nav>
             <a href="https://crabbendam.net/sam" class="back-btn"><i class="fas fa-arrow-left"></i> Home</a>
             
-            <!-- Seiko Style Tabs -->
+            <!-- Seiko Style Tabs with Maximized Font Size & Minimal Dead Space -->
             <div class="tab-nav">
                 <button class="tab-btn active" onclick="openTab(event, 'uas')">UAS Design & Build</button>
                 <button class="tab-btn" onclick="openTab(event, 'aerospace')">Aerospace Analysis</button>
@@ -530,7 +533,7 @@
             document.body.classList.add('loaded');
         }
 
-        // Trigger load as soon as assets are ready, with a strict max timeout of 375ms (reduced by 75%)
+        // Trigger load as soon as assets are ready, with a strict max timeout of 375ms
         window.addEventListener('load', finishLoading);
         setTimeout(finishLoading, 375); 
 
@@ -551,3 +554,5 @@
     </script>
 </body>
 </html>
+
+```
