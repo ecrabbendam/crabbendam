@@ -1,4 +1,12 @@
-<style>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio | Samuel Crabbendam</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <style>
         :root {
             --cream: #f9f9f7;
             --folder-bg: #e2e2da;
@@ -140,10 +148,10 @@
             font-size: 0.95rem;
         }
 
-        /* --- MOBILE ADJUSTMENTS (Using Grid to completely lock layout) --- */
+        /* --- MOBILE ADJUSTMENTS (Strict Grid Layout) --- */
         @media (max-width: 900px) {
             body, html { 
-                padding-top: 85px; /* Matches the exact grid height */
+                padding-top: 85px; 
             } 
             
             nav { 
@@ -367,5 +375,220 @@
         .footer-socials a:hover {
             color: var(--accent-green);
         }
-
     </style>
+</head>
+<body>
+
+    <!-- Cinematic Preloader -->
+    <div id="preloader"></div>
+
+    <div id="main-wrapper">
+        <nav>
+            <a href="https://crabbendam.net/sam" class="back-btn"><i class="fas fa-arrow-left"></i> Home</a>
+            
+            <!-- Seiko Style Tabs -->
+            <div class="tab-nav">
+                <button class="tab-btn active" onclick="openTab(event, 'uas')">UAS Design & Build</button>
+                <button class="tab-btn" onclick="openTab(event, 'aerospace')">Aerospace Analysis</button>
+                <button class="tab-btn" onclick="openTab(event, 'certifications')">Certifications</button>
+                <button class="tab-btn" onclick="openTab(event, 'garney')">Project Engineering</button>
+            </div>
+
+            <div class="social-links">
+                <a href="https://www.linkedin.com/in/samuel-crabbendam-93ab33349" target="_blank" style="color:var(--obsidian); margin-right:15px;"><i class="fab fa-linkedin"></i></a>
+                <a href="https://instagram.com/samm_crabb" target="_blank" style="color:var(--obsidian);"><i class="fab fa-instagram"></i></a>
+            </div>
+        </nav>
+
+        <div class="portfolio-interface">
+            <!-- CONTENT BODY -->
+            <div class="content-roll-up">
+                <section>
+                    <!-- 1: UAS Project Tab -->
+                    <div id="uas" class="tab-content active">
+                        <div class="project-block">
+                            <div class="project-info">
+                                <h3>Features</h3>
+                                <p>GPS-guided autonomous flight, independent camera control via a hemispherical camera gimbal, FPV capability, 2 foot wingspan. Constructed from XPM foam & PLA.</p>
+                                
+                                <h3>Current Status</h3>
+                                <p>Design phase, looking to analyze aerodynamics of preliminary model to make adjustments as required for initial construction.</p>
+                                
+                                <a href="images/UAS General Model.png" target="_blank" class="view-btn">View Image</a>
+                            </div>
+                            <div class="preview-window">
+                                <img src="images/UAS General Model.png" alt="Current Status of my Design">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2: Aerospace Analysis Tab -->
+                    <div id="aerospace" class="tab-content">
+                        <div class="project-block">
+                            <div class="project-info">
+                                <h3>Failure Analysis Paper</h3>
+                                <p>A technical investigation into the Apollo 1 cabin fire, examining root causes and safety impact.</p>
+                                <a href="images/SamuelCrabbendam_FailureAnalysisPaper.pdf" target="_blank" class="view-btn">Open Full Document</a>
+                            </div>
+                            <div class="preview-window">
+                                <iframe src="images/SamuelCrabbendam_FailureAnalysisPaper.pdf#toolbar=0&view=Fit"></iframe>
+                            </div>
+                        </div>
+
+                        <div class="project-block">
+                            <div class="project-info">
+                                <h3>Aircraft Performance Analysis</h3>
+                                <p>Detailed evaluation of aerodynamic efficiency, flight envelopes, and structural data.</p>
+                                <a href="images/EAS2011 Project.pdf" target="_blank" class="view-btn">Open Full Document</a>
+                            </div>
+                            <div class="preview-window">
+                                <iframe src="images/EAS2011 Project.pdf#toolbar=0&view=Fit"></iframe>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3: Certifications Tab -->
+                    <div id="certifications" class="tab-content">
+                        <div class="cert-grid">
+                            <div class="cert-card">
+                                <i class="fas fa-cube"></i>
+                                <h4>CSWA SolidWorks</h4>
+                                <p>Certified SolidWorks Associate in Mechanical Design. Expert in complex part modeling and assembly analysis.</p>
+                                <a href="images/SolidWorks Certification.pdf" target="_blank" style="text-decoration:none; color:inherit; font-weight:bold; font-size:0.8rem;">
+                                    VIEW CERTIFICATE <i class="fas fa-external-link-alt"></i>
+                                </a>
+                            </div>
+                            <div class="cert-card">
+                                <i class="fas fa-id-card"></i>
+                                <h4>Private Pilot</h4>
+                                <p>Licensed Private Pilot (PPL). Proficient in VFR navigation, cross-country planning, and cockpit resource management.</p>
+                            </div>
+                            <div class="cert-card">
+                                <i class="fas fa-id-badge"></i>
+                                <h4>Commercial Drone Pilot</h4>
+                                <p>FAA Part 107 certified remote pilot for commercial small Unmanned Aircraft Systems (sUAS) operations.</p>
+                            </div>
+                            <div class="cert-card">
+                                <i class="fas fa-first-aid"></i>
+                                <h4>First Aid / AED / CPR</h4>
+                                <p>Certified in emergency medical response and life-saving AED/CPR procedures.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4: Project Engineering Internship Tab -->
+                    <div id="garney" class="tab-content">
+                        
+                        <!-- Material Install Log -->
+                        <div class="project-block">
+                            <div class="project-info">
+                                <h3>Material Install Log</h3>
+                                <p>Created document to manage & update procurement status for tools & materials. This eliminated sitewide production delays amongst all crews.</p>
+                                <a href="images/Material Install Log.xlsx" target="_blank" class="view-btn">Download Spreadsheet</a>
+                            </div>
+                            <div class="preview-window">
+                                <iframe src="https://view.officeapps.live.com/op/embed.aspx?src=https://crabbendam.net/images/Material%20Install%20Log.xlsx"></iframe>
+                            </div>
+                        </div>
+
+                        <!-- Quality Control Inspections -->
+                        <div class="project-block">
+                            <div class="project-info">
+                                <h3>Quality Control Inspections</h3>
+                                <p>Conducted field inspections on structural assemblies to ensure strict compliance with engineering drawings and efficiently catch errors prior to installation. Image 1 shows a rebar rod within 2" of wooden formwork, failing my inspection for concrete placement.</p>
+                                <a href="images/Structural Beam Rebar - good catch.jpeg" target="_blank" class="view-btn">View Beam Rebar</a>
+                                <a href="images/Valley Curb NW.jpeg" target="_blank" class="view-btn">View Valley Curb</a>
+                            </div>
+                            <div class="preview-window">
+                                <img src="images/Structural Beam Rebar - good catch.jpeg" alt="Structural Beam Rebar Inspection">
+                                <img src="images/Valley Curb NW.jpeg" alt="Valley Curb Installation">
+                            </div>
+                        </div>
+
+                        <!-- Material Testing & Installation -->
+                        <div class="project-block">
+                            <div class="project-info">
+                                <h3>Material Testing & Installation</h3>
+                                <p>Verified material quality through standardized testing, confirming specifications were met prior to installation.</p>
+                                <a href="images/Cylinders Test.jpeg" target="_blank" class="view-btn">View Cylinder Test</a>
+                                <a href="images/Crew Oversight.jpeg" target="_blank" class="view-btn">View Crew Oversight</a>
+                            </div>
+                            <div class="preview-window">
+                                <img src="images/Cylinders Test.jpeg" alt="Concrete Cylinder Testing">
+                                <img src="images/Crew Oversight.jpeg" alt="Crew Oversight and Installation">
+                            </div>
+                        </div>
+
+                        <!-- Stair Nosings -->
+                        <div class="project-block">
+                            <div class="project-info">
+                                <h3>Stair Nosings & Rebar Submittals</h3>
+                                <p>Reviewed technical submittal data for stair nosing components and cross-referenced design drawings & specifications to verify material is correct and sufficient for installation.</p>
+                                <a href="images/Stair Nosings Submittal.png" target="_blank" class="view-btn">View Nosing Submittal</a>
+                                <a href="images/03200-07E Filter Upper Level Rebar Shop Drawings - Carollo Approval 4.pdf" target="_blank" class="view-btn">View Rebar Shop Docs</a>
+                            </div>
+                            <div class="preview-window">
+                                <img src="images/Stair Nosings Submittal.png" alt="Stair Nosings Submittal">
+                                <iframe src="images/03200-07E Filter Upper Level Rebar Shop Drawings - Carollo Approval 4.pdf#toolbar=0&view=Fit"></iframe>
+                            </div>
+                        </div>
+
+                        <!-- Transformer Takeoff -->
+                        <div class="project-block">
+                            <div class="project-info">
+                                <h3>Transformer Takeoff</h3>
+                                <p>Calculated detailed takeoffs for transformer pad installation. Accurately estimated material requirements to ensure proper rebar fabrication.</p>
+                                <a href="images/Transformer Takeoff.pdf" target="_blank" class="view-btn">Open Full Document</a>
+                            </div>
+                            <div class="preview-window">
+                                <iframe src="images/Transformer Takeoff.pdf#toolbar=0&view=Fit"></iframe>
+                            </div>
+                        </div>
+
+                    </div>
+                </section>
+
+                <footer>
+                    <div class="footer-logo">Samuel Crabbendam</div>
+                    <div class="footer-tagline">Aerospace Engineering & Pilot</div>
+                    
+                    <a href="https://crabbendam.net/sam" class="home-footer-btn">
+                        <i class="fas fa-home"></i>
+                        Return to Home
+                    </a>
+
+                    <div class="footer-socials">
+                        <a href="https://www.linkedin.com/in/samuel-crabbendam-93ab33349" target="_blank"><i class="fab fa-linkedin"></i></a>
+                        <a href="https://instagram.com/samm_crabb" target="_blank"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </footer>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function finishLoading() {
+            if (document.body.classList.contains('loaded')) return;
+            document.body.classList.add('loaded');
+        }
+
+        window.addEventListener('load', finishLoading);
+        setTimeout(finishLoading, 375); 
+
+        function openTab(evt, tabName) {
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+            });
+
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            tabBtns.forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            document.getElementById(tabName).classList.add('active');
+            evt.currentTarget.classList.add('active');
+        }
+    </script>
+</body>
+</html>
