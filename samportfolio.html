@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -61,17 +60,17 @@
             background-color: var(--cream);
             color: var(--obsidian);
             overflow-x: hidden;
-            padding-top: 38px; /* Tightly matched to header height so content sits right below it */
+            padding-top: 42px; /* Perfect clearance for the sleek header */
         }
 
-        /* --- INTEGRATED HEADER NAV (Minimal Dead Space) --- */
+        /* --- INTEGRATED HEADER NAV --- */
         nav {
             position: fixed;
             top: 0; left: 0; right: 0;
             display: flex; 
             justify-content: space-between; 
             align-items: center;
-            height: 38px; /* Kept compact to eliminate empty vertical space */
+            height: 40px; /* Slim, sleek height */
             padding: 0 4%; 
             box-sizing: border-box;
             z-index: 100;
@@ -83,13 +82,13 @@
         .back-btn {
             text-decoration: none; color: var(--obsidian);
             font-weight: 700; text-transform: uppercase;
-            font-size: 0.85rem; display: flex; align-items: center; gap: 6px;
+            font-size: 0.82rem; display: flex; align-items: center; gap: 6px;
             white-space: nowrap;
             flex: 1;
             height: 100%;
         }
 
-        /* --- SEIKO-STYLE TABS (Maximized Text, Zero Dead Space) --- */
+        /* --- SEIKO-STYLE TABS --- */
         .tab-nav {
             display: flex;
             gap: 30px; 
@@ -118,7 +117,7 @@
             display: flex;
             align-items: center;
             font-family: 'Inter', sans-serif;
-            font-size: 0.92rem; /* Large font that completely fills the compact header height */
+            font-size: 0.9rem; 
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 0.3px;
@@ -145,12 +144,12 @@
             white-space: nowrap;
             flex: 1;
             height: 100%;
-            font-size: 1rem;
+            font-size: 0.95rem;
         }
 
         /* Mobile Adjustments for Header */
         @media (max-width: 900px) {
-            body, html { padding-top: 78px; } 
+            body, html { padding-top: 85px; } 
             nav { 
                 flex-direction: column; 
                 height: auto;
@@ -160,14 +159,14 @@
                 flex: none; 
                 width: 100%; 
                 justify-content: center;
-                height: 32px;
+                height: 30px;
             }
             .tab-nav { 
                 flex: none; 
                 width: 100%; 
                 justify-content: flex-start; 
                 gap: 18px;
-                height: 38px;
+                height: 35px;
             }
         }
 
@@ -183,7 +182,7 @@
         }
 
         section {
-            padding: 30px 8%; /* Compact top padding so content is right where it should be */
+            padding: 30px 8%;
         }
 
         .tab-content {
@@ -347,7 +346,7 @@
         <nav>
             <a href="https://crabbendam.net/sam" class="back-btn"><i class="fas fa-arrow-left"></i> Home</a>
             
-            <!-- Seiko Style Tabs with Maximized Font Size & Minimal Dead Space -->
+            <!-- Seiko Style Tabs -->
             <div class="tab-nav">
                 <button class="tab-btn active" onclick="openTab(event, 'uas')">UAS Design & Build</button>
                 <button class="tab-btn" onclick="openTab(event, 'aerospace')">Aerospace Analysis</button>
@@ -554,5 +553,3 @@
     </script>
 </body>
 </html>
-
-```
