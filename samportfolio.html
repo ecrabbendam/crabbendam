@@ -15,7 +15,7 @@
             --accent-green: #28a745;
         }
 
-        /* --- PRELOADER (Extremely Fast - 375ms Max) --- */
+        /* --- PRELOADER --- */
         #preloader {
             position: fixed;
             top: 0; left: 0;
@@ -54,23 +54,26 @@
             opacity: 1;
         }
 
+        /* --- BODY SETUP & PADDING FIX --- */
         body, html {
             margin: 0; padding: 0;
             font-family: 'Inter', sans-serif;
             background-color: var(--cream);
             color: var(--obsidian);
             overflow-x: hidden;
-            padding-top: 42px; /* Perfect clearance for the sleek header */
+            /* Pushes the entire page content down so it clears the slimmed header entirely */
+            padding-top: 35px; 
         }
 
-        /* --- INTEGRATED HEADER NAV --- */
+        /* --- ULTRA-SLIM INTEGRATED HEADER NAV --- */
         nav {
             position: fixed;
             top: 0; left: 0; right: 0;
             display: flex; 
             justify-content: space-between; 
             align-items: center;
-            height: 40px; /* Slim, sleek height */
+            /* Drastically reduced height to kill dead space */
+            height: 35px; 
             padding: 0 4%; 
             box-sizing: border-box;
             z-index: 100;
@@ -82,16 +85,16 @@
         .back-btn {
             text-decoration: none; color: var(--obsidian);
             font-weight: 700; text-transform: uppercase;
-            font-size: 0.82rem; display: flex; align-items: center; gap: 6px;
+            font-size: 0.8rem; display: flex; align-items: center; gap: 6px;
             white-space: nowrap;
             flex: 1;
             height: 100%;
         }
 
-        /* --- SEIKO-STYLE TABS --- */
+        /* --- SEIKO-STYLE TABS (Tight Fit) --- */
         .tab-nav {
             display: flex;
-            gap: 30px; 
+            gap: 25px; 
             align-items: center; 
             justify-content: center;
             flex-wrap: nowrap; 
@@ -117,7 +120,7 @@
             display: flex;
             align-items: center;
             font-family: 'Inter', sans-serif;
-            font-size: 0.9rem; 
+            font-size: 0.85rem; /* Sized specifically to fill the 35px height cleanly */
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 0.3px;
@@ -149,7 +152,8 @@
 
         /* Mobile Adjustments for Header */
         @media (max-width: 900px) {
-            body, html { padding-top: 85px; } 
+            /* Clear the stacked header height on mobile */
+            body, html { padding-top: 70px; } 
             nav { 
                 flex-direction: column; 
                 height: auto;
@@ -159,14 +163,14 @@
                 flex: none; 
                 width: 100%; 
                 justify-content: center;
-                height: 30px;
+                height: 28px;
             }
             .tab-nav { 
                 flex: none; 
                 width: 100%; 
                 justify-content: flex-start; 
-                gap: 18px;
-                height: 35px;
+                gap: 15px;
+                height: 32px;
             }
         }
 
@@ -182,7 +186,8 @@
         }
 
         section {
-            padding: 30px 8%;
+            /* Gives the first element visual breathing room so it isn't glued to the header */
+            padding: 40px 8%; 
         }
 
         .tab-content {
@@ -532,7 +537,6 @@
             document.body.classList.add('loaded');
         }
 
-        // Trigger load as soon as assets are ready, with a strict max timeout of 375ms
         window.addEventListener('load', finishLoading);
         setTimeout(finishLoading, 375); 
 
