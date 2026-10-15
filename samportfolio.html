@@ -6,32 +6,36 @@
 <title>Samuel Crabbendam | Aerospace & Pilot</title>
 <meta name="description" content="Samuel Crabbendam: aerospace engineering student and private pilot at the University of Florida. Resume, projects, lab reports, and experience.">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700;900&display=swap" rel="stylesheet">
 <style>
   :root {
     --cream: #f9f9f7;
+    --white: #ffffff;
     --obsidian: #1a1a1a;
     --slate: #5a5a5e;
+    --line: rgba(26, 26, 26, 0.12);
     --accent-green: #28a745;
-    --nav-h: 52px;
+    --nav-h: 66px; /* updated automatically by JS to the real bar height */
   }
 
   * { box-sizing: border-box; }
   html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
-  html.preloading, html.preloading body { overflow: hidden; }
+  html.preloading, html.preloading body,
+  html.modal-open, html.modal-open body { overflow: hidden; }
   body {
     margin: 0;
     font-family: 'Inter', sans-serif;
     background: var(--cream);
     color: var(--obsidian);
-    line-height: 1.5;
+    line-height: 1.55;
     -webkit-font-smoothing: antialiased;
   }
   a { color: inherit; }
   img { max-width: 100%; display: block; }
+  button { font-family: inherit; }
 
   /* =====================================================
-     PRELOADER (same plane-swipe sequence as the title card)
+     PRELOADER (unchanged plane-swipe sequence)
      ===================================================== */
   #preloader {
     position: fixed; inset: 0;
@@ -64,47 +68,46 @@
   .takeoff-active #flying-plane { transform: rotate(0deg) translateX(150vw); transition: transform 1.6s cubic-bezier(0.65, 0, 0.35, 1); }
   .takeoff-active #preloader { clip-path: inset(0 0 0 100%); }
 
+  /* NOTE: the top bar lives OUTSIDE #main-wrapper, and the blur filter is removed
+     once loaded. A filter on an ancestor breaks position:fixed (the bar would scroll away). */
   #main-wrapper { opacity: 0; filter: blur(20px); transition: opacity 1.2s ease, filter 1.5s ease; }
-  .loaded #main-wrapper { opacity: 1; filter: blur(0); }
+  .loaded #main-wrapper { opacity: 1; filter: none; }
 
   /* =====================================================
-     TOP BAR
+     TOP BAR (always visible, all 7 tabs shown)
      ===================================================== */
   .topbar {
     position: fixed; top: 0; left: 0; right: 0;
-    height: var(--nav-h);
-    z-index: 100;
-    background: rgba(249, 249, 247, 0.88);
+    z-index: 200;
+    background: rgba(249, 249, 247, 0.94);
     -webkit-backdrop-filter: saturate(180%) blur(16px);
     backdrop-filter: saturate(180%) blur(16px);
     border-bottom: 2px solid var(--obsidian);
-    display: flex; align-items: center; gap: 18px;
-    padding: 0 max(4%, env(safe-area-inset-left));
+    opacity: 0; transition: opacity 0.8s ease;
   }
-  .brand {
-    font-weight: 900; text-transform: uppercase; letter-spacing: -0.5px;
-    font-size: 0.95rem; text-decoration: none; white-space: nowrap; flex: none;
-  }
+  .loaded .topbar { opacity: 1; }
+
   .tabs {
-    flex: 1; min-width: 0;
-    display: flex; gap: 6px; align-items: stretch; height: 100%;
-    overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    max-width: 1500px; margin: 0 auto;
   }
-  .tabs::-webkit-scrollbar { display: none; }
   .tab {
-    display: flex; align-items: center; flex: none;
-    padding: 0 10px; height: 100%;
-    font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px;
-    color: var(--slate); text-decoration: none; white-space: nowrap;
-    border-bottom: 3px solid transparent; margin-bottom: -2px;
-    transition: color .2s, border-color .2s;
+    display: flex; align-items: center; justify-content: center; text-align: center;
+    padding: 14px 10px;
+    font-size: 0.76rem; font-weight: 800; line-height: 1.25;
+    text-transform: uppercase; letter-spacing: 0.4px;
+    color: var(--slate); text-decoration: none;
+    border-left: 1px solid var(--line);
+    border-bottom: 4px solid transparent; margin-bottom: -2px;
+    transition: color .2s, border-color .2s, background .2s;
   }
-  .tab:hover { color: var(--obsidian); }
+  .tab:first-child { border-left: 0; }
+  .tab:hover { color: var(--obsidian); background: rgba(0,0,0,0.03); }
   .tab.active { color: var(--obsidian); border-bottom-color: var(--accent-green); }
-  .tab:focus-visible { outline: 2px solid var(--obsidian); outline-offset: -2px; }
-  .nav-social { display: flex; gap: 14px; flex: none; font-size: 1.05rem; }
-  .nav-social a { text-decoration: none; transition: color .2s; }
-  .nav-social a:hover { color: var(--accent-green); }
+  .tab:focus-visible { outline: 2px solid var(--obsidian); outline-offset: -3px; }
+
+  .menu-btn { display: none; }
 
   /* =====================================================
      HERO
@@ -126,151 +129,212 @@
   h1 { font-size: clamp(2.8rem, 7.5vw, 6rem); font-weight: 900; line-height: 0.9; text-transform: uppercase; letter-spacing: -3px; margin: 0 0 15px; }
   .subtitle { font-size: 1.1rem; color: var(--slate); margin: 0 0 40px; text-transform: uppercase; letter-spacing: 1px; }
 
-  .button-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; max-width: 500px; }
+  .button-stack { display: flex; flex-direction: column; gap: 18px; width: 100%; max-width: 340px; }
+
   .btn {
     text-decoration: none; color: var(--obsidian);
-    padding: 18px 16px; background: #fff; border: 2px solid var(--obsidian);
-    font-weight: 800; text-transform: uppercase; font-size: 0.75rem;
-    display: flex; align-items: center; justify-content: center; gap: 12px;
+    padding: 17px 20px; background: var(--white); border: 2px solid var(--obsidian);
+    font-weight: 800; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.3px;
+    display: inline-flex; align-items: center; justify-content: center; gap: 12px;
     transition: .2s; box-shadow: 4px 4px 0 var(--obsidian);
-    font-family: inherit; cursor: pointer;
+    cursor: pointer;
   }
   .btn-primary { background: var(--obsidian); color: #fff; }
-  .btn:hover { transform: translate(-2px, -2px); box-shadow: 8px 8px 0 var(--obsidian); }
+  .btn:hover { transform: translate(-2px, -2px); box-shadow: 7px 7px 0 var(--obsidian); }
   .btn:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--obsidian); }
-  .btn.small { padding: 12px 16px; font-size: 0.7rem; box-shadow: 3px 3px 0 var(--obsidian); }
+  .btn:focus-visible { outline: 3px solid var(--accent-green); outline-offset: 3px; }
+  .btn.small { padding: 12px 18px; font-size: 0.7rem; box-shadow: 3px 3px 0 var(--obsidian); }
 
   /* =====================================================
-     SECTIONS (shared)
+     RESUME
      ===================================================== */
-  .section { padding: 90px 8% 40px; scroll-margin-top: var(--nav-h); }
-  .section-head { margin-bottom: 40px; }
-  .kicker { display: inline-block; font-size: 0.7rem; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: var(--accent-green); margin-bottom: 10px; }
-  h2 { font-size: clamp(2rem, 5vw, 3.6rem); font-weight: 900; line-height: 0.95; text-transform: uppercase; letter-spacing: -2px; margin: 0 0 12px; }
-  .section-sub { font-size: 0.95rem; color: var(--slate); text-transform: uppercase; letter-spacing: 1px; margin: 0; }
-
-  .block {
-    display: grid; grid-template-columns: 1fr 1.8fr; gap: 40px; align-items: start;
-    margin-bottom: 60px;
+  .resume { padding: 100px 8% 60px; scroll-margin-top: var(--nav-h); }
+  .resume-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 20px; max-width: 900px; margin: 0 auto 28px; }
+  .resume-actions { display: flex; flex-wrap: wrap; gap: 14px; }
+  .resume-frame {
+    margin: 0 auto; background: var(--white);
+    border: 2px solid var(--obsidian);
+    box-shadow: 6px 6px 0 rgba(0,0,0,0.07);
+    max-width: 100%;
+    min-height: 200px;
   }
-  .block:last-child { margin-bottom: 0; }
-  .block h3 { font-size: 1.1rem; font-weight: 800; text-transform: uppercase; letter-spacing: -0.3px; margin: 0 0 10px; }
-  .block p { color: var(--slate); margin: 0 0 16px; font-size: 0.95rem; }
-  .block h4 { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; margin: 18px 0 4px; }
-  .actions { display: flex; flex-wrap: wrap; gap: 12px; }
-
-  .window {
-    background: #fff; border: 2px solid var(--obsidian);
-    box-shadow: 6px 6px 0 rgba(0,0,0,0.06);
-    padding: 14px; display: grid; gap: 14px;
-  }
-  .window img, .window iframe {
-    width: 100%; border: 1px solid rgba(0,0,0,0.1); background: var(--cream); display: block;
-  }
-  .window img { max-height: 560px; object-fit: contain; }
-  .window iframe { height: 70vh; min-height: 480px; }
-
-  .divider { border: 0; border-top: 2px solid var(--obsidian); margin: 0; }
+  .resume-frame canvas { display: block; width: 100%; height: auto; }
+  .resume-frame canvas + canvas { border-top: 1px solid var(--line); }
+  .resume-msg { padding: 40px 24px; text-align: center; color: var(--slate); font-size: 0.9rem; }
+  .resume-msg a { font-weight: 800; }
 
   /* =====================================================
-     RESUME VIEWER
+     CAROUSEL (continuous, infinite loop)
      ===================================================== */
-  .resume { padding: 70px 8% 30px; scroll-margin-top: var(--nav-h); }
-  .resume .window iframe { height: 85vh; min-height: 560px; }
-  .resume-note { font-size: 0.8rem; color: var(--slate); margin: 14px 0 0; }
-  .resume-note a { font-weight: 700; }
-
-  /* =====================================================
-     CAROUSEL
-     ===================================================== */
-  .carousel-wrap { padding: 50px 0 20px; overflow: hidden; }
-  .carousel-label { padding: 0 8%; margin-bottom: 22px; }
+  .carousel-wrap { padding: 70px 0 100px; overflow: hidden; }
+  .carousel-label { padding: 0 8%; margin-bottom: 26px; }
   .carousel {
     overflow: hidden;
-    -webkit-mask-image: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent);
-            mask-image: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 5%, #000 95%, transparent);
+            mask-image: linear-gradient(to right, transparent, #000 5%, #000 95%, transparent);
   }
-  .carousel-track {
-    display: flex; gap: 24px; width: max-content;
-    padding: 8px 12px 14px;
-    animation: slide 45s linear infinite;
-  }
-  .carousel:hover .carousel-track,
-  .carousel:focus-within .carousel-track,
-  .carousel.paused .carousel-track { animation-play-state: paused; }
-  @keyframes slide { to { transform: translateX(-50%); } }
-  .slide { flex: none; margin: 0; background: #fff; border: 2px solid var(--obsidian); box-shadow: 4px 4px 0 var(--obsidian); }
-  .slide img { height: 260px; width: auto; max-width: 420px; object-fit: cover; }
-  .slide figcaption { padding: 8px 12px; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; border-top: 2px solid var(--obsidian); }
+  .carousel-track { display: flex; gap: 24px; width: max-content; padding: 6px 12px 14px; will-change: transform; }
+  .slide { flex: none; margin: 0; background: var(--white); border: 2px solid var(--obsidian); box-shadow: 4px 4px 0 var(--obsidian); }
+  .slide img { height: 270px; width: auto; max-width: none; object-fit: cover; }
+  .carousel.static { overflow-x: auto; }
 
   /* =====================================================
-     CERTIFICATIONS
+     SECTIONS
      ===================================================== */
-  .cert-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; }
-  .cert-card {
-    border: 2px solid var(--obsidian); padding: 28px; background: #fff;
-    box-shadow: 4px 4px 0 rgba(0,0,0,0.05);
-    display: flex; flex-direction: column; gap: 8px;
+  .section { padding: 140px 8%; scroll-margin-top: var(--nav-h); border-top: 1px solid var(--line); background: var(--cream); }
+  .section.tone { background: var(--white); }
+  .section-inner {
+    max-width: 1180px; margin: 0 auto;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 70px; align-items: center;
   }
-  .cert-card i { font-size: 1.5rem; margin-bottom: 6px; }
-  .cert-card h4 { margin: 0; text-transform: uppercase; font-weight: 800; font-size: 1rem; }
-  .cert-card p { margin: 0; font-size: 0.9rem; color: var(--slate); flex: 1; }
-  .cert-card a { font-weight: 800; font-size: 0.75rem; text-decoration: none; text-transform: uppercase; margin-top: 8px; }
-  .cert-card a:hover { color: var(--accent-green); }
+  .section.flip .section-inner .media-frame { order: 2; }
 
-  /* placeholder card for sections still being filled in */
-  .placeholder {
-    border: 2px dashed var(--slate); padding: 28px; color: var(--slate);
-    font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; text-align: center;
+  .kicker { display: block; font-size: 0.72rem; font-weight: 800; letter-spacing: 1.6px; text-transform: uppercase; color: var(--accent-green); margin: 0 0 14px; }
+  h2 { font-size: clamp(1.9rem, 3.6vw, 2.9rem); font-weight: 900; line-height: 1.05; letter-spacing: -1.2px; margin: 0 0 20px; }
+  .summary { font-size: 1.02rem; color: var(--slate); margin: 0 0 18px; }
+  .highlights { list-style: none; padding: 0; margin: 0 0 30px; display: grid; gap: 9px; }
+  .highlights li { position: relative; padding-left: 22px; font-size: 0.93rem; color: var(--obsidian); }
+  .highlights li::before { content: ""; position: absolute; left: 0; top: 0.62em; width: 8px; height: 2px; background: var(--accent-green); }
+
+  .media-frame {
+    position: relative; aspect-ratio: 4 / 3; overflow: hidden;
+    background: var(--cream); border: 2px solid var(--obsidian);
+    box-shadow: 7px 7px 0 rgba(0,0,0,0.08);
   }
+  .tone .media-frame { background: var(--cream); }
+  .media-frame > img { width: 100%; height: 100%; object-fit: cover; }
+  .media-frame > img.contain { object-fit: contain; padding: 14px; }
+  .media-frame canvas { position: absolute; top: 0; left: 0; width: 100%; height: auto; }
+  .frame-fallback {
+    display: none; position: absolute; inset: 0;
+    flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+    color: var(--slate); font-size: 0.72rem; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase;
+    background: repeating-linear-gradient(135deg, #f1f1ed, #f1f1ed 14px, #f6f6f3 14px, #f6f6f3 28px);
+  }
+  .frame-fallback i { font-size: 1.6rem; }
+  .media-frame.missing > img, .media-frame.missing > canvas { display: none; }
+  .media-frame.missing .frame-fallback { display: flex; }
+
+  /* =====================================================
+     DETAILS OVERLAY
+     ===================================================== */
+  .overlay {
+    position: fixed; inset: 0; z-index: 500;
+    display: none; align-items: center; justify-content: center;
+    background: rgba(26, 26, 26, 0.55);
+    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+    padding: 24px;
+  }
+  .overlay.open { display: flex; animation: fade .25s ease; }
+  @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+  .sheet {
+    background: var(--cream); width: 100%; max-width: 880px; max-height: 90vh; max-height: 90dvh;
+    display: flex; flex-direction: column;
+    border: 2px solid var(--obsidian); box-shadow: 10px 10px 0 rgba(0,0,0,0.25);
+  }
+  .sheet-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; padding: 26px 30px 20px; border-bottom: 2px solid var(--obsidian); background: var(--white); }
+  .sheet-head h3 { margin: 0; font-size: 1.5rem; font-weight: 900; letter-spacing: -0.6px; line-height: 1.15; }
+  .sheet-head .kicker { margin-bottom: 8px; }
+  .close-btn { flex: none; width: 44px; height: 44px; border: 2px solid var(--obsidian); background: var(--white); cursor: pointer; font-size: 1.1rem; box-shadow: 3px 3px 0 var(--obsidian); }
+  .close-btn:hover { background: var(--obsidian); color: #fff; }
+  .sheet-body { padding: 30px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .sheet-body p { color: var(--slate); margin: 0 0 24px; font-size: 0.98rem; }
+  .sheet-body h4 { margin: 28px 0 14px; font-size: 0.72rem; font-weight: 800; letter-spacing: 1.6px; text-transform: uppercase; }
+  .file-list { display: grid; gap: 12px; }
+  .file {
+    display: grid; grid-template-columns: 44px 1fr auto; gap: 16px; align-items: center;
+    padding: 14px 18px; background: var(--white); border: 1px solid var(--line); text-decoration: none;
+    transition: .2s;
+  }
+  .file:hover { border-color: var(--obsidian); transform: translateX(3px); }
+  .file .ficon { width: 44px; height: 44px; display: grid; place-items: center; background: var(--cream); font-size: 1.15rem; }
+  .file strong { display: block; font-size: 0.92rem; font-weight: 800; }
+  .file small { display: block; color: var(--slate); font-size: 0.82rem; line-height: 1.4; margin-top: 2px; }
+  .file .go { color: var(--slate); font-size: 0.85rem; }
+  .thumb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 16px; }
+  .thumb { display: block; text-decoration: none; background: var(--white); border: 1px solid var(--line); transition: .2s; }
+  .thumb:hover { border-color: var(--obsidian); transform: translateY(-3px); }
+  .thumb img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
+  .thumb span { display: block; padding: 10px 12px; font-size: 0.78rem; font-weight: 700; line-height: 1.35; }
+  .empty-note { padding: 22px; border: 1px dashed var(--slate); color: var(--slate); font-size: 0.88rem; text-align: center; }
 
   /* =====================================================
      FOOTER
      ===================================================== */
-  footer { margin-top: 90px; background: #fff; border-top: 2px solid var(--obsidian); padding: 60px 5%; text-align: center; }
+  footer { background: var(--white); border-top: 2px solid var(--obsidian); padding: 70px 5%; text-align: center; }
   .footer-logo { font-weight: 900; text-transform: uppercase; font-size: 1.2rem; letter-spacing: -1px; margin-bottom: 8px; }
-  .footer-tagline { font-size: 0.8rem; color: var(--slate); text-transform: uppercase; margin-bottom: 28px; }
+  .footer-tagline { font-size: 0.8rem; color: var(--slate); text-transform: uppercase; margin-bottom: 30px; }
   .footer-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; }
-  .to-top { margin-top: 30px; display: inline-block; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; text-decoration: none; letter-spacing: 1px; }
+  .to-top { margin-top: 34px; display: inline-block; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; text-decoration: none; letter-spacing: 1px; }
   .to-top:hover { color: var(--accent-green); }
 
   /* =====================================================
      RESPONSIVE
      ===================================================== */
-  @media (max-width: 1250px) { .brand { display: none; } }
+  @media (max-width: 1280px) {
+    .tab { font-size: 0.7rem; padding: 12px 8px; letter-spacing: 0.2px; }
+  }
 
-  @media (max-width: 1024px) {
+  /* Tablet + phone: one big "Sections" button that opens a list of ALL tabs */
+  @media (max-width: 1100px) {
+    :root { --nav-h: 58px; }
+    .menu-btn {
+      display: flex; align-items: center; gap: 14px; width: 100%; height: 58px;
+      padding: 0 max(5%, env(safe-area-inset-left)); background: transparent; border: 0; cursor: pointer; color: var(--obsidian); text-align: left;
+    }
+    .menu-btn .bars { width: 38px; height: 38px; display: grid; place-items: center; background: var(--obsidian); color: #fff; font-size: 1.05rem; flex: none; }
+    .menu-btn .label { font-weight: 900; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.6px; flex: none; }
+    .menu-btn .current { margin-left: auto; color: var(--accent-green); font-weight: 800; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.4px; text-align: right; line-height: 1.2; max-width: 48%; }
+
+    .tabs {
+      display: none;
+      position: fixed; left: 0; right: 0; top: var(--nav-h);
+      max-height: calc(100vh - var(--nav-h)); max-height: calc(100dvh - var(--nav-h));
+      overflow-y: auto; -webkit-overflow-scrolling: touch;
+      grid-template-columns: 1fr; max-width: none;
+      background: var(--cream); border-bottom: 2px solid var(--obsidian);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    }
+    .topbar.open .tabs { display: grid; animation: fade .2s ease; }
+    .tab {
+      justify-content: flex-start; text-align: left;
+      padding: 19px 5%; font-size: 0.95rem; letter-spacing: 0.3px;
+      border-left: 5px solid transparent; border-bottom: 1px solid var(--line); margin-bottom: 0;
+    }
+    .tab.active { border-left-color: var(--accent-green); border-bottom-color: var(--line); background: var(--white); }
+
     .hero { flex-direction: column-reverse; min-height: 0; }
     .hero-image { flex: none; height: 52vh; min-height: 300px; background-position: center 25%; }
     .hero-image::after { width: 100%; height: 35%; top: auto; bottom: 0; background: linear-gradient(to top, var(--cream), transparent); }
-    .hero-text { padding: 30px 24px 50px; text-align: center; align-items: center; }
+    .hero-text { padding: 30px 24px 70px; text-align: center; align-items: center; }
     h1 { letter-spacing: -2px; }
-    .button-grid { width: 100%; max-width: 520px; }
-    .block { grid-template-columns: 1fr; gap: 20px; margin-bottom: 50px; }
-    .section { padding: 70px 24px 30px; }
-    .resume { padding: 50px 24px 20px; }
+
+    .resume { padding: 80px 24px 40px; }
     .carousel-label { padding: 0 24px; }
+    .section { padding: 100px 24px; }
+    .section-inner { grid-template-columns: 1fr; gap: 36px; }
+    .section.flip .section-inner .media-frame { order: 0; }
   }
 
   @media (max-width: 600px) {
-    :root { --nav-h: 46px; }
-    .nav-social { display: none; }
-    .topbar { gap: 0; }
-    .tab { padding: 0 9px; font-size: 0.64rem; }
-    .button-grid { grid-template-columns: 1fr; gap: 16px; }
     h1 { font-size: 2.6rem; letter-spacing: -1.5px; }
     .subtitle { font-size: 0.95rem; margin-bottom: 30px; }
-    .slide img { height: 190px; max-width: 300px; }
-    .carousel-track { gap: 16px; animation-duration: 35s; }
-    .window iframe { height: 60vh; min-height: 380px; }
-    .resume .window iframe { height: 70vh; min-height: 440px; }
-    .cert-card { padding: 22px; }
+    .slide img { height: 200px; }
+    .carousel-track { gap: 16px; }
+    .section { padding: 90px 20px; }
+    .resume { padding: 70px 16px 30px; }
+    .overlay { padding: 0; align-items: flex-end; }
+    .sheet { max-height: 94vh; max-height: 94dvh; border-left: 0; border-right: 0; border-bottom: 0; }
+    .sheet-head { padding: 20px 18px 16px; }
+    .sheet-head h3 { font-size: 1.25rem; }
+    .sheet-body { padding: 22px 18px 30px; }
+    .file { grid-template-columns: 40px 1fr; padding: 12px 14px; }
+    .file .go { display: none; }
+    .btn.small { width: 100%; }
   }
 
   @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
-    .carousel { overflow-x: auto; }
-    .carousel-track { animation: none; }
   }
 </style>
 </head>
@@ -288,34 +352,33 @@
   </div>
 </div>
 
-<div id="main-wrapper">
+<!-- ================= TOP BAR (fixed, outside the blurred wrapper) ================= -->
+<header class="topbar" id="topbar">
+  <button class="menu-btn" id="menu-btn" aria-expanded="false" aria-controls="tabs">
+    <span class="bars"><i class="fas fa-bars" id="menu-icon"></i></span>
+    <span class="label">Sections</span>
+    <span class="current" id="menu-current">Tap to jump to a section</span>
+  </button>
+  <nav class="tabs" id="tabs" aria-label="Sections">
+    <a class="tab" href="#uas">Personal UAS Project</a>
+    <a class="tab" href="#aerospace">Aerospace Analysis Reports</a>
+    <a class="tab" href="#mechanics">Mechanics of Materials Laboratory</a>
+    <a class="tab" href="#garney">Garney Internship</a>
+    <a class="tab" href="#rocketry">Swamp Launch Rocketry</a>
+    <a class="tab" href="#certifications">Certifications</a>
+    <a class="tab" href="#windtunnel">Experimental Wind Tunnel Test Engineer</a>
+  </nav>
+</header>
 
-  <!-- ================= TOP BAR ================= -->
-  <header class="topbar">
-    <a class="brand" href="#top">S. Crabbendam</a>
-    <nav class="tabs" aria-label="Sections">
-      <a class="tab" href="#uas">Personal UAS Project</a>
-      <a class="tab" href="#aerospace">Aerospace Analysis Reports</a>
-      <a class="tab" href="#mechanics">Mechanics of Materials Laboratory</a>
-      <a class="tab" href="#garney">Garney Internship</a>
-      <a class="tab" href="#rocketry">Swamp Launch Rocketry</a>
-      <a class="tab" href="#certifications">Certifications</a>
-      <a class="tab" href="#windtunnel">Experimental Wind Tunnel Test Engineer</a>
-    </nav>
-    <div class="nav-social">
-      <a href="https://www.linkedin.com/in/samuel-crabbendam-93ab33349" target="_blank" rel="noopener" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
-      <a href="https://instagram.com/samm_crabb" target="_blank" rel="noopener" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-    </div>
-  </header>
+<div id="main-wrapper">
 
   <!-- ================= HERO ================= -->
   <section class="hero" id="top">
     <div class="hero-text">
       <h1>Samuel <br>Crabbendam</h1>
       <p class="subtitle">Aerospace Engineering Student <br>&amp; Private Pilot</p>
-      <div class="button-grid">
+      <div class="button-stack">
         <a href="#resume" class="btn btn-primary"><i class="fas fa-file-lines"></i><span>View Resume</span></a>
-        <a href="images/Samuel Crabbendam.pdf" download class="btn"><i class="fas fa-file-pdf"></i><span>Download Resume</span></a>
         <a href="https://www.linkedin.com/in/samuel-crabbendam-93ab33349" target="_blank" rel="noopener" class="btn"><i class="fab fa-linkedin"></i><span>LinkedIn</span></a>
         <a href="https://instagram.com/samm_crabb" target="_blank" rel="noopener" class="btn"><i class="fab fa-instagram"></i><span>Instagram</span></a>
       </div>
@@ -323,28 +386,35 @@
     <div class="hero-image" role="img" aria-label="Portrait of Samuel Crabbendam"></div>
   </section>
 
-  <!-- ================= RESUME VIEWER ================= -->
+  <!-- ================= RESUME ================= -->
   <section class="resume" id="resume">
-    <div class="window">
-      <iframe title="Samuel Crabbendam resume" data-src="images/Samuel Crabbendam.pdf#toolbar=0&view=FitH"></iframe>
+    <div class="resume-head">
+      <div>
+        <span class="kicker">Resume</span>
+        <h2 style="margin:0">Samuel Crabbendam</h2>
+      </div>
+      <div class="resume-actions">
+        <a href="images/Samuel Crabbendam.pdf" download class="btn btn-primary small"><i class="fas fa-download"></i><span>Download Resume</span></a>
+        <a href="images/Samuel Crabbendam.pdf" target="_blank" rel="noopener" class="btn small"><i class="fas fa-up-right-from-square"></i><span>Open Full Size</span></a>
+      </div>
     </div>
-    <p class="resume-note">Trouble viewing on your device? <a href="images/Samuel Crabbendam.pdf" target="_blank" rel="noopener">Open the PDF in a new tab</a>.</p>
+    <div class="resume-frame" id="resume-frame" data-pdf="images/Samuel Crabbendam.pdf">
+      <div class="resume-msg">Loading resume&hellip;</div>
+    </div>
   </section>
 
   <!-- ================= CAROUSEL ================= -->
   <section class="carousel-wrap" aria-label="Project image carousel">
-    <div class="carousel-label">
-      <span class="kicker">Project Highlights</span>
-    </div>
+    <div class="carousel-label"><span class="kicker">Project Highlights</span></div>
     <div class="carousel" id="carousel">
       <div class="carousel-track" id="carousel-track">
-        <!-- Add or remove slides freely; the track duplicates itself for the seamless loop. -->
-        <figure class="slide"><img src="images/UAS General Model.png" alt="UAS general model" loading="lazy"><figcaption>Personal UAS Project</figcaption></figure>
-        <figure class="slide"><img src="images/Structural Beam Rebar - good catch.jpeg" alt="Structural beam rebar inspection" loading="lazy"><figcaption>Garney QC Inspection</figcaption></figure>
-        <figure class="slide"><img src="images/Cylinders Test.jpeg" alt="Concrete cylinder testing" loading="lazy"><figcaption>Material Testing</figcaption></figure>
-        <figure class="slide"><img src="images/Valley Curb NW.jpeg" alt="Valley curb installation" loading="lazy"><figcaption>Valley Curb Install</figcaption></figure>
-        <figure class="slide"><img src="images/Crew Oversight.jpeg" alt="Crew oversight" loading="lazy"><figcaption>Crew Oversight</figcaption></figure>
-        <figure class="slide"><img src="images/Stair Nosings Submittal.png" alt="Stair nosings submittal" loading="lazy"><figcaption>Submittal Review</figcaption></figure>
+        <!-- Add or remove slides freely; the loop rebuilds itself. -->
+        <figure class="slide"><img src="images/UAS General Model.png" alt="UAS general model"></figure>
+        <figure class="slide"><img src="images/Structural Beam Rebar - good catch.jpeg" alt="Structural beam rebar inspection"></figure>
+        <figure class="slide"><img src="images/Cylinders Test.jpeg" alt="Concrete cylinder testing"></figure>
+        <figure class="slide"><img src="images/Valley Curb NW.jpeg" alt="Valley curb installation"></figure>
+        <figure class="slide"><img src="images/Crew Oversight.jpeg" alt="Crew oversight"></figure>
+        <figure class="slide"><img src="images/Stair Nosings Submittal.png" alt="Stair nosings submittal"></figure>
       </div>
     </div>
   </section>
@@ -352,238 +422,151 @@
   <main>
 
     <!-- ========== 1. PERSONAL UAS PROJECT ========== -->
-    <section class="section" id="uas">
-      <div class="section-head">
-        <span class="kicker">01 / Independent Project</span>
-        <h2>Personal UAS Project</h2>
-        <p class="section-sub">Fixed wing &middot; 5 ft wingspan &middot; Jul 2026 – Present</p>
-      </div>
-      <div class="block">
-        <div>
-          <h4 style="margin-top:0">Features</h4>
-          <p>GPS-guided autonomous flight, independent camera control via a hemispherical camera gimbal, FPV capability, and a 5 foot wingspan. Constructed from foamboard and PLA.</p>
-          <h4>Current Status</h4>
-          <p>Design phase. Analyzing the aerodynamics of the preliminary model to make adjustments before initial construction. Wing fabrication is in progress, formed as a NACA 2412 airfoil.</p>
-          <div class="actions"><a class="btn small" href="images/UAS General Model.png" target="_blank" rel="noopener">View image</a></div>
+    <section class="section tone" id="uas">
+      <div class="section-inner">
+        <div class="media-frame">
+          <img class="contain" src="images/UAS General Model.png" alt="Personal UAS design model" onerror="this.parentNode.classList.add('missing')">
+          <div class="frame-fallback"><i class="fas fa-image"></i><span>Image coming soon</span></div>
         </div>
-        <div class="window">
-          <img loading="lazy" src="images/UAS General Model.png" alt="Current status of my UAS design">
+        <div class="copy">
+          <span class="kicker">Independent Project &middot; Jul 2026 – Present</span>
+          <h2>Personal UAS Project</h2>
+          <p class="summary">A 5 ft wingspan fixed-wing aircraft built from foamboard and PLA, designed for autonomous GPS-guided flight with an independently controlled camera. Currently in the design phase, analyzing the aerodynamics of the preliminary model before initial construction.</p>
+          <ul class="highlights">
+            <li>GPS-guided autonomous flight and FPV capability</li>
+            <li>Hemispherical camera gimbal with independent control</li>
+            <li>Wing fabrication in progress, formed as a NACA 2412 airfoil</li>
+          </ul>
+          <button class="btn" data-details="uas">View details &amp; files <i class="fas fa-arrow-right"></i></button>
         </div>
       </div>
     </section>
-
-    <hr class="divider">
 
     <!-- ========== 2. AEROSPACE ANALYSIS REPORTS ========== -->
-    <section class="section" id="aerospace">
-      <div class="section-head">
-        <span class="kicker">02 / Coursework</span>
-        <h2>Aerospace Analysis Reports</h2>
-        <p class="section-sub">Technical papers &amp; performance studies</p>
-      </div>
-      <div class="block">
-        <div>
-          <h3>Failure Analysis Paper</h3>
-          <p>A technical investigation into the Apollo 1 cabin fire, examining root causes and safety impact.</p>
-          <div class="actions"><a class="btn small" href="images/SamuelCrabbendam_FailureAnalysisPaper.pdf" target="_blank" rel="noopener">Open full document</a></div>
+    <section class="section flip" id="aerospace">
+      <div class="section-inner">
+        <!-- Image is generated from page 1 of the PDF. Swap for <img> if you prefer a custom picture. -->
+        <div class="media-frame" data-pdf-thumb="images/SamuelCrabbendam_FailureAnalysisPaper.pdf">
+          <canvas></canvas>
+          <div class="frame-fallback"><i class="fas fa-file-pdf"></i><span>Report preview</span></div>
         </div>
-        <div class="window">
-          <iframe title="Failure Analysis Paper" data-src="images/SamuelCrabbendam_FailureAnalysisPaper.pdf#toolbar=0&view=Fit"></iframe>
-        </div>
-      </div>
-      <div class="block">
-        <div>
-          <h3>Aircraft Performance Analysis</h3>
-          <p>Detailed evaluation of aerodynamic efficiency, flight envelopes, and structural data.</p>
-          <div class="actions"><a class="btn small" href="images/EAS2011 Project.pdf" target="_blank" rel="noopener">Open full document</a></div>
-        </div>
-        <div class="window">
-          <iframe title="Aircraft Performance Analysis" data-src="images/EAS2011 Project.pdf#toolbar=0&view=Fit"></iframe>
+        <div class="copy">
+          <span class="kicker">Coursework &middot; University of Florida</span>
+          <h2>Aerospace Analysis Reports</h2>
+          <p class="summary">Technical analysis from aerospace engineering coursework, including a root-cause investigation of the Apollo 1 cabin fire and a performance study of aerodynamic efficiency, flight envelopes, and structural data.</p>
+          <ul class="highlights">
+            <li>Failure Analysis Paper: Apollo 1 cabin fire</li>
+            <li>Aircraft Performance Analysis (EAS 2011)</li>
+          </ul>
+          <button class="btn" data-details="aerospace">View details &amp; files <i class="fas fa-arrow-right"></i></button>
         </div>
       </div>
     </section>
-
-    <hr class="divider">
 
     <!-- ========== 3. MECHANICS OF MATERIALS LABORATORY ========== -->
-    <section class="section" id="mechanics">
-      <div class="section-head">
-        <span class="kicker">03 / Coursework</span>
-        <h2>Mechanics of Materials Laboratory</h2>
-        <p class="section-sub">Lab reports &amp; experimental analysis</p>
-      </div>
-
-      <!-- TEMPLATE: copy this block for each lab report, then set the title, text, and PDF path. -->
-      <div class="block">
-        <div>
-          <h3>Lab 2: Instrumented Cantilever Beam Scale</h3>
-          <p>DRAFT TEXT: Calibrated an instrumented cantilever beam as a scale and compared measurement methods, with Monte Carlo uncertainty analysis on the calibration slope.</p>
-          <div class="actions"><a class="btn small" href="images/Lab2 Report.pdf" target="_blank" rel="noopener">Open full document</a></div>
+    <section class="section tone" id="mechanics">
+      <div class="section-inner">
+        <!-- Update the PDF path to your real lab report; falls back to a neutral placeholder if not found. -->
+        <div class="media-frame" data-pdf-thumb="images/Lab3 Report.pdf">
+          <canvas></canvas>
+          <div class="frame-fallback"><i class="fas fa-file-pdf"></i><span>Report preview</span></div>
         </div>
-        <div class="window">
-          <iframe title="Lab 2 report" data-src="images/Lab2 Report.pdf#toolbar=0&view=Fit"></iframe>
-        </div>
-      </div>
-
-      <div class="block">
-        <div>
-          <h3>Lab 3: Tensile &amp; Compressive Testing</h3>
-          <p>DRAFT TEXT: Displacement-controlled tensile and compressive testing of four specimens, including ultimate tensile strength analysis.</p>
-          <div class="actions"><a class="btn small" href="images/Lab3 Report.pdf" target="_blank" rel="noopener">Open full document</a></div>
-        </div>
-        <div class="window">
-          <iframe title="Lab 3 report" data-src="images/Lab3 Report.pdf#toolbar=0&view=Fit"></iframe>
+        <div class="copy">
+          <span class="kicker">Coursework &middot; University of Florida</span>
+          <h2>Mechanics of Materials Laboratory</h2>
+          <p class="summary">Laboratory reports covering experimental measurement and analysis of material and structural behavior, including instrumented beam calibration with uncertainty analysis and displacement-controlled tensile and compressive testing.</p>
+          <ul class="highlights">
+            <li>Lab 2: Instrumented cantilever beam as a scale, with Monte Carlo uncertainty analysis</li>
+            <li>Lab 3: Tensile and compressive testing of four specimens</li>
+          </ul>
+          <button class="btn" data-details="mechanics">View details &amp; files <i class="fas fa-arrow-right"></i></button>
         </div>
       </div>
     </section>
-
-    <hr class="divider">
 
     <!-- ========== 4. GARNEY INTERNSHIP ========== -->
-    <section class="section" id="garney">
-      <div class="section-head">
-        <span class="kicker">04 / Experience</span>
-        <h2>Garney Internship</h2>
-        <p class="section-sub">Project Engineering Intern &middot; May – Aug 2026</p>
-      </div>
-
-      <div class="block">
-        <div>
-          <h3>Material Install Log</h3>
-          <p>Created a document to manage and update procurement status for tools and materials. This eliminated sitewide production delays across all crews.</p>
-          <div class="actions"><a class="btn small" href="images/Material Install Log.xlsx" target="_blank" rel="noopener">Download spreadsheet</a></div>
+    <section class="section flip" id="garney">
+      <div class="section-inner">
+        <div class="media-frame">
+          <img src="images/Structural Beam Rebar - good catch.jpeg" alt="Structural beam rebar inspection" onerror="this.parentNode.classList.add('missing')">
+          <div class="frame-fallback"><i class="fas fa-image"></i><span>Image coming soon</span></div>
         </div>
-        <div class="window">
-          <iframe title="Material Install Log" data-src="https://view.officeapps.live.com/op/embed.aspx?src=https://crabbendam.net/images/Material%20Install%20Log.xlsx"></iframe>
-        </div>
-      </div>
-
-      <div class="block">
-        <div>
-          <h3>Quality Control Inspections</h3>
-          <p>Conducted field inspections on structural assemblies to ensure strict compliance with engineering drawings and efficiently catch errors prior to installation. The first image shows a rebar rod within 2" of wooden formwork, failing my inspection for concrete placement.</p>
-          <div class="actions">
-            <a class="btn small" href="images/Structural Beam Rebar - good catch.jpeg" target="_blank" rel="noopener">Beam rebar</a>
-            <a class="btn small" href="images/Valley Curb NW.jpeg" target="_blank" rel="noopener">Valley curb</a>
-          </div>
-        </div>
-        <div class="window">
-          <img loading="lazy" src="images/Structural Beam Rebar - good catch.jpeg" alt="Structural beam rebar inspection">
-          <img loading="lazy" src="images/Valley Curb NW.jpeg" alt="Valley curb installation">
-        </div>
-      </div>
-
-      <div class="block">
-        <div>
-          <h3>Material Testing &amp; Installation</h3>
-          <p>Verified material quality through standardized testing, confirming specifications were met prior to installation.</p>
-          <div class="actions">
-            <a class="btn small" href="images/Cylinders Test.jpeg" target="_blank" rel="noopener">Cylinder test</a>
-            <a class="btn small" href="images/Crew Oversight.jpeg" target="_blank" rel="noopener">Crew oversight</a>
-          </div>
-        </div>
-        <div class="window">
-          <img loading="lazy" src="images/Cylinders Test.jpeg" alt="Concrete cylinder testing">
-          <img loading="lazy" src="images/Crew Oversight.jpeg" alt="Crew oversight and installation">
-        </div>
-      </div>
-
-      <div class="block">
-        <div>
-          <h3>Stair Nosings &amp; Rebar Submittals</h3>
-          <p>Reviewed technical submittal data for stair nosing components and cross-referenced design drawings and specifications to verify material is correct and sufficient for installation.</p>
-          <div class="actions">
-            <a class="btn small" href="images/Stair Nosings Submittal.png" target="_blank" rel="noopener">Nosing submittal</a>
-            <a class="btn small" href="images/03200-07E Filter Upper Level Rebar Shop Drawings - Carollo Approval 4.pdf" target="_blank" rel="noopener">Rebar shop docs</a>
-          </div>
-        </div>
-        <div class="window">
-          <img loading="lazy" src="images/Stair Nosings Submittal.png" alt="Stair nosings submittal">
-          <iframe title="Rebar shop drawings" data-src="images/03200-07E Filter Upper Level Rebar Shop Drawings - Carollo Approval 4.pdf#toolbar=0&view=Fit"></iframe>
-        </div>
-      </div>
-
-      <div class="block">
-        <div>
-          <h3>Transformer Takeoff</h3>
-          <p>Calculated detailed takeoffs for transformer pad installation. Accurately estimated material requirements to ensure proper rebar fabrication.</p>
-          <div class="actions"><a class="btn small" href="images/Transformer Takeoff.pdf" target="_blank" rel="noopener">Open full document</a></div>
-        </div>
-        <div class="window">
-          <iframe title="Transformer Takeoff" data-src="images/Transformer Takeoff.pdf#toolbar=0&view=Fit"></iframe>
+        <div class="copy">
+          <span class="kicker">Project Engineering Intern &middot; May – Aug 2026</span>
+          <h2>Garney Internship</h2>
+          <p class="summary">Supported construction of a water-treatment facility by managing procurement tracking, field quality inspections, material testing, and submittal review, keeping work in compliance with engineering drawings and specifications.</p>
+          <ul class="highlights">
+            <li>Built a procurement log that eliminated sitewide production delays across crews</li>
+            <li>Inspected structural assemblies and caught errors before concrete placement</li>
+            <li>Verified material quality through standardized testing and submittal review</li>
+            <li>Produced material takeoffs for transformer pad rebar fabrication</li>
+          </ul>
+          <button class="btn" data-details="garney">View details &amp; files <i class="fas fa-arrow-right"></i></button>
         </div>
       </div>
     </section>
-
-    <hr class="divider">
 
     <!-- ========== 5. SWAMP LAUNCH ROCKETRY ========== -->
-    <section class="section" id="rocketry">
-      <div class="section-head">
-        <span class="kicker">05 / Experience</span>
-        <h2>Swamp Launch Rocketry</h2>
-        <p class="section-sub">Payload Mechanics Responsible Engineer &middot; Aug 2024 – Present</p>
-      </div>
-      <div class="block">
-        <div>
-          <h3>Payload Mechanics</h3>
-          <p>DRAFT TEXT: Leading mechanical design of the team's rocket payload, including material selection and design for manufacturing.</p>
+    <section class="section tone" id="rocketry">
+      <div class="section-inner">
+        <!-- Add a photo: replace the path below (e.g. images/swamp-launch.jpg). -->
+        <div class="media-frame">
+          <img src="images/swamp-launch.jpg" alt="Swamp Launch Rocketry payload" onerror="this.parentNode.classList.add('missing')">
+          <div class="frame-fallback"><i class="fas fa-image"></i><span>Image coming soon</span></div>
         </div>
-        <div class="placeholder">Images / documents coming soon</div>
-        <!-- To add content, replace the placeholder with:
-             <div class="window"><img loading="lazy" src="images/YOUR_IMAGE.jpg" alt="..."></div>  or an <iframe data-src="images/YOUR_FILE.pdf">  -->
+        <div class="copy">
+          <span class="kicker">Payload Mechanics Responsible Engineer &middot; Aug 2024 – Present</span>
+          <h2>Swamp Launch Rocketry</h2>
+          <p class="summary">Responsible engineer for payload mechanics on the University of Florida's collegiate rocketry team, leading the mechanical design of the 2027 IREC sensor payload from material selection through design for manufacturing.</p>
+          <ul class="highlights">
+            <li>Mechanical design and integration of the sensor payload</li>
+            <li>Material selection (PA6-CF) and design for manufacturing</li>
+          </ul>
+          <button class="btn" data-details="rocketry">View details &amp; files <i class="fas fa-arrow-right"></i></button>
+        </div>
       </div>
     </section>
-
-    <hr class="divider">
 
     <!-- ========== 6. CERTIFICATIONS ========== -->
-    <section class="section" id="certifications">
-      <div class="section-head">
-        <span class="kicker">06 / Credentials</span>
-        <h2>Certifications</h2>
-        <p class="section-sub">Licenses &amp; professional credentials</p>
-      </div>
-      <div class="cert-grid">
-        <div class="cert-card">
-          <i class="fas fa-cube"></i>
-          <h4>CSWA SolidWorks</h4>
-          <p>Certified SolidWorks Associate in Mechanical Design. Expert in complex part modeling and assembly analysis.</p>
-          <a href="images/SolidWorks Certification.pdf" target="_blank" rel="noopener">View certificate <i class="fas fa-external-link-alt" style="font-size:.7rem;margin:0"></i></a>
+    <section class="section flip" id="certifications">
+      <div class="section-inner">
+        <div class="media-frame" data-pdf-thumb="images/SolidWorks Certification.pdf">
+          <canvas></canvas>
+          <div class="frame-fallback"><i class="fas fa-file-pdf"></i><span>Certificate preview</span></div>
         </div>
-        <div class="cert-card">
-          <i class="fas fa-id-card"></i>
-          <h4>Private Pilot</h4>
-          <p>Licensed Private Pilot (PPL). Proficient in VFR navigation, cross-country planning, and cockpit resource management.</p>
-        </div>
-        <div class="cert-card">
-          <i class="fas fa-id-badge"></i>
-          <h4>Commercial Drone Pilot</h4>
-          <p>FAA Part 107 certified remote pilot for commercial small Unmanned Aircraft Systems (sUAS) operations.</p>
-        </div>
-        <div class="cert-card">
-          <i class="fas fa-first-aid"></i>
-          <h4>First Aid / AED / CPR</h4>
-          <p>Certified in emergency medical response and life-saving AED/CPR procedures.</p>
+        <div class="copy">
+          <span class="kicker">Licenses &amp; Credentials</span>
+          <h2>Certifications</h2>
+          <p class="summary">Professional certifications spanning mechanical design, manned and unmanned aviation, and emergency response.</p>
+          <ul class="highlights">
+            <li>Certified SolidWorks Associate (CSWA), Mechanical Design</li>
+            <li>FAA Private Pilot License, Part 61</li>
+            <li>FAA Remote Pilot Certificate, Part 107 (commercial sUAS)</li>
+            <li>First Aid / AED / CPR</li>
+          </ul>
+          <button class="btn" data-details="certifications">View details &amp; files <i class="fas fa-arrow-right"></i></button>
         </div>
       </div>
     </section>
 
-    <hr class="divider">
-
     <!-- ========== 7. EXPERIMENTAL WIND TUNNEL TEST ENGINEER ========== -->
-    <section class="section" id="windtunnel">
-      <div class="section-head">
-        <span class="kicker">07 / Research</span>
-        <h2>Experimental Wind Tunnel Test Engineer</h2>
-        <p class="section-sub">UF Graduate Research Group &middot; Aug 2026 – Present</p>
-      </div>
-      <div class="block">
-        <div>
-          <h3>Experimental Aerodynamics</h3>
-          <p>DRAFT TEXT: Supporting wind tunnel experiments and test hardware for a graduate aerodynamics research group.</p>
+    <section class="section tone" id="windtunnel">
+      <div class="section-inner">
+        <!-- Add a photo: replace the path below (e.g. images/wind-tunnel.jpg). -->
+        <div class="media-frame">
+          <img src="images/wind-tunnel.jpg" alt="Wind tunnel test setup" onerror="this.parentNode.classList.add('missing')">
+          <div class="frame-fallback"><i class="fas fa-image"></i><span>Image coming soon</span></div>
         </div>
-        <div class="placeholder">Images / documents coming soon</div>
+        <div class="copy">
+          <span class="kicker">UF Graduate Research Group &middot; Aug 2026 – Present</span>
+          <h2>Experimental Wind Tunnel Test Engineer</h2>
+          <p class="summary">Supporting experimental aerodynamics research in a University of Florida graduate group, helping build and install the hardware used to position models and conduct wind tunnel tests.</p>
+          <ul class="highlights">
+            <li>Installation of a 4-axis model positioner (DYNAMO)</li>
+            <li>Fabrication of Unistrut support structures</li>
+          </ul>
+          <button class="btn" data-details="windtunnel">View details &amp; files <i class="fas fa-arrow-right"></i></button>
+        </div>
       </div>
     </section>
 
@@ -594,23 +577,162 @@
     <div class="footer-logo">Samuel Crabbendam</div>
     <div class="footer-tagline">Aerospace Engineering &amp; Pilot</div>
     <div class="footer-actions">
-      <a href="images/Samuel Crabbendam.pdf" download class="btn"><i class="fas fa-file-pdf"></i><span>Download Resume</span></a>
+      <a href="images/Samuel Crabbendam.pdf" download class="btn"><i class="fas fa-download"></i><span>Download Resume</span></a>
       <a href="https://www.linkedin.com/in/samuel-crabbendam-93ab33349" target="_blank" rel="noopener" class="btn"><i class="fab fa-linkedin"></i><span>LinkedIn</span></a>
     </div>
     <a href="#top" class="to-top"><i class="fas fa-arrow-up"></i> Back to top</a>
   </footer>
 </div>
 
+<!-- ================= DETAILS OVERLAY ================= -->
+<div class="overlay" id="overlay" aria-hidden="true">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+    <div class="sheet-head">
+      <div>
+        <span class="kicker" id="sheet-kicker"></span>
+        <h3 id="sheet-title"></h3>
+      </div>
+      <button class="close-btn" id="close-btn" aria-label="Close details"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="sheet-body" id="sheet-body"></div>
+  </div>
+</div>
+
+<!-- =====================================================================
+     DETAILS CONTENT (one <template> per section; opened by the "View details & files" buttons)
+     To add a file:   copy a <a class="file"> row.   To add a photo: copy an <a class="thumb"> tile.
+     ===================================================================== -->
+
+<template id="details-uas" data-kicker="Independent Project" data-title="Personal UAS Project">
+  <p>A 5 ft wingspan fixed-wing UAS built from foamboard and PLA. Features include GPS-guided autonomous flight, FPV capability, and a hemispherical camera gimbal for independent camera control. The project is in the design phase: the preliminary model is being analyzed aerodynamically so adjustments can be made before initial construction, and wing fabrication is underway with a NACA 2412 airfoil.</p>
+  <h4>Images</h4>
+  <div class="thumb-grid">
+    <a class="thumb" href="images/UAS General Model.png" target="_blank" rel="noopener"><img loading="lazy" src="images/UAS General Model.png" alt=""><span>Current design model</span></a>
+  </div>
+</template>
+
+<template id="details-aerospace" data-kicker="Coursework" data-title="Aerospace Analysis Reports">
+  <p>Selected technical reports from aerospace engineering coursework.</p>
+  <h4>Documents</h4>
+  <div class="file-list">
+    <a class="file" href="images/SamuelCrabbendam_FailureAnalysisPaper.pdf" target="_blank" rel="noopener">
+      <span class="ficon"><i class="fas fa-file-pdf"></i></span>
+      <span><strong>Failure Analysis Paper</strong><small>A technical investigation into the Apollo 1 cabin fire, examining root causes and safety impact.</small></span>
+      <span class="go"><i class="fas fa-up-right-from-square"></i></span>
+    </a>
+    <a class="file" href="images/EAS2011 Project.pdf" target="_blank" rel="noopener">
+      <span class="ficon"><i class="fas fa-file-pdf"></i></span>
+      <span><strong>Aircraft Performance Analysis</strong><small>Detailed evaluation of aerodynamic efficiency, flight envelopes, and structural data.</small></span>
+      <span class="go"><i class="fas fa-up-right-from-square"></i></span>
+    </a>
+  </div>
+</template>
+
+<template id="details-mechanics" data-kicker="Coursework" data-title="Mechanics of Materials Laboratory">
+  <p>Laboratory reports documenting experimental procedure, data analysis, and uncertainty quantification.</p>
+  <h4>Documents</h4>
+  <div class="file-list">
+    <!-- Update these file paths to match your uploaded reports. -->
+    <a class="file" href="images/Lab2 Report.pdf" target="_blank" rel="noopener">
+      <span class="ficon"><i class="fas fa-file-pdf"></i></span>
+      <span><strong>Lab 2: Instrumented Cantilever Beam Scale</strong><small>Calibrated an instrumented beam as a scale and compared measurement methods, with Monte Carlo uncertainty analysis on the calibration slope.</small></span>
+      <span class="go"><i class="fas fa-up-right-from-square"></i></span>
+    </a>
+    <a class="file" href="images/Lab3 Report.pdf" target="_blank" rel="noopener">
+      <span class="ficon"><i class="fas fa-file-pdf"></i></span>
+      <span><strong>Lab 3: Tensile &amp; Compressive Testing</strong><small>Displacement-controlled tensile and compressive testing of four specimens, including ultimate tensile strength analysis.</small></span>
+      <span class="go"><i class="fas fa-up-right-from-square"></i></span>
+    </a>
+  </div>
+</template>
+
+<template id="details-garney" data-kicker="Project Engineering Intern &middot; May – Aug 2026" data-title="Garney Internship">
+  <p>As a Project Engineering Intern I supported field operations and project controls: tracking procurement, inspecting work in place, verifying materials, and reviewing submittals against the design documents.</p>
+  <h4>Documents</h4>
+  <div class="file-list">
+    <a class="file" href="images/Material Install Log.xlsx" target="_blank" rel="noopener">
+      <span class="ficon"><i class="fas fa-file-excel"></i></span>
+      <span><strong>Material Install Log</strong><small>Document to manage and update procurement status for tools and materials, eliminating sitewide production delays across all crews.</small></span>
+      <span class="go"><i class="fas fa-download"></i></span>
+    </a>
+    <a class="file" href="images/Transformer Takeoff.pdf" target="_blank" rel="noopener">
+      <span class="ficon"><i class="fas fa-file-pdf"></i></span>
+      <span><strong>Transformer Takeoff</strong><small>Detailed takeoffs for transformer pad installation, accurately estimating material requirements for proper rebar fabrication.</small></span>
+      <span class="go"><i class="fas fa-up-right-from-square"></i></span>
+    </a>
+    <a class="file" href="images/03200-07E Filter Upper Level Rebar Shop Drawings - Carollo Approval 4.pdf" target="_blank" rel="noopener">
+      <span class="ficon"><i class="fas fa-file-pdf"></i></span>
+      <span><strong>Rebar Shop Drawings Submittal</strong><small>Reviewed rebar shop drawings and cross-referenced design drawings and specifications to verify material was correct and sufficient.</small></span>
+      <span class="go"><i class="fas fa-up-right-from-square"></i></span>
+    </a>
+  </div>
+  <h4>Field Photos &amp; Submittals</h4>
+  <div class="thumb-grid">
+    <a class="thumb" href="images/Structural Beam Rebar - good catch.jpeg" target="_blank" rel="noopener"><img loading="lazy" src="images/Structural Beam Rebar - good catch.jpeg" alt=""><span>Rebar within 2" of formwork: failed inspection before concrete placement</span></a>
+    <a class="thumb" href="images/Valley Curb NW.jpeg" target="_blank" rel="noopener"><img loading="lazy" src="images/Valley Curb NW.jpeg" alt=""><span>Valley curb installation</span></a>
+    <a class="thumb" href="images/Cylinders Test.jpeg" target="_blank" rel="noopener"><img loading="lazy" src="images/Cylinders Test.jpeg" alt=""><span>Concrete cylinder testing</span></a>
+    <a class="thumb" href="images/Crew Oversight.jpeg" target="_blank" rel="noopener"><img loading="lazy" src="images/Crew Oversight.jpeg" alt=""><span>Crew oversight during installation</span></a>
+    <a class="thumb" href="images/Stair Nosings Submittal.png" target="_blank" rel="noopener"><img loading="lazy" src="images/Stair Nosings Submittal.png" alt=""><span>Stair nosings submittal review</span></a>
+  </div>
+</template>
+
+<template id="details-rocketry" data-kicker="Payload Mechanics Responsible Engineer &middot; Aug 2024 – Present" data-title="Swamp Launch Rocketry">
+  <p>Responsible engineer for payload mechanics on the 2027 IREC sensor payload, covering mechanical design, material selection (PA6-CF), and design for manufacturing.</p>
+  <h4>Documents &amp; Images</h4>
+  <div class="empty-note">Files will be added here.</div>
+  <!-- Example: <div class="file-list"> ...copy an <a class="file"> row from another template... </div> -->
+</template>
+
+<template id="details-certifications" data-kicker="Licenses &amp; Credentials" data-title="Certifications">
+  <p>Credentials in mechanical design, aviation, and emergency response.</p>
+  <h4>Credentials</h4>
+  <div class="file-list">
+    <a class="file" href="images/SolidWorks Certification.pdf" target="_blank" rel="noopener">
+      <span class="ficon"><i class="fas fa-cube"></i></span>
+      <span><strong>CSWA: SolidWorks</strong><small>Certified SolidWorks Associate in Mechanical Design. Part modeling and assembly analysis. Tap to view the certificate.</small></span>
+      <span class="go"><i class="fas fa-up-right-from-square"></i></span>
+    </a>
+    <div class="file" style="cursor:default">
+      <span class="ficon"><i class="fas fa-id-card"></i></span>
+      <span><strong>FAA Private Pilot License (Part 61)</strong><small>VFR navigation, cross-country planning, and cockpit resource management.</small></span>
+      <span class="go"></span>
+    </div>
+    <div class="file" style="cursor:default">
+      <span class="ficon"><i class="fas fa-id-badge"></i></span>
+      <span><strong>FAA Remote Pilot Certificate (Part 107)</strong><small>Certified for commercial small Unmanned Aircraft Systems (sUAS) operations.</small></span>
+      <span class="go"></span>
+    </div>
+    <div class="file" style="cursor:default">
+      <span class="ficon"><i class="fas fa-first-aid"></i></span>
+      <span><strong>First Aid / AED / CPR</strong><small>Emergency medical response and life-saving AED/CPR procedures.</small></span>
+      <span class="go"></span>
+    </div>
+  </div>
+</template>
+
+<template id="details-windtunnel" data-kicker="UF Graduate Research Group &middot; Aug 2026 – Present" data-title="Experimental Wind Tunnel Test Engineer">
+  <p>Supporting experimental aerodynamics research, including the installation of a 4-axis model positioner (DYNAMO) and fabrication of Unistrut support structures for the wind tunnel.</p>
+  <h4>Documents &amp; Images</h4>
+  <div class="empty-note">Files will be added here.</div>
+</template>
+
 <script>
 (function () {
   var root = document.documentElement;
+  var body = document.body;
+  var topbar = document.getElementById('topbar');
   root.classList.add('preloading');
 
-  /* ---------- PRELOADER SEQUENCE (same timing as the title card) ---------- */
-  var body = document.body;
+  /* ---------- keep --nav-h equal to the real bar height ---------- */
+  function setNavH() { root.style.setProperty('--nav-h', topbar.offsetHeight + 'px'); }
+  setNavH();
+  window.addEventListener('resize', setNavH);
+  if (window.ResizeObserver) new ResizeObserver(setNavH).observe(topbar);
+  function navH() { return topbar.offsetHeight; }
+
+  /* ---------- PRELOADER SEQUENCE ---------- */
   var circle = document.getElementById('progress-circle');
   var started = false;
-
   function runPreloader() {
     if (started) return;
     started = true;
@@ -625,79 +747,258 @@
           setTimeout(function () {
             document.getElementById('preloader').style.display = 'none';
             root.classList.remove('preloading');
-            handleInitialHash();
+            setNavH();
+            if (location.hash && document.getElementById(location.hash.slice(1))) goTo(location.hash.slice(1), true);
           }, 2500);
         }, 500);
       }, 900);
     }, 1300);
   }
   window.addEventListener('load', runPreloader);
-  setTimeout(runPreloader, 4000); /* safety net if a slow asset delays "load" */
+  setTimeout(runPreloader, 4000);
 
-  function handleInitialHash() {
-    if (!location.hash) return;
-    var t = document.querySelector(location.hash);
-    if (t) t.scrollIntoView();
-  }
-
-  /* ---------- LAZY-LOAD IFRAMES (PDFs, spreadsheet viewer) ---------- */
-  var frames = document.querySelectorAll('iframe[data-src]');
-  function loadFrame(f) { if (f.dataset.src) { f.src = f.dataset.src; f.removeAttribute('data-src'); } }
-  if ('IntersectionObserver' in window) {
-    var fio = new IntersectionObserver(function (entries) {
-      entries.forEach(function (e) {
-        if (e.isIntersecting) { loadFrame(e.target); fio.unobserve(e.target); }
-      });
-    }, { rootMargin: '600px 0px' });
-    frames.forEach(function (f) { fio.observe(f); });
-  } else {
-    frames.forEach(loadFrame);
-  }
-
-  /* ---------- CAROUSEL (duplicate slides for a seamless loop) ---------- */
-  var track = document.getElementById('carousel-track');
-  Array.prototype.slice.call(track.children).forEach(function (n) {
-    var c = n.cloneNode(true);
-    c.setAttribute('aria-hidden', 'true');
-    track.appendChild(c);
-  });
-  var carousel = document.getElementById('carousel');
-  carousel.addEventListener('touchstart', function () { carousel.classList.add('paused'); }, { passive: true });
-  carousel.addEventListener('touchend', function () {
-    setTimeout(function () { carousel.classList.remove('paused'); }, 1500);
-  }, { passive: true });
-
-  /* ---------- TAB BAR: scroll-spy highlight ---------- */
+  /* ---------- NAVIGATION: scroll to sections ---------- */
   var tabs = Array.prototype.slice.call(document.querySelectorAll('.tab'));
-  var tabBar = document.querySelector('.tabs');
-  var byId = {};
-  tabs.forEach(function (t) { byId[t.getAttribute('href').slice(1)] = t; });
+  var menuBtn = document.getElementById('menu-btn');
+  var menuIcon = document.getElementById('menu-icon');
+  var menuCurrent = document.getElementById('menu-current');
+  var spyLock = false, spyTimer;
 
+  function setMenu(open) {
+    topbar.classList.toggle('open', open);
+    menuBtn.setAttribute('aria-expanded', open);
+    menuIcon.className = open ? 'fas fa-xmark' : 'fas fa-bars';
+  }
+  menuBtn.addEventListener('click', function () { setMenu(!topbar.classList.contains('open')); });
+
+  function goTo(id, instant) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    setMenu(false);
+    var y = el.getBoundingClientRect().top + window.pageYOffset - navH() + 1;
+    spyLock = true; clearTimeout(spyTimer);
+    spyTimer = setTimeout(function () { spyLock = false; updateSpy(); }, 1100);
+    if (id !== 'top') setActive(id);
+    try { window.scrollTo({ top: Math.max(0, y), behavior: instant ? 'auto' : 'smooth' }); }
+    catch (e) { window.scrollTo(0, Math.max(0, y)); }
+    if (history.replaceState) history.replaceState(null, '', '#' + id);
+  }
+
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a[href^="#"]');
+    if (a) {
+      var id = a.getAttribute('href').slice(1);
+      if (id && document.getElementById(id)) { e.preventDefault(); goTo(id); }
+      return;
+    }
+    if (topbar.classList.contains('open') && !topbar.contains(e.target)) setMenu(false);
+  });
+
+  /* ---------- SCROLL-SPY (highlights the current tab) ---------- */
+  var sections = tabs.map(function (t) { return document.getElementById(t.getAttribute('href').slice(1)); });
   function setActive(id) {
-    tabs.forEach(function (t) { t.classList.remove('active'); t.removeAttribute('aria-current'); });
-    var t = byId[id];
-    if (!t) return;
-    t.classList.add('active');
-    t.setAttribute('aria-current', 'true');
-    /* keep the active tab visible in the scrollable bar (mobile) */
-    var left = t.offsetLeft - (tabBar.clientWidth - t.offsetWidth) / 2;
-    tabBar.scrollTo({ left: left, behavior: 'smooth' });
+    var label = '';
+    tabs.forEach(function (t) {
+      var on = t.getAttribute('href') === '#' + id;
+      t.classList.toggle('active', on);
+      if (on) { t.setAttribute('aria-current', 'true'); label = t.textContent; } else t.removeAttribute('aria-current');
+    });
+    menuCurrent.textContent = label || 'Tap to jump to a section';
+  }
+  function updateSpy() {
+    if (spyLock) return;
+    var probe = navH() + window.innerHeight * 0.25;
+    var current = null;
+    sections.forEach(function (s) { if (s && s.getBoundingClientRect().top <= probe) current = s.id; });
+    if (window.innerHeight + window.pageYOffset >= document.documentElement.scrollHeight - 4) current = sections[sections.length - 1].id;
+    setActive(current);
+  }
+  var ticking = false;
+  window.addEventListener('scroll', function () {
+    if (ticking) return; ticking = true;
+    requestAnimationFrame(function () { updateSpy(); ticking = false; });
+  }, { passive: true });
+  updateSpy();
+
+  /* ---------- PDF.JS (resume viewer + PDF thumbnails) ---------- */
+  var pdfPromise = null;
+  function loadPdfJs() {
+    if (pdfPromise) return pdfPromise;
+    pdfPromise = new Promise(function (resolve, reject) {
+      var s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+      s.onload = function () {
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        resolve(window.pdfjsLib);
+      };
+      s.onerror = reject;
+      document.head.appendChild(s);
+    });
+    return pdfPromise;
+  }
+  function openPdf(url) { return loadPdfJs().then(function (lib) { return lib.getDocument(encodeURI(url)).promise; }); }
+
+  /* Resume: render every page as a canvas that fits the window (never cropped, never oversized) */
+  var frame = document.getElementById('resume-frame');
+  var resumeDoc = null, resumeW = 0, resumeBusy = false;
+  function resumeTargetW(pageW, pageH) {
+    var avail = frame.parentNode.clientWidth;
+    var byHeight = (window.innerHeight - navH() - 90) * (pageW / pageH);   /* whole page fits one screen on desktop */
+    return Math.floor(Math.max(260, Math.min(avail, 900, byHeight)));
+  }
+  function renderResume() {
+    if (!resumeDoc || resumeBusy) return;
+    resumeBusy = true;
+    resumeDoc.getPage(1).then(function (p1) {
+      var v1 = p1.getViewport({ scale: 1 });
+      var w = resumeTargetW(v1.width, v1.height);
+      if (w === resumeW) { resumeBusy = false; return; }
+      resumeW = w;
+      var dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+      var jobs = [];
+      for (var n = 1; n <= resumeDoc.numPages; n++) jobs.push(renderPage(resumeDoc, n, w, dpr));
+      return Promise.all(jobs).then(function (canvases) {
+        frame.innerHTML = '';
+        frame.style.width = w + 'px';
+        canvases.forEach(function (c) { frame.appendChild(c); });
+        resumeBusy = false;
+      });
+    }).catch(function () { resumeBusy = false; });
+  }
+  function renderPage(doc, n, cssW, dpr) {
+    return doc.getPage(n).then(function (page) {
+      var v1 = page.getViewport({ scale: 1 });
+      var v = page.getViewport({ scale: (cssW / v1.width) * dpr });
+      var c = document.createElement('canvas');
+      c.width = v.width; c.height = v.height;
+      c.style.width = cssW + 'px';
+      return page.render({ canvasContext: c.getContext('2d'), viewport: v }).promise.then(function () { return c; });
+    });
+  }
+  function initResume() {
+    openPdf(frame.dataset.pdf).then(function (doc) { resumeDoc = doc; renderResume(); })
+      .catch(function () {
+        frame.innerHTML = '<div class="resume-msg">The resume preview could not be loaded. <a href="' + frame.dataset.pdf + '" target="_blank" rel="noopener">Open the PDF</a>.</div>';
+      });
+  }
+  var rt;
+  window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(renderResume, 200); });
+
+  /* Thumbnails: first page of a PDF drawn into the section image frame */
+  function initThumb(box) {
+    var canvas = box.querySelector('canvas');
+    openPdf(box.dataset.pdfThumb).then(function (doc) {
+      return doc.getPage(1).then(function (page) {
+        var cssW = Math.max(box.clientWidth, 400);
+        var dpr = Math.min(window.devicePixelRatio || 1, 2);
+        var v1 = page.getViewport({ scale: 1 });
+        var v = page.getViewport({ scale: (cssW / v1.width) * dpr });
+        canvas.width = v.width; canvas.height = v.height;
+        return page.render({ canvasContext: canvas.getContext('2d'), viewport: v }).promise;
+      });
+    }).catch(function () { box.classList.add('missing'); });
   }
 
+  /* start PDF work only when near the viewport */
+  var lazyTargets = [frame].concat(Array.prototype.slice.call(document.querySelectorAll('[data-pdf-thumb]')));
+  function startLazy(el) { if (el === frame) initResume(); else initThumb(el); }
   if ('IntersectionObserver' in window) {
-    var sio = new IntersectionObserver(function (entries) {
-      entries.forEach(function (e) { if (e.isIntersecting) setActive(e.target.id); });
-    }, { rootMargin: '-35% 0px -60% 0px' });
-    Object.keys(byId).forEach(function (id) { var s = document.getElementById(id); if (s) sio.observe(s); });
-  }
+    var lio = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) { if (e.isIntersecting) { lio.unobserve(e.target); startLazy(e.target); } });
+    }, { rootMargin: '900px 0px' });
+    lazyTargets.forEach(function (t) { lio.observe(t); });
+  } else { lazyTargets.forEach(startLazy); }
 
-  /* clear highlight when back in the hero / resume / carousel area */
-  var heroEnd = document.querySelector('.carousel-wrap');
-  if ('IntersectionObserver' in window && heroEnd) {
-    new IntersectionObserver(function (entries) {
-      entries.forEach(function (e) { if (e.isIntersecting) setActive(null); });
-    }, { rootMargin: '-35% 0px -60% 0px' }).observe(heroEnd);
+  /* ---------- CAROUSEL: seamless infinite loop ---------- */
+  (function () {
+    var carousel = document.getElementById('carousel');
+    var track = document.getElementById('carousel-track');
+    var originals = Array.prototype.slice.call(track.children);
+    var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var setW = 0, offset = 0, paused = false, last = 0, SPEED = 45; /* px per second */
+
+    function build() {
+      Array.prototype.slice.call(track.querySelectorAll('.clone')).forEach(function (n) { n.remove(); });
+      function addSet() {
+        originals.forEach(function (s) {
+          var c = s.cloneNode(true); c.classList.add('clone'); c.setAttribute('aria-hidden', 'true');
+          track.appendChild(c);
+        });
+      }
+      addSet();
+      var firstClone = track.querySelector('.clone');
+      setW = firstClone.offsetLeft - originals[0].offsetLeft;
+      if (setW <= 0) return;
+      var sets = Math.ceil(carousel.clientWidth / setW) + 1;
+      for (var i = 1; i < sets; i++) addSet();
+      offset = offset % setW;
+    }
+    function tick(t) {
+      if (!last) last = t;
+      var dt = Math.min(t - last, 100); last = t;
+      if (!paused && setW > 0) {
+        offset += SPEED * dt / 1000;
+        if (offset >= setW) offset -= setW;
+        track.style.transform = 'translate3d(' + (-offset) + 'px,0,0)';
+      }
+      requestAnimationFrame(tick);
+    }
+    function whenLoaded(cb) {
+      var imgs = Array.prototype.slice.call(track.querySelectorAll('img'));
+      var pending = imgs.filter(function (i) { return !i.complete; }).length;
+      if (!pending) return cb();
+      var done = false;
+      function one() { if (--pending <= 0 && !done) { done = true; cb(); } }
+      imgs.forEach(function (i) { if (!i.complete) { i.addEventListener('load', one); i.addEventListener('error', one); } });
+      setTimeout(function () { if (!done) { done = true; cb(); } }, 5000);
+    }
+    if (reduce) { carousel.classList.add('static'); return; }
+    whenLoaded(function () { build(); requestAnimationFrame(tick); });
+    var rb; window.addEventListener('resize', function () { clearTimeout(rb); rb = setTimeout(build, 250); });
+    carousel.addEventListener('mouseenter', function () { paused = true; });
+    carousel.addEventListener('mouseleave', function () { paused = false; });
+    var tt;
+    carousel.addEventListener('touchstart', function () { paused = true; clearTimeout(tt); }, { passive: true });
+    carousel.addEventListener('touchend', function () { tt = setTimeout(function () { paused = false; }, 1200); }, { passive: true });
+  })();
+
+  /* ---------- DETAILS OVERLAY ---------- */
+  var overlay = document.getElementById('overlay');
+  var sheetBody = document.getElementById('sheet-body');
+  var sheetTitle = document.getElementById('sheet-title');
+  var sheetKicker = document.getElementById('sheet-kicker');
+  var lastFocus = null;
+
+  function openDetails(id, trigger) {
+    var tpl = document.getElementById('details-' + id);
+    if (!tpl) return;
+    lastFocus = trigger || document.activeElement;
+    sheetTitle.textContent = tpl.dataset.title || '';
+    sheetKicker.innerHTML = tpl.dataset.kicker || '';
+    sheetBody.innerHTML = '';
+    sheetBody.appendChild(tpl.content.cloneNode(true));
+    sheetBody.scrollTop = 0;
+    overlay.classList.add('open');
+    overlay.setAttribute('aria-hidden', 'false');
+    root.classList.add('modal-open');
+    document.getElementById('close-btn').focus();
   }
+  function closeDetails() {
+    overlay.classList.remove('open');
+    overlay.setAttribute('aria-hidden', 'true');
+    root.classList.remove('modal-open');
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+  document.querySelectorAll('[data-details]').forEach(function (b) {
+    b.addEventListener('click', function () { openDetails(b.dataset.details, b); });
+  });
+  document.getElementById('close-btn').addEventListener('click', closeDetails);
+  overlay.addEventListener('click', function (e) { if (e.target === overlay) closeDetails(); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') return;
+    if (overlay.classList.contains('open')) closeDetails();
+    else if (topbar.classList.contains('open')) setMenu(false);
+  });
 })();
 </script>
 </body>
