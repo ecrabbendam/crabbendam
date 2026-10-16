@@ -89,9 +89,10 @@
 
   .tabs {
     display: grid;
-    grid-template-columns: repeat(7, 1fr);
+    grid-template-columns: minmax(0, 0.62fr) repeat(7, minmax(0, 1fr));
     max-width: 1500px; margin: 0 auto;
   }
+  .tab-home i { margin-right: 7px; font-size: 0.85em; }
   .tab {
     display: flex; align-items: center; justify-content: center; text-align: center;
     padding: 14px 10px;
@@ -107,7 +108,7 @@
   .tab.active { color: var(--obsidian); border-bottom-color: var(--accent-green); }
   .tab:focus-visible { outline: 2px solid var(--obsidian); outline-offset: -3px; }
 
-  .menu-btn { display: none; }
+  .mobile-bar { display: none; }
 
   /* =====================================================
      HERO
@@ -176,7 +177,10 @@
   .carousel-track { display: flex; gap: 24px; width: max-content; padding: 6px 12px 14px; will-change: transform; }
   .slide { flex: none; margin: 0; background: var(--white); border: 2px solid var(--obsidian); box-shadow: 4px 4px 0 var(--obsidian); }
   .slide img { height: 270px; width: auto; max-width: none; object-fit: cover; }
-  .carousel.static { overflow-x: auto; }
+  .carousel { touch-action: pan-y; cursor: grab; -webkit-user-select: none; user-select: none; }
+  .carousel.dragging { cursor: grabbing; }
+  .slide img { pointer-events: none; -webkit-user-drag: none; }
+  .carousel.static { overflow-x: auto; touch-action: auto; }
 
   /* =====================================================
      SECTIONS
@@ -237,8 +241,14 @@
   .sheet-head .kicker { margin-bottom: 8px; }
   .close-btn { flex: none; width: 44px; height: 44px; border: 2px solid var(--obsidian); background: var(--white); cursor: pointer; font-size: 1.1rem; box-shadow: 3px 3px 0 var(--obsidian); }
   .close-btn:hover { background: var(--obsidian); color: #fff; }
-  .sheet-body { padding: 30px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-  .sheet-body p { color: var(--slate); margin: 0 0 24px; font-size: 0.98rem; }
+  .sheet { overflow: hidden; }
+  .sheet-body { flex: 1 1 auto; min-height: 0; padding: 30px; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y; }
+  .sheet-body p { color: var(--slate); margin: 0 0 18px; font-size: 0.98rem; line-height: 1.65; }
+  /* long-form write-ups: use <h5> subheadings, <p> paragraphs and <ul class="detail-list"> inside a details template */
+  .sheet-body h5 { margin: 30px 0 10px; font-size: 1.05rem; font-weight: 800; letter-spacing: -0.2px; }
+  .sheet-body ul.detail-list { margin: 0 0 22px; padding-left: 20px; color: var(--slate); font-size: 0.96rem; line-height: 1.6; }
+  .sheet-body ul.detail-list li { margin-bottom: 8px; }
+  .sheet-body ul.detail-list li::marker { color: var(--accent-green); }
   .sheet-body h4 { margin: 28px 0 14px; font-size: 0.72rem; font-weight: 800; letter-spacing: 1.6px; text-transform: uppercase; }
   .file-list { display: grid; gap: 12px; }
   .file {
@@ -278,13 +288,13 @@
   /* Tablet + phone: one big "Sections" button that opens a list of ALL tabs */
   @media (max-width: 1100px) {
     :root { --nav-h: 58px; }
-    .menu-btn {
-      display: flex; align-items: center; gap: 14px; width: 100%; height: 58px;
-      padding: 0 max(5%, env(safe-area-inset-left)); background: transparent; border: 0; cursor: pointer; color: var(--obsidian); text-align: left;
+    .mobile-bar {
+      display: flex; align-items: center; gap: 12px; height: 58px;
+      padding: 0 max(5%, env(safe-area-inset-left));
     }
-    .menu-btn .bars { width: 38px; height: 38px; display: grid; place-items: center; background: var(--obsidian); color: #fff; font-size: 1.05rem; flex: none; }
-    .menu-btn .label { font-weight: 900; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.6px; flex: none; }
-    .menu-btn .current { margin-left: auto; color: var(--accent-green); font-weight: 800; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.4px; text-align: right; line-height: 1.2; max-width: 48%; }
+    .mobile-bar .bars { width: 42px; height: 42px; display: grid; place-items: center; background: var(--obsidian); color: #fff; font-size: 1.05rem; border: 0; cursor: pointer; flex: none; }
+    .mobile-bar .home-btn { font-weight: 900; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.6px; text-decoration: none; color: var(--obsidian); padding: 12px 6px; flex: none; }
+    .mobile-bar .current { margin-left: auto; flex: 1 1 auto; min-width: 0; background: transparent; border: 0; cursor: pointer; color: var(--accent-green); font-weight: 800; font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.4px; text-align: right; line-height: 1.2; padding: 12px 0; }
 
     .tabs {
       display: none;
@@ -313,7 +323,10 @@
     .carousel-label { padding: 0 24px; }
     .section { padding: 100px 24px; }
     .section-inner { grid-template-columns: 1fr; gap: 36px; }
-    .section.flip .section-inner .media-frame { order: 0; }
+    /* stacked layout: title + description first, photo underneath */
+    .section-inner .copy { order: 1; }
+    .section-inner .media-frame,
+    .section.flip .section-inner .media-frame { order: 2; }
   }
 
   @media (max-width: 600px) {
@@ -354,12 +367,14 @@
 
 <!-- ================= TOP BAR (fixed, outside the blurred wrapper) ================= -->
 <header class="topbar" id="topbar">
-  <button class="menu-btn" id="menu-btn" aria-expanded="false" aria-controls="tabs">
-    <span class="bars"><i class="fas fa-bars" id="menu-icon"></i></span>
-    <span class="label">Sections</span>
-    <span class="current" id="menu-current">Tap to jump to a section</span>
-  </button>
+  <!-- Mobile bar: bars + green text open the section list; HOME scrolls to the top -->
+  <div class="mobile-bar">
+    <button class="bars" id="menu-btn" aria-expanded="false" aria-controls="tabs" aria-label="Open sections menu"><i class="fas fa-bars" id="menu-icon"></i></button>
+    <a class="home-btn" href="#top">Home</a>
+    <button class="current" id="menu-current" aria-expanded="false" aria-controls="tabs">Tap for portfolio!</button>
+  </div>
   <nav class="tabs" id="tabs" aria-label="Sections">
+    <a class="tab tab-home" href="#top"><i class="fas fa-house"></i>Home</a>
     <a class="tab" href="#uas">Personal UAS Project</a>
     <a class="tab" href="#aerospace">Aerospace Analysis Reports</a>
     <a class="tab" href="#mechanics">Mechanics of Materials Laboratory</a>
@@ -678,6 +693,11 @@
 
 <template id="details-rocketry" data-kicker="Payload Mechanics Responsible Engineer &middot; Aug 2024 – Present" data-title="Swamp Launch Rocketry">
   <p>Responsible engineer for payload mechanics on the 2027 IREC sensor payload, covering mechanical design, material selection (PA6-CF), and design for manufacturing.</p>
+  <!-- DETAILED WRITE-UP: this panel scrolls, so add as much as you like. Pattern:
+       <h5>Subheading</h5>
+       <p>Paragraph...</p>
+       <ul class="detail-list"><li>Point</li><li>Point</li></ul>
+  -->
   <h4>Documents &amp; Images</h4>
   <div class="empty-note">Files will be added here.</div>
   <!-- Example: <div class="file-list"> ...copy an <a class="file"> row from another template... </div> -->
@@ -767,9 +787,12 @@
   function setMenu(open) {
     topbar.classList.toggle('open', open);
     menuBtn.setAttribute('aria-expanded', open);
+    menuCurrent.setAttribute('aria-expanded', open);
     menuIcon.className = open ? 'fas fa-xmark' : 'fas fa-bars';
   }
-  menuBtn.addEventListener('click', function () { setMenu(!topbar.classList.contains('open')); });
+  function toggleMenu() { setMenu(!topbar.classList.contains('open')); }
+  menuBtn.addEventListener('click', toggleMenu);
+  menuCurrent.addEventListener('click', toggleMenu);
 
   function goTo(id, instant) {
     var el = document.getElementById(id);
@@ -778,7 +801,7 @@
     var y = el.getBoundingClientRect().top + window.pageYOffset - navH() + 1;
     spyLock = true; clearTimeout(spyTimer);
     spyTimer = setTimeout(function () { spyLock = false; updateSpy(); }, 1100);
-    if (id !== 'top') setActive(id);
+    setActive(id === 'top' ? null : id);
     try { window.scrollTo({ top: Math.max(0, y), behavior: instant ? 'auto' : 'smooth' }); }
     catch (e) { window.scrollTo(0, Math.max(0, y)); }
     if (history.replaceState) history.replaceState(null, '', '#' + id);
@@ -795,15 +818,18 @@
   });
 
   /* ---------- SCROLL-SPY (highlights the current tab) ---------- */
-  var sections = tabs.map(function (t) { return document.getElementById(t.getAttribute('href').slice(1)); });
+  var sections = tabs
+    .filter(function (t) { return t.getAttribute('href') !== '#top'; })
+    .map(function (t) { return document.getElementById(t.getAttribute('href').slice(1)); });
   function setActive(id) {
+    var cur = id || 'top';
     var label = '';
     tabs.forEach(function (t) {
-      var on = t.getAttribute('href') === '#' + id;
+      var on = t.getAttribute('href') === '#' + cur;
       t.classList.toggle('active', on);
-      if (on) { t.setAttribute('aria-current', 'true'); label = t.textContent; } else t.removeAttribute('aria-current');
+      if (on) { t.setAttribute('aria-current', 'true'); if (cur !== 'top') label = t.textContent; } else t.removeAttribute('aria-current');
     });
-    menuCurrent.textContent = label || 'Tap to jump to a section';
+    menuCurrent.textContent = label || 'Tap for portfolio!';
   }
   function updateSpy() {
     if (spyLock) return;
@@ -916,6 +942,9 @@
     var originals = Array.prototype.slice.call(track.children);
     var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
     var setW = 0, offset = 0, paused = false, last = 0, SPEED = 45; /* px per second */
+    var dragging = false, startX = 0, startOffset = 0, momentum = 0, lastX = 0, lastT = 0, resumeT;
+    function wrap() { if (setW > 0) offset = ((offset % setW) + setW) % setW; }
+    function apply() { track.style.transform = 'translate3d(' + (-offset) + 'px,0,0)'; }
 
     function build() {
       Array.prototype.slice.call(track.querySelectorAll('.clone')).forEach(function (n) { n.remove(); });
@@ -936,10 +965,14 @@
     function tick(t) {
       if (!last) last = t;
       var dt = Math.min(t - last, 100); last = t;
-      if (!paused && setW > 0) {
-        offset += SPEED * dt / 1000;
-        if (offset >= setW) offset -= setW;
-        track.style.transform = 'translate3d(' + (-offset) + 'px,0,0)';
+      if (!dragging && setW > 0) {
+        if (Math.abs(momentum) > 8) {                 /* swipe momentum after letting go */
+          offset += momentum * dt / 1000;
+          momentum *= Math.pow(0.92, dt / 16);
+        } else if (!paused) {
+          offset += SPEED * dt / 1000;                /* gentle auto-scroll */
+        }
+        wrap(); apply();
       }
       requestAnimationFrame(tick);
     }
@@ -955,11 +988,38 @@
     if (reduce) { carousel.classList.add('static'); return; }
     whenLoaded(function () { build(); requestAnimationFrame(tick); });
     var rb; window.addEventListener('resize', function () { clearTimeout(rb); rb = setTimeout(build, 250); });
-    carousel.addEventListener('mouseenter', function () { paused = true; });
-    carousel.addEventListener('mouseleave', function () { paused = false; });
-    var tt;
-    carousel.addEventListener('touchstart', function () { paused = true; clearTimeout(tt); }, { passive: true });
-    carousel.addEventListener('touchend', function () { tt = setTimeout(function () { paused = false; }, 1200); }, { passive: true });
+    /* hover pause (mouse only) */
+    carousel.addEventListener('pointerenter', function (e) { if (e.pointerType === 'mouse') paused = true; });
+    carousel.addEventListener('pointerleave', function (e) { if (e.pointerType === 'mouse' && !dragging) paused = false; });
+
+    /* swipe / drag in either direction (touch, pen, mouse); vertical page scroll still works */
+    carousel.addEventListener('pointerdown', function (e) {
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      dragging = true; paused = true; momentum = 0;
+      startX = lastX = e.clientX; startOffset = offset; lastT = performance.now();
+      clearTimeout(resumeT);
+      carousel.classList.add('dragging');
+      try { carousel.setPointerCapture(e.pointerId); } catch (err) {}
+    });
+    carousel.addEventListener('pointermove', function (e) {
+      if (!dragging) return;
+      offset = startOffset - (e.clientX - startX);
+      wrap(); apply();
+      var now = performance.now(), dt = now - lastT;
+      if (dt > 0) momentum = 0.7 * momentum + 0.3 * ((lastX - e.clientX) / dt * 1000);
+      lastX = e.clientX; lastT = now;
+    });
+    function endDrag(e) {
+      if (!dragging) return;
+      dragging = false;
+      carousel.classList.remove('dragging');
+      if (e.type === 'pointercancel') momentum = 0;
+      var touchLike = e.pointerType && e.pointerType !== 'mouse';
+      resumeT = setTimeout(function () { paused = false; }, touchLike ? 1500 : 0);
+      if (!touchLike) paused = true;   /* mouse stays hovering until it leaves */
+    }
+    carousel.addEventListener('pointerup', endDrag);
+    carousel.addEventListener('pointercancel', endDrag);
   })();
 
   /* ---------- DETAILS OVERLAY ---------- */
