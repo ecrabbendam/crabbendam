@@ -7,6 +7,10 @@
 <meta name="description" content="Samuel Crabbendam: aerospace engineering student and private pilot at the University of Florida. Resume, projects, lab reports, and experience.">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<script>
+  /* Preloader plays once per browser session; repeat views load instantly. */
+  try { if (sessionStorage.getItem('sc_preloader_seen')) document.documentElement.classList.add('skip-pl'); } catch (e) {}
+</script>
 <style>
   :root {
     --cream: #f9f9f7;
@@ -35,7 +39,7 @@
   button { font-family: inherit; }
 
   /* =====================================================
-     PRELOADER (unchanged plane-swipe sequence)
+     PRELOADER (same sequence, sped up to 3/4 of the old duration)
      ===================================================== */
   #preloader {
     position: fixed; inset: 0;
@@ -46,35 +50,40 @@
     justify-content: center; align-items: center;
     overflow: hidden;
     clip-path: inset(0 0 0 0);
-    transition: clip-path 1.4s cubic-bezier(0.65, 0, 0.35, 1);
+    transition: clip-path 1.05s cubic-bezier(0.65, 0, 0.35, 1);
   }
   .loader-wrap { position: relative; display: flex; justify-content: center; align-items: center; width: 200px; height: 200px; }
-  .fading-elements { position: absolute; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 0.5s ease; }
+  .fading-elements { position: absolute; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 0.375s ease; }
   .white-disk { position: absolute; width: 100px; height: 100px; background: white; border-radius: 50%; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
   .loader-svg { width: 130px; height: 130px; transform: rotate(-90deg); position: relative; z-index: 1; }
   .loader-svg circle {
     fill: none; stroke: var(--accent-green); stroke-width: 6; stroke-linecap: round;
     stroke-dasharray: 365; stroke-dashoffset: 365;
-    transition: stroke-dashoffset 1.2s ease-out;
+    transition: stroke-dashoffset 0.9s ease-out;
   }
   .pun-text { position: absolute; top: 140px; white-space: nowrap; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; font-size: 0.7rem; color: var(--obsidian); }
   #flying-plane {
     position: absolute; color: var(--obsidian); font-size: 2.5rem; z-index: 10001;
     transform: rotate(-90deg) translateX(0);
-    transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
   .takeoff-ready #flying-plane { transform: rotate(0deg); }
   .elements-fade .fading-elements { opacity: 0; }
-  .takeoff-active #flying-plane { transform: rotate(0deg) translateX(150vw); transition: transform 1.6s cubic-bezier(0.65, 0, 0.35, 1); }
+  .takeoff-active #flying-plane { transform: rotate(0deg) translateX(150vw); transition: transform 1.2s cubic-bezier(0.65, 0, 0.35, 1); }
   .takeoff-active #preloader { clip-path: inset(0 0 0 100%); }
 
   /* NOTE: the top bar lives OUTSIDE #main-wrapper, and the blur filter is removed
      once loaded. A filter on an ancestor breaks position:fixed (the bar would scroll away). */
-  #main-wrapper { opacity: 0; filter: blur(20px); transition: opacity 1.2s ease, filter 1.5s ease; }
+  #main-wrapper { opacity: 0; filter: blur(20px); transition: opacity 0.9s ease, filter 1.125s ease; }
   .loaded #main-wrapper { opacity: 1; filter: none; }
 
+  /* repeat visit in the same session: no preloader at all */
+  .skip-pl #preloader { display: none; }
+  .skip-pl #main-wrapper { opacity: 1; filter: none; transition: none; }
+  .skip-pl .topbar { opacity: 1; transition: none; }
+
   /* =====================================================
-     TOP BAR (always visible, all 7 tabs shown)
+     TOP BAR (always visible, all tabs shown)
      ===================================================== */
   .topbar {
     position: fixed; top: 0; left: 0; right: 0;
@@ -83,7 +92,7 @@
     -webkit-backdrop-filter: saturate(180%) blur(16px);
     backdrop-filter: saturate(180%) blur(16px);
     border-bottom: 2px solid var(--obsidian);
-    opacity: 0; transition: opacity 0.8s ease;
+    opacity: 0; transition: opacity 0.6s ease;
   }
   .loaded .topbar { opacity: 1; }
 
@@ -128,9 +137,14 @@
   .hero-image::after { content: ""; position: absolute; top: 0; left: 0; width: 30%; height: 100%; background: linear-gradient(to right, var(--cream), transparent); }
 
   h1 { font-size: clamp(2.8rem, 7.5vw, 6rem); font-weight: 900; line-height: 0.9; text-transform: uppercase; letter-spacing: -3px; margin: 0 0 15px; }
-  .subtitle { font-size: 1.1rem; color: var(--slate); margin: 0 0 40px; text-transform: uppercase; letter-spacing: 1px; }
+  .subtitle { font-size: 1.1rem; color: var(--slate); margin: 0 0 14px; text-transform: uppercase; letter-spacing: 1px; }
+  .edu { font-size: 0.8rem; font-weight: 700; color: var(--obsidian); margin: 0 0 36px; letter-spacing: 0.3px; line-height: 1.6; }
+  .edu span { color: var(--accent-green); padding: 0 6px; }
 
   .button-stack { display: flex; flex-direction: column; gap: 18px; width: 100%; max-width: 340px; }
+  .contact-line { margin: 26px 0 0; font-size: 0.85rem; font-weight: 700; color: var(--slate); line-height: 1.8; }
+  .contact-line a { text-decoration: none; border-bottom: 1px solid var(--line); }
+  .contact-line a:hover { color: var(--accent-green); border-color: var(--accent-green); }
 
   .btn {
     text-decoration: none; color: var(--obsidian);
@@ -156,7 +170,7 @@
     margin: 0 auto; background: var(--white);
     border: 2px solid var(--obsidian);
     box-shadow: 6px 6px 0 rgba(0,0,0,0.07);
-    max-width: 100%;
+    max-width: 100%; overflow: hidden;
     min-height: 200px;
   }
   .resume-frame canvas { display: block; width: 100%; height: auto; }
@@ -165,7 +179,7 @@
   .resume-msg a { font-weight: 800; }
 
   /* =====================================================
-     CAROUSEL (continuous, infinite loop)
+     CAROUSEL (continuous, infinite loop, swipeable)
      ===================================================== */
   .carousel-wrap { padding: 70px 0 100px; overflow: hidden; }
   .carousel-label { padding: 0 8%; margin-bottom: 26px; }
@@ -173,13 +187,12 @@
     overflow: hidden;
     -webkit-mask-image: linear-gradient(to right, transparent, #000 5%, #000 95%, transparent);
             mask-image: linear-gradient(to right, transparent, #000 5%, #000 95%, transparent);
+    touch-action: pan-y; cursor: grab; -webkit-user-select: none; user-select: none;
   }
+  .carousel.dragging { cursor: grabbing; }
   .carousel-track { display: flex; gap: 24px; width: max-content; padding: 6px 12px 14px; will-change: transform; }
   .slide { flex: none; margin: 0; background: var(--white); border: 2px solid var(--obsidian); box-shadow: 4px 4px 0 var(--obsidian); }
-  .slide img { height: 270px; width: auto; max-width: none; object-fit: cover; }
-  .carousel { touch-action: pan-y; cursor: grab; -webkit-user-select: none; user-select: none; }
-  .carousel.dragging { cursor: grabbing; }
-  .slide img { pointer-events: none; -webkit-user-drag: none; }
+  .slide img { height: 270px; width: auto; max-width: none; object-fit: cover; pointer-events: none; -webkit-user-drag: none; }
   .carousel.static { overflow-x: auto; touch-action: auto; }
 
   /* =====================================================
@@ -192,6 +205,9 @@
     display: grid; grid-template-columns: 1fr 1fr; gap: 70px; align-items: center;
   }
   .section.flip .section-inner .media-frame { order: 2; }
+  /* no usable image yet: the section simply runs as clean text, no empty box */
+  .section.no-media .section-inner { grid-template-columns: 1fr; max-width: 820px; }
+  .section.no-media .media-frame { display: none; }
 
   .kicker { display: block; font-size: 0.72rem; font-weight: 800; letter-spacing: 1.6px; text-transform: uppercase; color: var(--accent-green); margin: 0 0 14px; }
   h2 { font-size: clamp(1.9rem, 3.6vw, 2.9rem); font-weight: 900; line-height: 1.05; letter-spacing: -1.2px; margin: 0 0 20px; }
@@ -205,22 +221,12 @@
     background: var(--cream); border: 2px solid var(--obsidian);
     box-shadow: 7px 7px 0 rgba(0,0,0,0.08);
   }
-  .tone .media-frame { background: var(--cream); }
   .media-frame > img { width: 100%; height: 100%; object-fit: cover; }
   .media-frame > img.contain { object-fit: contain; padding: 14px; }
   .media-frame canvas { position: absolute; top: 0; left: 0; width: 100%; height: auto; }
-  .frame-fallback {
-    display: none; position: absolute; inset: 0;
-    flex-direction: column; align-items: center; justify-content: center; gap: 10px;
-    color: var(--slate); font-size: 0.72rem; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase;
-    background: repeating-linear-gradient(135deg, #f1f1ed, #f1f1ed 14px, #f6f6f3 14px, #f6f6f3 28px);
-  }
-  .frame-fallback i { font-size: 1.6rem; }
-  .media-frame.missing > img, .media-frame.missing > canvas { display: none; }
-  .media-frame.missing .frame-fallback { display: flex; }
 
   /* =====================================================
-     DETAILS OVERLAY
+     DETAILS OVERLAY (scrollable, for long write-ups)
      ===================================================== */
   .overlay {
     position: fixed; inset: 0; z-index: 500;
@@ -229,11 +235,11 @@
     -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
     padding: 24px;
   }
-  .overlay.open { display: flex; animation: fade .25s ease; }
+  .overlay.open { display: flex; animation: fade .2s ease; }
   @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
   .sheet {
     background: var(--cream); width: 100%; max-width: 880px; max-height: 90vh; max-height: 90dvh;
-    display: flex; flex-direction: column;
+    display: flex; flex-direction: column; overflow: hidden;
     border: 2px solid var(--obsidian); box-shadow: 10px 10px 0 rgba(0,0,0,0.25);
   }
   .sheet-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; padding: 26px 30px 20px; border-bottom: 2px solid var(--obsidian); background: var(--white); }
@@ -241,15 +247,15 @@
   .sheet-head .kicker { margin-bottom: 8px; }
   .close-btn { flex: none; width: 44px; height: 44px; border: 2px solid var(--obsidian); background: var(--white); cursor: pointer; font-size: 1.1rem; box-shadow: 3px 3px 0 var(--obsidian); }
   .close-btn:hover { background: var(--obsidian); color: #fff; }
-  .sheet { overflow: hidden; }
   .sheet-body { flex: 1 1 auto; min-height: 0; padding: 30px; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y; }
   .sheet-body p { color: var(--slate); margin: 0 0 18px; font-size: 0.98rem; line-height: 1.65; }
-  /* long-form write-ups: use <h5> subheadings, <p> paragraphs and <ul class="detail-list"> inside a details template */
+  .sheet-body h4 { margin: 28px 0 14px; font-size: 0.72rem; font-weight: 800; letter-spacing: 1.6px; text-transform: uppercase; }
+  /* long-form write-ups: <h5> subheadings, <p> paragraphs, <ul class="detail-list"> bullets */
   .sheet-body h5 { margin: 30px 0 10px; font-size: 1.05rem; font-weight: 800; letter-spacing: -0.2px; }
+  .sheet-body h5:first-child { margin-top: 0; }
   .sheet-body ul.detail-list { margin: 0 0 22px; padding-left: 20px; color: var(--slate); font-size: 0.96rem; line-height: 1.6; }
   .sheet-body ul.detail-list li { margin-bottom: 8px; }
   .sheet-body ul.detail-list li::marker { color: var(--accent-green); }
-  .sheet-body h4 { margin: 28px 0 14px; font-size: 0.72rem; font-weight: 800; letter-spacing: 1.6px; text-transform: uppercase; }
   .file-list { display: grid; gap: 12px; }
   .file {
     display: grid; grid-template-columns: 44px 1fr auto; gap: 16px; align-items: center;
@@ -266,7 +272,6 @@
   .thumb:hover { border-color: var(--obsidian); transform: translateY(-3px); }
   .thumb img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
   .thumb span { display: block; padding: 10px 12px; font-size: 0.78rem; font-weight: 700; line-height: 1.35; }
-  .empty-note { padding: 22px; border: 1px dashed var(--slate); color: var(--slate); font-size: 0.88rem; text-align: center; }
 
   /* =====================================================
      FOOTER
@@ -275,7 +280,13 @@
   .footer-logo { font-weight: 900; text-transform: uppercase; font-size: 1.2rem; letter-spacing: -1px; margin-bottom: 8px; }
   .footer-tagline { font-size: 0.8rem; color: var(--slate); text-transform: uppercase; margin-bottom: 30px; }
   .footer-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; }
-  .to-top { margin-top: 34px; display: inline-block; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; text-decoration: none; letter-spacing: 1px; }
+  .footer-contact { margin: 28px 0 0; font-size: 0.88rem; font-weight: 700; color: var(--slate); line-height: 1.9; }
+  .footer-contact a { text-decoration: none; border-bottom: 1px solid var(--line); }
+  .footer-contact a:hover { color: var(--accent-green); border-color: var(--accent-green); }
+  .footer-social { margin-top: 20px; display: flex; justify-content: center; gap: 22px; font-size: 1.25rem; }
+  .footer-social a { text-decoration: none; transition: color .2s; }
+  .footer-social a:hover { color: var(--accent-green); }
+  .to-top { margin-top: 30px; display: inline-block; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; text-decoration: none; letter-spacing: 1px; }
   .to-top:hover { color: var(--accent-green); }
 
   /* =====================================================
@@ -285,31 +296,40 @@
     .tab { font-size: 0.7rem; padding: 12px 8px; letter-spacing: 0.2px; }
   }
 
-  /* Tablet + phone: one big "Sections" button that opens a list of ALL tabs */
+  /* Tablet + phone: bars / HOME / green text, and a list of ALL tabs */
   @media (max-width: 1100px) {
     :root { --nav-h: 58px; }
+    /* solid bar (no blur) so the menu opens instantly */
+    .topbar { background: var(--cream); -webkit-backdrop-filter: none; backdrop-filter: none; }
     .mobile-bar {
       display: flex; align-items: center; gap: 12px; height: 58px;
       padding: 0 max(5%, env(safe-area-inset-left));
     }
+    .mobile-bar button, .mobile-bar a { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     .mobile-bar .bars { width: 42px; height: 42px; display: grid; place-items: center; background: var(--obsidian); color: #fff; font-size: 1.05rem; border: 0; cursor: pointer; flex: none; }
     .mobile-bar .home-btn { font-weight: 900; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.6px; text-decoration: none; color: var(--obsidian); padding: 12px 6px; flex: none; }
     .mobile-bar .current { margin-left: auto; flex: 1 1 auto; min-width: 0; background: transparent; border: 0; cursor: pointer; color: var(--accent-green); font-weight: 800; font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.4px; text-align: right; line-height: 1.2; padding: 12px 0; }
 
+    /* menu panel is always rendered (just hidden) so opening is immediate */
     .tabs {
-      display: none;
+      display: grid; grid-template-columns: 1fr; max-width: none;
       position: fixed; left: 0; right: 0; top: var(--nav-h);
       max-height: calc(100vh - var(--nav-h)); max-height: calc(100dvh - var(--nav-h));
       overflow-y: auto; -webkit-overflow-scrolling: touch;
-      grid-template-columns: 1fr; max-width: none;
       background: var(--cream); border-bottom: 2px solid var(--obsidian);
-      box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+      box-shadow: 0 12px 24px rgba(0,0,0,0.12);
+      visibility: hidden; opacity: 0; transform: translateY(-6px); pointer-events: none;
+      transition: opacity .1s ease, transform .1s ease, visibility 0s linear .1s;
     }
-    .topbar.open .tabs { display: grid; animation: fade .2s ease; }
+    .topbar.open .tabs {
+      visibility: visible; opacity: 1; transform: none; pointer-events: auto;
+      transition: opacity .1s ease, transform .1s ease, visibility 0s;
+    }
     .tab {
       justify-content: flex-start; text-align: left;
       padding: 19px 5%; font-size: 0.95rem; letter-spacing: 0.3px;
       border-left: 5px solid transparent; border-bottom: 1px solid var(--line); margin-bottom: 0;
+      transition: none;
     }
     .tab.active { border-left-color: var(--accent-green); border-bottom-color: var(--line); background: var(--white); }
 
@@ -331,7 +351,8 @@
 
   @media (max-width: 600px) {
     h1 { font-size: 2.6rem; letter-spacing: -1.5px; }
-    .subtitle { font-size: 0.95rem; margin-bottom: 30px; }
+    .subtitle { font-size: 0.95rem; }
+    .edu { font-size: 0.74rem; margin-bottom: 28px; }
     .slide img { height: 200px; }
     .carousel-track { gap: 16px; }
     .section { padding: 90px 20px; }
@@ -373,15 +394,16 @@
     <a class="home-btn" href="#top">Home</a>
     <button class="current" id="menu-current" aria-expanded="false" aria-controls="tabs">Tap for portfolio!</button>
   </div>
+  <!-- Tab order here must match the section order on the page below -->
   <nav class="tabs" id="tabs" aria-label="Sections">
     <a class="tab tab-home" href="#top"><i class="fas fa-house"></i>Home</a>
+    <a class="tab" href="#rocketry">Swamp Launch Rocketry</a>
+    <a class="tab" href="#windtunnel">Wind Tunnel Test Engineer</a>
     <a class="tab" href="#uas">Personal UAS Project</a>
+    <a class="tab" href="#garney">Garney Internship</a>
     <a class="tab" href="#aerospace">Aerospace Analysis Reports</a>
     <a class="tab" href="#mechanics">Mechanics of Materials Laboratory</a>
-    <a class="tab" href="#garney">Garney Internship</a>
-    <a class="tab" href="#rocketry">Swamp Launch Rocketry</a>
     <a class="tab" href="#certifications">Certifications</a>
-    <a class="tab" href="#windtunnel">Experimental Wind Tunnel Test Engineer</a>
   </nav>
 </header>
 
@@ -392,11 +414,16 @@
     <div class="hero-text">
       <h1>Samuel <br>Crabbendam</h1>
       <p class="subtitle">Aerospace Engineering Student <br>&amp; Private Pilot</p>
+      <p class="edu">University of Florida<span>&middot;</span>B.S. Aerospace Engineering<span>&middot;</span>May 2028<span>&middot;</span>GPA 3.6</p>
       <div class="button-stack">
         <a href="#resume" class="btn btn-primary"><i class="fas fa-file-lines"></i><span>View Resume</span></a>
+        <a href="mailto:crabbendams@gmail.com" class="btn"><i class="fas fa-envelope"></i><span>Email Me</span></a>
         <a href="https://www.linkedin.com/in/samuel-crabbendam-93ab33349" target="_blank" rel="noopener" class="btn"><i class="fab fa-linkedin"></i><span>LinkedIn</span></a>
-        <a href="https://instagram.com/samm_crabb" target="_blank" rel="noopener" class="btn"><i class="fab fa-instagram"></i><span>Instagram</span></a>
       </div>
+      <p class="contact-line">
+        <a href="mailto:crabbendams@gmail.com">crabbendams@gmail.com</a><br>
+        <a href="tel:+14079735067">407-973-5067</a>
+      </p>
     </div>
     <div class="hero-image" role="img" aria-label="Portrait of Samuel Crabbendam"></div>
   </section>
@@ -423,7 +450,7 @@
     <div class="carousel-label"><span class="kicker">Project Highlights</span></div>
     <div class="carousel" id="carousel">
       <div class="carousel-track" id="carousel-track">
-        <!-- Add or remove slides freely; the loop rebuilds itself. -->
+        <!-- Add or remove slides freely; the loop rebuilds itself. Swipe or drag to browse. -->
         <figure class="slide"><img src="images/UAS General Model.png" alt="UAS general model"></figure>
         <figure class="slide"><img src="images/Structural Beam Rebar - good catch.jpeg" alt="Structural beam rebar inspection"></figure>
         <figure class="slide"><img src="images/Cylinders Test.jpeg" alt="Concrete cylinder testing"></figure>
@@ -436,12 +463,54 @@
 
   <main>
 
-    <!-- ========== 1. PERSONAL UAS PROJECT ========== -->
+    <!-- ========== 1. SWAMP LAUNCH ROCKETRY ========== -->
+    <section class="section tone" id="rocketry">
+      <div class="section-inner">
+        <!-- Add a photo/CAD render at images/swamp-launch.jpg and it appears automatically. Until then the section runs as text only. -->
+        <div class="media-frame">
+          <img src="images/swamp-launch.jpg" alt="Swamp Launch Rocketry payload" onerror="this.closest('.section').classList.add('no-media')">
+        </div>
+        <div class="copy">
+          <span class="kicker">Payload Mechanics Responsible Engineer &middot; Aug 2024 – Present</span>
+          <h2>Swamp Launch Rocketry</h2>
+          <p class="summary">Responsible engineer for payload mechanics on the University of Florida's collegiate rocketry team, leading the mechanical design of the 2027 IREC sensor payload. The payload's complex geometry called for a design-for-manufacturing approach and a material chosen for strength.</p>
+          <ul class="highlights">
+            <li>Selected PA6-CF (carbon-fiber-reinforced nylon) for the payload structure for its strength</li>
+            <li>Designed complex payload geometry with manufacturing in mind</li>
+            <li>Design is heading into manufacturing for the 2027 competition</li>
+            <!-- ADD A NUMBER if you have one: payload mass, target altitude, team size, number of parts, etc. -->
+          </ul>
+          <button class="btn" data-details="rocketry">View details &amp; files <i class="fas fa-arrow-right"></i></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== 2. WIND TUNNEL TEST ENGINEER ========== -->
+    <section class="section flip" id="windtunnel">
+      <div class="section-inner">
+        <!-- Add a photo at images/wind-tunnel.jpg and it appears automatically. Until then the section runs as text only. -->
+        <div class="media-frame">
+          <img src="images/wind-tunnel.jpg" alt="Wind tunnel test setup" onerror="this.closest('.section').classList.add('no-media')">
+        </div>
+        <div class="copy">
+          <span class="kicker">UF Graduate Research Group &middot; Aug 2026 – Present</span>
+          <h2>Experimental Wind Tunnel Test Engineer</h2>
+          <p class="summary">Experimental Aerodynamics Test Engineer supporting wind tunnel testing in a University of Florida graduate research group. Built the support structure for the DYNAMO four-axis model positioner and is developing a test section modification to give it full yaw control.</p>
+          <ul class="highlights">
+            <li>Fabricated the Unistrut assembly supporting the DYNAMO beneath the test section: cutting, measuring, assembly, and positioning</li>
+            <li>Planning a laser-cut test section floor opening and snug-fit insert for full yaw range</li>
+            <!-- ADD A NUMBER if you have one: tunnel speed range, test section size, number of tests run, etc. -->
+          </ul>
+          <button class="btn" data-details="windtunnel">View details &amp; files <i class="fas fa-arrow-right"></i></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== 3. PERSONAL UAS PROJECT ========== -->
     <section class="section tone" id="uas">
       <div class="section-inner">
         <div class="media-frame">
-          <img class="contain" src="images/UAS General Model.png" alt="Personal UAS design model" onerror="this.parentNode.classList.add('missing')">
-          <div class="frame-fallback"><i class="fas fa-image"></i><span>Image coming soon</span></div>
+          <img class="contain" src="images/UAS General Model.png" alt="Personal UAS design model" onerror="this.closest('.section').classList.add('no-media')">
         </div>
         <div class="copy">
           <span class="kicker">Independent Project &middot; Jul 2026 – Present</span>
@@ -457,13 +526,34 @@
       </div>
     </section>
 
-    <!-- ========== 2. AEROSPACE ANALYSIS REPORTS ========== -->
-    <section class="section flip" id="aerospace">
+    <!-- ========== 4. GARNEY INTERNSHIP ========== -->
+    <section class="section flip" id="garney">
       <div class="section-inner">
-        <!-- Image is generated from page 1 of the PDF. Swap for <img> if you prefer a custom picture. -->
+        <div class="media-frame">
+          <img src="images/Structural Beam Rebar - good catch.jpeg" alt="Structural beam rebar inspection" onerror="this.closest('.section').classList.add('no-media')">
+        </div>
+        <div class="copy">
+          <span class="kicker">Project Engineering Intern &middot; May – Aug 2026</span>
+          <h2>Garney Internship</h2>
+          <p class="summary">Supported construction of a water-treatment facility by managing procurement tracking, field quality inspections, material testing, and submittal review, keeping work in compliance with engineering drawings and specifications.</p>
+          <ul class="highlights">
+            <li>Built a procurement log that eliminated sitewide production delays across crews</li>
+            <li>Inspected structural assemblies and caught errors before concrete placement</li>
+            <li>Verified material quality through standardized testing and submittal review</li>
+            <li>Produced material takeoffs for transformer pad rebar fabrication</li>
+            <!-- ADD NUMBERS if you have them: crews supported, items tracked in the log, inspections performed, cylinders tested, etc. -->
+          </ul>
+          <button class="btn" data-details="garney">View details &amp; files <i class="fas fa-arrow-right"></i></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== 5. AEROSPACE ANALYSIS REPORTS ========== -->
+    <section class="section tone" id="aerospace">
+      <div class="section-inner">
+        <!-- Image is generated from page 1 of the PDF. -->
         <div class="media-frame" data-pdf-thumb="images/SamuelCrabbendam_FailureAnalysisPaper.pdf">
           <canvas></canvas>
-          <div class="frame-fallback"><i class="fas fa-file-pdf"></i><span>Report preview</span></div>
         </div>
         <div class="copy">
           <span class="kicker">Coursework &middot; University of Florida</span>
@@ -478,13 +568,12 @@
       </div>
     </section>
 
-    <!-- ========== 3. MECHANICS OF MATERIALS LABORATORY ========== -->
-    <section class="section tone" id="mechanics">
+    <!-- ========== 6. MECHANICS OF MATERIALS LABORATORY ========== -->
+    <section class="section flip" id="mechanics">
       <div class="section-inner">
-        <!-- Update the PDF path to your real lab report; falls back to a neutral placeholder if not found. -->
+        <!-- Update the PDF path to your real lab report; if it isn't found the section runs as text only. -->
         <div class="media-frame" data-pdf-thumb="images/Lab3 Report.pdf">
           <canvas></canvas>
-          <div class="frame-fallback"><i class="fas fa-file-pdf"></i><span>Report preview</span></div>
         </div>
         <div class="copy">
           <span class="kicker">Coursework &middot; University of Florida</span>
@@ -499,55 +588,11 @@
       </div>
     </section>
 
-    <!-- ========== 4. GARNEY INTERNSHIP ========== -->
-    <section class="section flip" id="garney">
-      <div class="section-inner">
-        <div class="media-frame">
-          <img src="images/Structural Beam Rebar - good catch.jpeg" alt="Structural beam rebar inspection" onerror="this.parentNode.classList.add('missing')">
-          <div class="frame-fallback"><i class="fas fa-image"></i><span>Image coming soon</span></div>
-        </div>
-        <div class="copy">
-          <span class="kicker">Project Engineering Intern &middot; May – Aug 2026</span>
-          <h2>Garney Internship</h2>
-          <p class="summary">Supported construction of a water-treatment facility by managing procurement tracking, field quality inspections, material testing, and submittal review, keeping work in compliance with engineering drawings and specifications.</p>
-          <ul class="highlights">
-            <li>Built a procurement log that eliminated sitewide production delays across crews</li>
-            <li>Inspected structural assemblies and caught errors before concrete placement</li>
-            <li>Verified material quality through standardized testing and submittal review</li>
-            <li>Produced material takeoffs for transformer pad rebar fabrication</li>
-          </ul>
-          <button class="btn" data-details="garney">View details &amp; files <i class="fas fa-arrow-right"></i></button>
-        </div>
-      </div>
-    </section>
-
-    <!-- ========== 5. SWAMP LAUNCH ROCKETRY ========== -->
-    <section class="section tone" id="rocketry">
-      <div class="section-inner">
-        <!-- Add a photo: replace the path below (e.g. images/swamp-launch.jpg). -->
-        <div class="media-frame">
-          <img src="images/swamp-launch.jpg" alt="Swamp Launch Rocketry payload" onerror="this.parentNode.classList.add('missing')">
-          <div class="frame-fallback"><i class="fas fa-image"></i><span>Image coming soon</span></div>
-        </div>
-        <div class="copy">
-          <span class="kicker">Payload Mechanics Responsible Engineer &middot; Aug 2024 – Present</span>
-          <h2>Swamp Launch Rocketry</h2>
-          <p class="summary">Responsible engineer for payload mechanics on the University of Florida's collegiate rocketry team, leading the mechanical design of the 2027 IREC sensor payload from material selection through design for manufacturing.</p>
-          <ul class="highlights">
-            <li>Mechanical design and integration of the sensor payload</li>
-            <li>Material selection (PA6-CF) and design for manufacturing</li>
-          </ul>
-          <button class="btn" data-details="rocketry">View details &amp; files <i class="fas fa-arrow-right"></i></button>
-        </div>
-      </div>
-    </section>
-
-    <!-- ========== 6. CERTIFICATIONS ========== -->
-    <section class="section flip" id="certifications">
+    <!-- ========== 7. CERTIFICATIONS ========== -->
+    <section class="section tone" id="certifications">
       <div class="section-inner">
         <div class="media-frame" data-pdf-thumb="images/SolidWorks Certification.pdf">
           <canvas></canvas>
-          <div class="frame-fallback"><i class="fas fa-file-pdf"></i><span>Certificate preview</span></div>
         </div>
         <div class="copy">
           <span class="kicker">Licenses &amp; Credentials</span>
@@ -555,32 +600,11 @@
           <p class="summary">Professional certifications spanning mechanical design, manned and unmanned aviation, and emergency response.</p>
           <ul class="highlights">
             <li>Certified SolidWorks Associate (CSWA), Mechanical Design</li>
-            <li>FAA Private Pilot License, Part 61</li>
+            <li>FAA Private Pilot License, Part 61 (55 flight hours)</li>
             <li>FAA Remote Pilot Certificate, Part 107 (commercial sUAS)</li>
             <li>First Aid / AED / CPR</li>
           </ul>
           <button class="btn" data-details="certifications">View details &amp; files <i class="fas fa-arrow-right"></i></button>
-        </div>
-      </div>
-    </section>
-
-    <!-- ========== 7. EXPERIMENTAL WIND TUNNEL TEST ENGINEER ========== -->
-    <section class="section tone" id="windtunnel">
-      <div class="section-inner">
-        <!-- Add a photo: replace the path below (e.g. images/wind-tunnel.jpg). -->
-        <div class="media-frame">
-          <img src="images/wind-tunnel.jpg" alt="Wind tunnel test setup" onerror="this.parentNode.classList.add('missing')">
-          <div class="frame-fallback"><i class="fas fa-image"></i><span>Image coming soon</span></div>
-        </div>
-        <div class="copy">
-          <span class="kicker">UF Graduate Research Group &middot; Aug 2026 – Present</span>
-          <h2>Experimental Wind Tunnel Test Engineer</h2>
-          <p class="summary">Supporting experimental aerodynamics research in a University of Florida graduate group, helping build and install the hardware used to position models and conduct wind tunnel tests.</p>
-          <ul class="highlights">
-            <li>Installation of a 4-axis model positioner (DYNAMO)</li>
-            <li>Fabrication of Unistrut support structures</li>
-          </ul>
-          <button class="btn" data-details="windtunnel">View details &amp; files <i class="fas fa-arrow-right"></i></button>
         </div>
       </div>
     </section>
@@ -593,7 +617,15 @@
     <div class="footer-tagline">Aerospace Engineering &amp; Pilot</div>
     <div class="footer-actions">
       <a href="images/Samuel Crabbendam.pdf" download class="btn"><i class="fas fa-download"></i><span>Download Resume</span></a>
-      <a href="https://www.linkedin.com/in/samuel-crabbendam-93ab33349" target="_blank" rel="noopener" class="btn"><i class="fab fa-linkedin"></i><span>LinkedIn</span></a>
+      <a href="mailto:crabbendams@gmail.com" class="btn"><i class="fas fa-envelope"></i><span>Email Me</span></a>
+    </div>
+    <p class="footer-contact">
+      <a href="mailto:crabbendams@gmail.com">crabbendams@gmail.com</a><br>
+      <a href="tel:+14079735067">407-973-5067</a>
+    </p>
+    <div class="footer-social">
+      <a href="https://www.linkedin.com/in/samuel-crabbendam-93ab33349" target="_blank" rel="noopener" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
+      <a href="https://instagram.com/samm_crabb" target="_blank" rel="noopener" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
     </div>
     <a href="#top" class="to-top"><i class="fas fa-arrow-up"></i> Back to top</a>
   </footer>
@@ -614,15 +646,74 @@
 </div>
 
 <!-- =====================================================================
-     DETAILS CONTENT (one <template> per section; opened by the "View details & files" buttons)
-     To add a file:   copy a <a class="file"> row.   To add a photo: copy an <a class="thumb"> tile.
+     DETAILS CONTENT (one <template> per section; opened by "View details & files").
+     The panel scrolls, so write as much as you like. Building blocks:
+       <h5>Subheading</h5>   <p>Paragraph</p>   <ul class="detail-list"><li>Point</li></ul>
+       <h4>Documents</h4> <div class="file-list"> <a class="file"> rows </div>
+       <h4>Images</h4>    <div class="thumb-grid"> <a class="thumb"> tiles </div>
      ===================================================================== -->
 
-<template id="details-uas" data-kicker="Independent Project" data-title="Personal UAS Project">
-  <p>A 5 ft wingspan fixed-wing UAS built from foamboard and PLA. Features include GPS-guided autonomous flight, FPV capability, and a hemispherical camera gimbal for independent camera control. The project is in the design phase: the preliminary model is being analyzed aerodynamically so adjustments can be made before initial construction, and wing fabrication is underway with a NACA 2412 airfoil.</p>
+<template id="details-rocketry" data-kicker="Payload Mechanics Responsible Engineer &middot; Aug 2024 – Present" data-title="Swamp Launch Rocketry">
+  <h5>Role</h5>
+  <p>Responsible engineer for payload mechanics on the Swamp Launch Rocketry team since August 2024. I own the mechanical design of the 2027 IREC sensor payload, from concept and geometry through material selection and preparation for manufacturing.</p>
+  <h5>Design approach</h5>
+  <p>The sensor payload has complex geometry, so manufacturability was considered from the start of the design rather than after it. Features, wall sections, and part boundaries were developed with the intended manufacturing process in mind.</p>
+  <h5>Material selection: PA6-CF</h5>
+  <p>I was in charge of material selection and chose PA6-CF, a carbon-fiber-reinforced nylon, for its strength. It suits the payload's complex geometry and the loads the structure has to carry.</p>
+  <h5>Status</h5>
+  <p>The design has not yet entered manufacturing but is scheduled to be manufactured soon.</p>
+  <!-- ADD MORE HERE: load cases, mass budget, CAD screenshots, test results, team structure. -->
+</template>
+
+<template id="details-windtunnel" data-kicker="UF Graduate Research Group &middot; Aug 2026 – Present" data-title="Experimental Wind Tunnel Test Engineer">
+  <h5>Role</h5>
+  <p>Experimental Aerodynamics Test Engineer in a University of Florida graduate research group, supporting wind tunnel testing hardware and setup.</p>
+  <h5>DYNAMO support structure</h5>
+  <p>I fabricated the Unistrut assembly that supports the DYNAMO four-axis model positioner beneath the wind tunnel test section. The work covered cutting, measuring, assembling, and positioning the structure.</p>
+  <h5>Test section modification (planned)</h5>
+  <p>The DYNAMO does not fit through the existing hole in the test section floor, and the research needs full yaw control. The plan is to laser cut a new floor opening along with a snug-fit insert so the positioner can move through its full yaw range.</p>
+  <!-- ADD MORE HERE: photos of the Unistrut assembly, CAD of the insert, test matrix, results. -->
+</template>
+
+<template id="details-uas" data-kicker="Independent Project &middot; Jul 2026 – Present" data-title="Personal UAS Project">
+  <h5>Overview</h5>
+  <p>A 5 ft wingspan fixed-wing UAS built from foamboard and PLA. Features include GPS-guided autonomous flight, FPV capability, and a hemispherical camera gimbal for independent camera control.</p>
+  <h5>Status</h5>
+  <p>The project is in the design phase. The preliminary model is being analyzed aerodynamically so adjustments can be made before initial construction. Wing fabrication is underway, with the wing formed as a NACA 2412 airfoil.</p>
   <h4>Images</h4>
   <div class="thumb-grid">
     <a class="thumb" href="images/UAS General Model.png" target="_blank" rel="noopener"><img loading="lazy" src="images/UAS General Model.png" alt=""><span>Current design model</span></a>
+  </div>
+</template>
+
+<template id="details-garney" data-kicker="Project Engineering Intern &middot; May – Aug 2026" data-title="Garney Internship">
+  <h5>Role</h5>
+  <p>As a Project Engineering Intern I supported field operations and project controls: tracking procurement, inspecting work in place, verifying materials, and reviewing submittals against the design documents.</p>
+  <h4>Documents</h4>
+  <div class="file-list">
+    <a class="file" href="images/Material Install Log.xlsx" target="_blank" rel="noopener">
+      <span class="ficon"><i class="fas fa-file-excel"></i></span>
+      <span><strong>Material Install Log</strong><small>Document to manage and update procurement status for tools and materials, eliminating sitewide production delays across all crews.</small></span>
+      <span class="go"><i class="fas fa-download"></i></span>
+    </a>
+    <a class="file" href="images/Transformer Takeoff.pdf" target="_blank" rel="noopener">
+      <span class="ficon"><i class="fas fa-file-pdf"></i></span>
+      <span><strong>Transformer Takeoff</strong><small>Detailed takeoffs for transformer pad installation, accurately estimating material requirements for proper rebar fabrication.</small></span>
+      <span class="go"><i class="fas fa-up-right-from-square"></i></span>
+    </a>
+    <a class="file" href="images/03200-07E Filter Upper Level Rebar Shop Drawings - Carollo Approval 4.pdf" target="_blank" rel="noopener">
+      <span class="ficon"><i class="fas fa-file-pdf"></i></span>
+      <span><strong>Rebar Shop Drawings Submittal</strong><small>Reviewed rebar shop drawings and cross-referenced design drawings and specifications to verify material was correct and sufficient.</small></span>
+      <span class="go"><i class="fas fa-up-right-from-square"></i></span>
+    </a>
+  </div>
+  <h4>Field Photos &amp; Submittals</h4>
+  <div class="thumb-grid">
+    <a class="thumb" href="images/Structural Beam Rebar - good catch.jpeg" target="_blank" rel="noopener"><img loading="lazy" src="images/Structural Beam Rebar - good catch.jpeg" alt=""><span>Rebar within 2" of formwork: failed inspection before concrete placement</span></a>
+    <a class="thumb" href="images/Valley Curb NW.jpeg" target="_blank" rel="noopener"><img loading="lazy" src="images/Valley Curb NW.jpeg" alt=""><span>Valley curb installation</span></a>
+    <a class="thumb" href="images/Cylinders Test.jpeg" target="_blank" rel="noopener"><img loading="lazy" src="images/Cylinders Test.jpeg" alt=""><span>Concrete cylinder testing</span></a>
+    <a class="thumb" href="images/Crew Oversight.jpeg" target="_blank" rel="noopener"><img loading="lazy" src="images/Crew Oversight.jpeg" alt=""><span>Crew oversight during installation</span></a>
+    <a class="thumb" href="images/Stair Nosings Submittal.png" target="_blank" rel="noopener"><img loading="lazy" src="images/Stair Nosings Submittal.png" alt=""><span>Stair nosings submittal review</span></a>
   </div>
 </template>
 
@@ -661,48 +752,6 @@
   </div>
 </template>
 
-<template id="details-garney" data-kicker="Project Engineering Intern &middot; May – Aug 2026" data-title="Garney Internship">
-  <p>As a Project Engineering Intern I supported field operations and project controls: tracking procurement, inspecting work in place, verifying materials, and reviewing submittals against the design documents.</p>
-  <h4>Documents</h4>
-  <div class="file-list">
-    <a class="file" href="images/Material Install Log.xlsx" target="_blank" rel="noopener">
-      <span class="ficon"><i class="fas fa-file-excel"></i></span>
-      <span><strong>Material Install Log</strong><small>Document to manage and update procurement status for tools and materials, eliminating sitewide production delays across all crews.</small></span>
-      <span class="go"><i class="fas fa-download"></i></span>
-    </a>
-    <a class="file" href="images/Transformer Takeoff.pdf" target="_blank" rel="noopener">
-      <span class="ficon"><i class="fas fa-file-pdf"></i></span>
-      <span><strong>Transformer Takeoff</strong><small>Detailed takeoffs for transformer pad installation, accurately estimating material requirements for proper rebar fabrication.</small></span>
-      <span class="go"><i class="fas fa-up-right-from-square"></i></span>
-    </a>
-    <a class="file" href="images/03200-07E Filter Upper Level Rebar Shop Drawings - Carollo Approval 4.pdf" target="_blank" rel="noopener">
-      <span class="ficon"><i class="fas fa-file-pdf"></i></span>
-      <span><strong>Rebar Shop Drawings Submittal</strong><small>Reviewed rebar shop drawings and cross-referenced design drawings and specifications to verify material was correct and sufficient.</small></span>
-      <span class="go"><i class="fas fa-up-right-from-square"></i></span>
-    </a>
-  </div>
-  <h4>Field Photos &amp; Submittals</h4>
-  <div class="thumb-grid">
-    <a class="thumb" href="images/Structural Beam Rebar - good catch.jpeg" target="_blank" rel="noopener"><img loading="lazy" src="images/Structural Beam Rebar - good catch.jpeg" alt=""><span>Rebar within 2" of formwork: failed inspection before concrete placement</span></a>
-    <a class="thumb" href="images/Valley Curb NW.jpeg" target="_blank" rel="noopener"><img loading="lazy" src="images/Valley Curb NW.jpeg" alt=""><span>Valley curb installation</span></a>
-    <a class="thumb" href="images/Cylinders Test.jpeg" target="_blank" rel="noopener"><img loading="lazy" src="images/Cylinders Test.jpeg" alt=""><span>Concrete cylinder testing</span></a>
-    <a class="thumb" href="images/Crew Oversight.jpeg" target="_blank" rel="noopener"><img loading="lazy" src="images/Crew Oversight.jpeg" alt=""><span>Crew oversight during installation</span></a>
-    <a class="thumb" href="images/Stair Nosings Submittal.png" target="_blank" rel="noopener"><img loading="lazy" src="images/Stair Nosings Submittal.png" alt=""><span>Stair nosings submittal review</span></a>
-  </div>
-</template>
-
-<template id="details-rocketry" data-kicker="Payload Mechanics Responsible Engineer &middot; Aug 2024 – Present" data-title="Swamp Launch Rocketry">
-  <p>Responsible engineer for payload mechanics on the 2027 IREC sensor payload, covering mechanical design, material selection (PA6-CF), and design for manufacturing.</p>
-  <!-- DETAILED WRITE-UP: this panel scrolls, so add as much as you like. Pattern:
-       <h5>Subheading</h5>
-       <p>Paragraph...</p>
-       <ul class="detail-list"><li>Point</li><li>Point</li></ul>
-  -->
-  <h4>Documents &amp; Images</h4>
-  <div class="empty-note">Files will be added here.</div>
-  <!-- Example: <div class="file-list"> ...copy an <a class="file"> row from another template... </div> -->
-</template>
-
 <template id="details-certifications" data-kicker="Licenses &amp; Credentials" data-title="Certifications">
   <p>Credentials in mechanical design, aviation, and emergency response.</p>
   <h4>Credentials</h4>
@@ -714,7 +763,7 @@
     </a>
     <div class="file" style="cursor:default">
       <span class="ficon"><i class="fas fa-id-card"></i></span>
-      <span><strong>FAA Private Pilot License (Part 61)</strong><small>VFR navigation, cross-country planning, and cockpit resource management.</small></span>
+      <span><strong>FAA Private Pilot License (Part 61)</strong><small>55 flight hours. VFR navigation, cross-country planning, and cockpit resource management.</small></span>
       <span class="go"></span>
     </div>
     <div class="file" style="cursor:default">
@@ -730,18 +779,12 @@
   </div>
 </template>
 
-<template id="details-windtunnel" data-kicker="UF Graduate Research Group &middot; Aug 2026 – Present" data-title="Experimental Wind Tunnel Test Engineer">
-  <p>Supporting experimental aerodynamics research, including the installation of a 4-axis model positioner (DYNAMO) and fabrication of Unistrut support structures for the wind tunnel.</p>
-  <h4>Documents &amp; Images</h4>
-  <div class="empty-note">Files will be added here.</div>
-</template>
-
 <script>
 (function () {
   var root = document.documentElement;
   var body = document.body;
   var topbar = document.getElementById('topbar');
-  root.classList.add('preloading');
+  var skipPreloader = root.classList.contains('skip-pl');
 
   /* ---------- keep --nav-h equal to the real bar height ---------- */
   function setNavH() { root.style.setProperty('--nav-h', topbar.offsetHeight + 'px'); }
@@ -750,12 +793,16 @@
   if (window.ResizeObserver) new ResizeObserver(setNavH).observe(topbar);
   function navH() { return topbar.offsetHeight; }
 
-  /* ---------- PRELOADER SEQUENCE ---------- */
+  /* ---------- PRELOADER SEQUENCE (3/4 of the previous timing) ---------- */
   var circle = document.getElementById('progress-circle');
   var started = false;
+  function openHash() {
+    if (location.hash && document.getElementById(location.hash.slice(1))) goTo(location.hash.slice(1), true);
+  }
   function runPreloader() {
     if (started) return;
     started = true;
+    try { sessionStorage.setItem('sc_preloader_seen', '1'); } catch (e) {}
     circle.style.strokeDashoffset = '0';
     setTimeout(function () {
       body.classList.add('takeoff-ready');
@@ -763,19 +810,25 @@
         body.classList.add('elements-fade');
         setTimeout(function () {
           body.classList.add('takeoff-active');
-          setTimeout(function () { body.classList.add('loaded'); }, 600);
+          setTimeout(function () { body.classList.add('loaded'); }, 450);
           setTimeout(function () {
             document.getElementById('preloader').style.display = 'none';
             root.classList.remove('preloading');
             setNavH();
-            if (location.hash && document.getElementById(location.hash.slice(1))) goTo(location.hash.slice(1), true);
-          }, 2500);
-        }, 500);
-      }, 900);
-    }, 1300);
+            openHash();
+          }, 1875);
+        }, 375);
+      }, 675);
+    }, 975);
   }
-  window.addEventListener('load', runPreloader);
-  setTimeout(runPreloader, 4000);
+  if (skipPreloader) {
+    body.classList.add('loaded');
+    window.addEventListener('load', function () { setNavH(); openHash(); });
+  } else {
+    root.classList.add('preloading');
+    window.addEventListener('load', runPreloader);
+    setTimeout(runPreloader, 3000);
+  }
 
   /* ---------- NAVIGATION: scroll to sections ---------- */
   var tabs = Array.prototype.slice.call(document.querySelectorAll('.tab'));
@@ -864,25 +917,29 @@
   }
   function openPdf(url) { return loadPdfJs().then(function (lib) { return lib.getDocument(encodeURI(url)).promise; }); }
 
-  /* Resume: render every page as a canvas that fits the window (never cropped, never oversized) */
+  /* Resume: pages are drawn to fit INSIDE the frame (frame is border-box, 2px border each side) */
   var frame = document.getElementById('resume-frame');
+  var BORDER = 4;
   var resumeDoc = null, resumeW = 0, resumeBusy = false;
-  function resumeTargetW(pageW, pageH) {
-    var avail = frame.parentNode.clientWidth;
-    var byHeight = (window.innerHeight - navH() - 90) * (pageW / pageH);   /* whole page fits one screen on desktop */
-    return Math.floor(Math.max(260, Math.min(avail, 900, byHeight)));
+  function resumeAvail() {
+    var p = frame.parentNode, cs = getComputedStyle(p);
+    return p.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);   /* content width, excluding section padding */
+  }
+  function resumeFrameW(pageW, pageH) {
+    var byHeight = (window.innerHeight - navH() - 90) * (pageW / pageH) + BORDER;      /* whole page fits one screen on desktop */
+    return Math.floor(Math.max(260, Math.min(resumeAvail(), 900, byHeight)));
   }
   function renderResume() {
     if (!resumeDoc || resumeBusy) return;
     resumeBusy = true;
     resumeDoc.getPage(1).then(function (p1) {
       var v1 = p1.getViewport({ scale: 1 });
-      var w = resumeTargetW(v1.width, v1.height);
+      var w = resumeFrameW(v1.width, v1.height);
       if (w === resumeW) { resumeBusy = false; return; }
       resumeW = w;
       var dpr = Math.min(window.devicePixelRatio || 1, 2.5);
       var jobs = [];
-      for (var n = 1; n <= resumeDoc.numPages; n++) jobs.push(renderPage(resumeDoc, n, w, dpr));
+      for (var n = 1; n <= resumeDoc.numPages; n++) jobs.push(renderPage(resumeDoc, n, w - BORDER, dpr));
       return Promise.all(jobs).then(function (canvases) {
         frame.innerHTML = '';
         frame.style.width = w + 'px';
@@ -896,8 +953,7 @@
       var v1 = page.getViewport({ scale: 1 });
       var v = page.getViewport({ scale: (cssW / v1.width) * dpr });
       var c = document.createElement('canvas');
-      c.width = v.width; c.height = v.height;
-      c.style.width = cssW + 'px';
+      c.width = v.width; c.height = v.height;       /* CSS makes it width:100% of the frame's inner box */
       return page.render({ canvasContext: c.getContext('2d'), viewport: v }).promise.then(function () { return c; });
     });
   }
@@ -922,7 +978,7 @@
         canvas.width = v.width; canvas.height = v.height;
         return page.render({ canvasContext: canvas.getContext('2d'), viewport: v }).promise;
       });
-    }).catch(function () { box.classList.add('missing'); });
+    }).catch(function () { box.closest('.section').classList.add('no-media'); });
   }
 
   /* start PDF work only when near the viewport */
@@ -935,7 +991,7 @@
     lazyTargets.forEach(function (t) { lio.observe(t); });
   } else { lazyTargets.forEach(startLazy); }
 
-  /* ---------- CAROUSEL: seamless infinite loop ---------- */
+  /* ---------- CAROUSEL: seamless infinite loop, swipe/drag enabled ---------- */
   (function () {
     var carousel = document.getElementById('carousel');
     var track = document.getElementById('carousel-track');
@@ -988,11 +1044,12 @@
     if (reduce) { carousel.classList.add('static'); return; }
     whenLoaded(function () { build(); requestAnimationFrame(tick); });
     var rb; window.addEventListener('resize', function () { clearTimeout(rb); rb = setTimeout(build, 250); });
+
     /* hover pause (mouse only) */
     carousel.addEventListener('pointerenter', function (e) { if (e.pointerType === 'mouse') paused = true; });
     carousel.addEventListener('pointerleave', function (e) { if (e.pointerType === 'mouse' && !dragging) paused = false; });
 
-    /* swipe / drag in either direction (touch, pen, mouse); vertical page scroll still works */
+    /* swipe / drag in either direction; vertical page scroll still works */
     carousel.addEventListener('pointerdown', function (e) {
       if (e.pointerType === 'mouse' && e.button !== 0) return;
       dragging = true; paused = true; momentum = 0;
