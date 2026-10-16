@@ -80,7 +80,7 @@
   /* repeat visit in the same session: no preloader at all */
   .skip-pl #preloader { display: none; }
   .skip-pl #main-wrapper { opacity: 1; filter: none; transition: none; }
-  .skip-pl .topbar { opacity: 1; transition: none; }
+  .skip-pl .topbar { opacity: 1; transform: none; transition: none; }
 
   /* =====================================================
      TOP BAR (always visible, all tabs shown)
@@ -92,20 +92,21 @@
     -webkit-backdrop-filter: saturate(180%) blur(16px);
     backdrop-filter: saturate(180%) blur(16px);
     border-bottom: 2px solid var(--obsidian);
-    opacity: 0; transition: opacity 0.6s ease;
+    transform: translateY(-101%); opacity: 0;
+    transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.15s, opacity 0.5s ease 0.15s;
   }
-  .loaded .topbar { opacity: 1; }
+  .loaded .topbar { transform: none; opacity: 1; }
 
   .tabs {
-    display: grid;
-    grid-template-columns: minmax(0, 0.62fr) repeat(7, minmax(0, 1fr));
-    max-width: 1500px; margin: 0 auto;
+    display: flex; align-items: stretch;
+    max-width: 1600px; margin: 0 auto;
   }
-  .tab-home i { margin-right: 7px; font-size: 0.85em; }
+  .tab-home i { margin-right: 8px; font-size: 0.85em; }
   .tab {
+    flex: 1 1 auto; min-width: 0;
     display: flex; align-items: center; justify-content: center; text-align: center;
-    padding: 14px 10px;
-    font-size: 0.76rem; font-weight: 800; line-height: 1.25;
+    padding: 21px 14px;
+    font-size: 0.86rem; font-weight: 800; line-height: 1.25;
     text-transform: uppercase; letter-spacing: 0.4px;
     color: var(--slate); text-decoration: none;
     border-left: 1px solid var(--line);
@@ -113,6 +114,7 @@
     transition: color .2s, border-color .2s, background .2s;
   }
   .tab:first-child { border-left: 0; }
+  .tab-home { flex: 0 0 auto; padding-left: 24px; padding-right: 24px; }
   .tab:hover { color: var(--obsidian); background: rgba(0,0,0,0.03); }
   .tab.active { color: var(--obsidian); border-bottom-color: var(--accent-green); }
   .tab:focus-visible { outline: 2px solid var(--obsidian); outline-offset: -3px; }
@@ -127,7 +129,7 @@
     min-height: 100vh; min-height: 100dvh;
     padding-top: var(--nav-h);
   }
-  .hero-text { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 60px 6% 60px 8%; z-index: 2; }
+  .hero-text { flex: 1.35; display: flex; flex-direction: column; justify-content: center; padding: 60px 4% 60px 8%; z-index: 2; }
   .hero-image {
     flex: 1.2; position: relative;
     background: url('images/DSCF2893.JPG') no-repeat center center;
@@ -137,7 +139,8 @@
   .hero-image::after { content: ""; position: absolute; top: 0; left: 0; width: 30%; height: 100%; background: linear-gradient(to right, var(--cream), transparent); }
 
   h1 { font-size: clamp(2.8rem, 7.5vw, 6rem); font-weight: 900; line-height: 0.9; text-transform: uppercase; letter-spacing: -3px; margin: 0 0 15px; }
-  .subtitle { font-size: 1.1rem; color: var(--slate); margin: 0 0 14px; text-transform: uppercase; letter-spacing: 1px; }
+  .subtitle { font-size: clamp(0.8rem, 1.05vw, 1.1rem); color: var(--slate); margin: 0 0 14px; text-transform: uppercase; letter-spacing: 0.6px; }
+  .subtitle .nb { display: inline-block; }
   .edu { font-size: 0.8rem; font-weight: 700; color: var(--obsidian); margin: 0 0 36px; letter-spacing: 0.3px; line-height: 1.6; }
   .edu span { color: var(--accent-green); padding: 0 6px; }
 
@@ -192,6 +195,7 @@
   .carousel.dragging { cursor: grabbing; }
   .carousel-track { display: flex; gap: 24px; width: max-content; padding: 6px 12px 14px; will-change: transform; }
   .slide { flex: none; margin: 0; background: var(--white); border: 2px solid var(--obsidian); box-shadow: 4px 4px 0 var(--obsidian); }
+  .slide:not(.ready) { display: none; }
   .slide img { height: 270px; width: auto; max-width: none; object-fit: cover; pointer-events: none; -webkit-user-drag: none; }
   .carousel.static { overflow-x: auto; touch-action: auto; }
 
@@ -224,6 +228,16 @@
   .media-frame > img { width: 100%; height: 100%; object-fit: cover; }
   .media-frame > img.contain { object-fit: contain; padding: 14px; }
   .media-frame canvas { position: absolute; top: 0; left: 0; width: 100%; height: auto; }
+  a.media-frame { display: block; color: inherit; text-decoration: none; cursor: zoom-in; }
+  .frame-fallback {
+    display: none; position: absolute; inset: 0;
+    flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+    color: var(--slate); font-size: 0.72rem; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase;
+    background: repeating-linear-gradient(135deg, #f1f1ed, #f1f1ed 14px, #f6f6f3 14px, #f6f6f3 28px);
+  }
+  .frame-fallback i { font-size: 1.6rem; }
+  .media-frame.missing > img { display: none; }
+  .media-frame.missing .frame-fallback { display: flex; }
 
   /* =====================================================
      DETAILS OVERLAY (scrollable, for long write-ups)
@@ -274,6 +288,22 @@
   .thumb span { display: block; padding: 10px 12px; font-size: 0.78rem; font-weight: 700; line-height: 1.35; }
 
   /* =====================================================
+     TOAST
+     ===================================================== */
+  .toast {
+    position: fixed; left: 50%; bottom: max(28px, env(safe-area-inset-bottom));
+    transform: translate(-50%, 24px); opacity: 0; pointer-events: none;
+    z-index: 9000; max-width: calc(100vw - 32px);
+    display: flex; align-items: center; gap: 12px;
+    padding: 15px 22px; background: var(--white); color: var(--obsidian);
+    border: 2px solid var(--obsidian); box-shadow: 4px 4px 0 var(--obsidian);
+    font-weight: 800; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.3px;
+    transition: opacity .25s ease, transform .25s ease;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  .toast i { color: var(--accent-green); font-size: 1rem; }
+
+  /* =====================================================
      FOOTER
      ===================================================== */
   footer { background: var(--white); border-top: 2px solid var(--obsidian); padding: 70px 5%; text-align: center; }
@@ -293,14 +323,15 @@
      RESPONSIVE
      ===================================================== */
   @media (max-width: 1280px) {
-    .tab { font-size: 0.7rem; padding: 12px 8px; letter-spacing: 0.2px; }
+    .tab { font-size: 0.76rem; padding: 17px 9px; letter-spacing: 0.2px; }
+    .tab-home { padding-left: 14px; padding-right: 14px; }
   }
 
   /* Tablet + phone: bars / HOME / green text, and a list of ALL tabs */
   @media (max-width: 1100px) {
     :root { --nav-h: 58px; }
     /* solid bar (no blur) so the menu opens instantly */
-    .topbar { background: var(--cream); -webkit-backdrop-filter: none; backdrop-filter: none; }
+    .topbar { background: var(--cream); -webkit-backdrop-filter: none; backdrop-filter: none; transform: none; transition: opacity 0.6s ease; }
     .mobile-bar {
       display: flex; align-items: center; gap: 12px; height: 58px;
       padding: 0 max(5%, env(safe-area-inset-left));
@@ -338,6 +369,7 @@
     .hero-image::after { width: 100%; height: 35%; top: auto; bottom: 0; background: linear-gradient(to top, var(--cream), transparent); }
     .hero-text { padding: 30px 24px 70px; text-align: center; align-items: center; }
     h1 { letter-spacing: -2px; }
+    .subtitle { font-size: 1rem; }
 
     .resume { padding: 80px 24px 40px; }
     .carousel-label { padding: 0 24px; }
@@ -413,8 +445,8 @@
   <section class="hero" id="top">
     <div class="hero-text">
       <h1>Samuel <br>Crabbendam</h1>
-      <p class="subtitle">Aerospace Engineering Student <br>&amp; Private Pilot</p>
-      <p class="edu">University of Florida<span>&middot;</span>B.S. Aerospace Engineering<span>&middot;</span>May 2028<span>&middot;</span>GPA 3.6</p>
+      <p class="subtitle"><span class="nb">Aerospace Engineering Student</span> <span class="nb">&amp; Private Pilot</span></p>
+      <p class="edu">University of Florida<span>&middot;</span>B.S. Aerospace Engineering<span>&middot;</span>Graduating May 2028<span>&middot;</span>GPA 3.6</p>
       <div class="button-stack">
         <a href="#resume" class="btn btn-primary"><i class="fas fa-file-lines"></i><span>View Resume</span></a>
         <a href="mailto:crabbendams@gmail.com" class="btn"><i class="fas fa-envelope"></i><span>Email Me</span></a>
@@ -450,13 +482,9 @@
     <div class="carousel-label"><span class="kicker">Project Highlights</span></div>
     <div class="carousel" id="carousel">
       <div class="carousel-track" id="carousel-track">
-        <!-- Add or remove slides freely; the loop rebuilds itself. Swipe or drag to browse. -->
-        <figure class="slide"><img src="images/UAS General Model.png" alt="UAS general model"></figure>
-        <figure class="slide"><img src="images/Structural Beam Rebar - good catch.jpeg" alt="Structural beam rebar inspection"></figure>
-        <figure class="slide"><img src="images/Cylinders Test.jpeg" alt="Concrete cylinder testing"></figure>
-        <figure class="slide"><img src="images/Valley Curb NW.jpeg" alt="Valley curb installation"></figure>
-        <figure class="slide"><img src="images/Crew Oversight.jpeg" alt="Crew oversight"></figure>
-        <figure class="slide"><img src="images/Stair Nosings Submittal.png" alt="Stair nosings submittal"></figure>
+        <!-- Slides are built automatically from EVERY photo on the page: section photos plus the
+             photos inside each "details & files" panel. Add a photo anywhere and it joins the carousel.
+             To add a carousel-only photo, put a  <figure class="slide"><img src="images/YOUR.jpg" alt=""></figure>  here. -->
       </div>
     </div>
   </section>
@@ -466,9 +494,10 @@
     <!-- ========== 1. SWAMP LAUNCH ROCKETRY ========== -->
     <section class="section tone" id="rocketry">
       <div class="section-inner">
-        <!-- Add a photo/CAD render at images/swamp-launch.jpg and it appears automatically. Until then the section runs as text only. -->
+        <!-- Photo slot: add images/swamp-launch.jpg (or change the path) and it appears here AND in the carousel. -->
         <div class="media-frame">
-          <img src="images/swamp-launch.jpg" alt="Swamp Launch Rocketry payload" onerror="this.closest('.section').classList.add('no-media')">
+          <img src="images/swamp-launch.jpg" alt="Swamp Launch Rocketry payload" onerror="this.parentNode.classList.add('missing')">
+          <div class="frame-fallback"><i class="fas fa-image"></i><span>Photo coming soon</span></div>
         </div>
         <div class="copy">
           <span class="kicker">Payload Mechanics Responsible Engineer &middot; Aug 2024 – Present</span>
@@ -488,9 +517,10 @@
     <!-- ========== 2. WIND TUNNEL TEST ENGINEER ========== -->
     <section class="section flip" id="windtunnel">
       <div class="section-inner">
-        <!-- Add a photo at images/wind-tunnel.jpg and it appears automatically. Until then the section runs as text only. -->
+        <!-- Photo slot: add images/wind-tunnel.jpg (or change the path) and it appears here AND in the carousel. -->
         <div class="media-frame">
-          <img src="images/wind-tunnel.jpg" alt="Wind tunnel test setup" onerror="this.closest('.section').classList.add('no-media')">
+          <img src="images/wind-tunnel.jpg" alt="Wind tunnel test setup" onerror="this.parentNode.classList.add('missing')">
+          <div class="frame-fallback"><i class="fas fa-image"></i><span>Photo coming soon</span></div>
         </div>
         <div class="copy">
           <span class="kicker">UF Graduate Research Group &middot; Aug 2026 – Present</span>
@@ -549,12 +579,8 @@
     </section>
 
     <!-- ========== 5. AEROSPACE ANALYSIS REPORTS ========== -->
-    <section class="section tone" id="aerospace">
+    <section class="section tone no-media" id="aerospace">
       <div class="section-inner">
-        <!-- Image is generated from page 1 of the PDF. -->
-        <div class="media-frame" data-pdf-thumb="images/SamuelCrabbendam_FailureAnalysisPaper.pdf">
-          <canvas></canvas>
-        </div>
         <div class="copy">
           <span class="kicker">Coursework &middot; University of Florida</span>
           <h2>Aerospace Analysis Reports</h2>
@@ -591,9 +617,9 @@
     <!-- ========== 7. CERTIFICATIONS ========== -->
     <section class="section tone" id="certifications">
       <div class="section-inner">
-        <div class="media-frame" data-pdf-thumb="images/SolidWorks Certification.pdf">
+        <a class="media-frame" href="images/SolidWorks Certification.pdf" target="_blank" rel="noopener" aria-label="View CSWA SolidWorks certificate (opens PDF)" data-pdf-thumb="images/SolidWorks Certification.pdf">
           <canvas></canvas>
-        </div>
+        </a>
         <div class="copy">
           <span class="kicker">Licenses &amp; Credentials</span>
           <h2>Certifications</h2>
@@ -604,7 +630,6 @@
             <li>FAA Remote Pilot Certificate, Part 107 (commercial sUAS)</li>
             <li>First Aid / AED / CPR</li>
           </ul>
-          <button class="btn" data-details="certifications">View details &amp; files <i class="fas fa-arrow-right"></i></button>
         </div>
       </div>
     </section>
@@ -630,6 +655,8 @@
     <a href="#top" class="to-top"><i class="fas fa-arrow-up"></i> Back to top</a>
   </footer>
 </div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"><i class="fas fa-circle-check"></i><span id="toast-text"></span></div>
 
 <!-- ================= DETAILS OVERLAY ================= -->
 <div class="overlay" id="overlay" aria-hidden="true">
@@ -749,33 +776,6 @@
       <span><strong>Lab 3: Tensile &amp; Compressive Testing</strong><small>Displacement-controlled tensile and compressive testing of four specimens, including ultimate tensile strength analysis.</small></span>
       <span class="go"><i class="fas fa-up-right-from-square"></i></span>
     </a>
-  </div>
-</template>
-
-<template id="details-certifications" data-kicker="Licenses &amp; Credentials" data-title="Certifications">
-  <p>Credentials in mechanical design, aviation, and emergency response.</p>
-  <h4>Credentials</h4>
-  <div class="file-list">
-    <a class="file" href="images/SolidWorks Certification.pdf" target="_blank" rel="noopener">
-      <span class="ficon"><i class="fas fa-cube"></i></span>
-      <span><strong>CSWA: SolidWorks</strong><small>Certified SolidWorks Associate in Mechanical Design. Part modeling and assembly analysis. Tap to view the certificate.</small></span>
-      <span class="go"><i class="fas fa-up-right-from-square"></i></span>
-    </a>
-    <div class="file" style="cursor:default">
-      <span class="ficon"><i class="fas fa-id-card"></i></span>
-      <span><strong>FAA Private Pilot License (Part 61)</strong><small>55 flight hours. VFR navigation, cross-country planning, and cockpit resource management.</small></span>
-      <span class="go"></span>
-    </div>
-    <div class="file" style="cursor:default">
-      <span class="ficon"><i class="fas fa-id-badge"></i></span>
-      <span><strong>FAA Remote Pilot Certificate (Part 107)</strong><small>Certified for commercial small Unmanned Aircraft Systems (sUAS) operations.</small></span>
-      <span class="go"></span>
-    </div>
-    <div class="file" style="cursor:default">
-      <span class="ficon"><i class="fas fa-first-aid"></i></span>
-      <span><strong>First Aid / AED / CPR</strong><small>Emergency medical response and life-saving AED/CPR procedures.</small></span>
-      <span class="go"></span>
-    </div>
   </div>
 </template>
 
@@ -991,33 +991,80 @@
     lazyTargets.forEach(function (t) { lio.observe(t); });
   } else { lazyTargets.forEach(startLazy); }
 
-  /* ---------- CAROUSEL: seamless infinite loop, swipe/drag enabled ---------- */
+  /* ---------- CAROUSEL: built from every image on the page, seamless loop, swipe/drag ---------- */
   (function () {
     var carousel = document.getElementById('carousel');
     var track = document.getElementById('carousel-track');
-    var originals = Array.prototype.slice.call(track.children);
+    var holder = carousel.closest('.carousel-wrap');
     var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-    var setW = 0, offset = 0, paused = false, last = 0, SPEED = 45; /* px per second */
-    var dragging = false, startX = 0, startOffset = 0, momentum = 0, lastX = 0, lastT = 0, resumeT;
+    var setW = 0, offset = 0, paused = false, last = 0, SPEED = 45, started = false; /* px per second */
+    var dragging = false, startX = 0, startOffset = 0, momentum = 0, lastX = 0, lastT = 0, resumeT, bt;
     function wrap() { if (setW > 0) offset = ((offset % setW) + setW) % setW; }
     function apply() { track.style.transform = 'translate3d(' + (-offset) + 'px,0,0)'; }
+    function schedule() { clearTimeout(bt); bt = setTimeout(build, 80); }
 
+    /* 1. Gather images: hand-added slides first, then, section by section, the section photo
+          and every photo inside that section's details panel. Duplicates are skipped. */
+    function collect() {
+      var seen = {}, list = [];
+      function add(src, alt) {
+        if (!src) return;
+        var key; try { key = new URL(src, location.href).href; } catch (e) { key = src; }
+        if (seen[key]) return;
+        seen[key] = true; list.push({ src: src, alt: alt || '' });
+      }
+      Array.prototype.forEach.call(track.querySelectorAll('.slide img'), function (im) { add(im.getAttribute('src'), im.alt); });
+      Array.prototype.forEach.call(document.querySelectorAll('main .section'), function (sec) {
+        var im = sec.querySelector('.media-frame > img');
+        if (im) add(im.getAttribute('src'), im.alt);
+        var tpl = document.getElementById('details-' + sec.id);
+        if (tpl) Array.prototype.forEach.call(tpl.content.querySelectorAll('img'), function (i) {
+          var cap = i.parentNode.querySelector('span');
+          add(i.getAttribute('src'), i.alt || (cap ? cap.textContent : ''));
+        });
+      });
+      return list;
+    }
+
+    /* 2. Create slides; a slide only shows once its image has really loaded (missing files are dropped). */
+    function populate() {
+      var items = collect();
+      track.innerHTML = '';
+      items.forEach(function (it) {
+        var fig = document.createElement('figure');
+        fig.className = 'slide';
+        var img = new Image();
+        img.alt = it.alt;
+        img.decoding = 'async';
+        img.addEventListener('load', function () { fig.classList.add('ready'); schedule(); });
+        img.addEventListener('error', function () { fig.remove(); schedule(); });
+        img.src = it.src;
+        fig.appendChild(img);
+        track.appendChild(fig);
+      });
+    }
+
+    /* 3. Duplicate the loaded slides enough times to fill the screen so the loop never ends or jumps. */
     function build() {
-      Array.prototype.slice.call(track.querySelectorAll('.clone')).forEach(function (n) { n.remove(); });
+      Array.prototype.forEach.call(track.querySelectorAll('.clone'), function (n) { n.remove(); });
+      var orig = Array.prototype.slice.call(track.querySelectorAll('.slide.ready'));
+      holder.style.display = orig.length ? '' : 'none';
+      if (!orig.length || reduce) { setW = 0; track.style.transform = ''; return; }
       function addSet() {
-        originals.forEach(function (s) {
+        orig.forEach(function (s) {
           var c = s.cloneNode(true); c.classList.add('clone'); c.setAttribute('aria-hidden', 'true');
           track.appendChild(c);
         });
       }
       addSet();
-      var firstClone = track.querySelector('.clone');
-      setW = firstClone.offsetLeft - originals[0].offsetLeft;
+      setW = track.querySelector('.clone').offsetLeft - orig[0].offsetLeft;
       if (setW <= 0) return;
       var sets = Math.ceil(carousel.clientWidth / setW) + 1;
       for (var i = 1; i < sets; i++) addSet();
-      offset = offset % setW;
+      wrap(); apply();
+      if (!started) { started = true; requestAnimationFrame(tick); }
     }
+
     function tick(t) {
       if (!last) last = t;
       var dt = Math.min(t - last, 100); last = t;
@@ -1032,17 +1079,9 @@
       }
       requestAnimationFrame(tick);
     }
-    function whenLoaded(cb) {
-      var imgs = Array.prototype.slice.call(track.querySelectorAll('img'));
-      var pending = imgs.filter(function (i) { return !i.complete; }).length;
-      if (!pending) return cb();
-      var done = false;
-      function one() { if (--pending <= 0 && !done) { done = true; cb(); } }
-      imgs.forEach(function (i) { if (!i.complete) { i.addEventListener('load', one); i.addEventListener('error', one); } });
-      setTimeout(function () { if (!done) { done = true; cb(); } }, 5000);
-    }
-    if (reduce) { carousel.classList.add('static'); return; }
-    whenLoaded(function () { build(); requestAnimationFrame(tick); });
+
+    populate();
+    if (reduce) carousel.classList.add('static');
     var rb; window.addEventListener('resize', function () { clearTimeout(rb); rb = setTimeout(build, 250); });
 
     /* hover pause (mouse only) */
@@ -1077,6 +1116,42 @@
     }
     carousel.addEventListener('pointerup', endDrag);
     carousel.addEventListener('pointercancel', endDrag);
+  })();
+
+  /* ---------- EMAIL: copy address to clipboard (backup when no mail app is set up) + open mail app ---------- */
+  (function () {
+    var EMAIL = 'crabbendams@gmail.com';
+    var toast = document.getElementById('toast');
+    var toastText = document.getElementById('toast-text');
+    var tt;
+    function showToast(msg) {
+      toastText.textContent = msg;
+      toast.classList.add('show');
+      clearTimeout(tt);
+      tt = setTimeout(function () { toast.classList.remove('show'); }, 2600);
+    }
+    function copyText(text) {
+      if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text);
+      return new Promise(function (resolve, reject) {
+        try {
+          var ta = document.createElement('textarea');
+          ta.value = text; ta.setAttribute('readonly', '');
+          ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+          document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, text.length);
+          var ok = document.execCommand('copy');
+          document.body.removeChild(ta);
+          ok ? resolve() : reject();
+        } catch (e) { reject(e); }
+      });
+    }
+    Array.prototype.forEach.call(document.querySelectorAll('a[href^="mailto:"]'), function (a) {
+      a.addEventListener('click', function () {
+        /* no preventDefault: the mail app still opens if one exists */
+        copyText(EMAIL)
+          .then(function () { showToast('Email copied to clipboard!'); })
+          .catch(function () { showToast(EMAIL); });
+      });
+    });
   })();
 
   /* ---------- DETAILS OVERLAY ---------- */
