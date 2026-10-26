@@ -1,18 +1,34 @@
-<script data-goatcounter="https://crabbendams.goatcounter.com/count"
-        async src="//gc.zgo.at/count.js"></script>
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Samuel Crabbendam | Aerospace & Pilot</title>
+<!-- GoatCounter analytics (cookieless). Dashboard: https://crabbendams.goatcounter.com -->
+<script data-goatcounter="https://crabbendams.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+<title>Samuel Crabbendam | Aerospace &amp; Pilot</title>
 <meta name="description" content="Samuel Crabbendam: aerospace engineering student and private pilot at the University of Florida. Resume, projects, lab reports, and experience.">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700;900&display=swap" rel="stylesheet">
 <script>
   /* Preloader plays once per browser session; repeat views load instantly. */
   try { if (sessionStorage.getItem('sc_preloader_seen')) document.documentElement.classList.add('skip-pl'); } catch (e) {}
+  /* People who ask their device for reduced motion skip the preloader animation. */
+  try { if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('skip-pl'); } catch (e) {}
+  /* Failsafe: if anything ever stops the page from revealing itself, force it visible after 9 seconds. */
+  setTimeout(function () {
+    var b = document.body;
+    if (!b || !b.classList.contains('loaded')) document.documentElement.classList.add('fail-open');
+  }, 9000);
 </script>
+<noscript><style>
+  /* Visitors with JavaScript turned off still see the whole page. */
+  #preloader { display: none !important; }
+  #main-wrapper { opacity: 1 !important; filter: none !important; }
+  .topbar { position: static !important; transform: none !important; opacity: 1 !important; }
+  .mobile-bar { display: none !important; }
+  .tabs { position: static !important; visibility: visible !important; opacity: 1 !important; transform: none !important; pointer-events: auto !important; max-height: none !important; }
+  #resume-frame .resume-msg { display: none; }
+</style></noscript>
 <style>
   :root {
     --cream: #f9f9f7;
@@ -79,6 +95,12 @@
   #main-wrapper { opacity: 0; filter: blur(20px); transition: opacity 0.9s ease, filter 1.125s ease; }
   .loaded #main-wrapper { opacity: 1; filter: none; }
 
+  /* failsafe (class is set by the tiny script in <head> if the reveal never completes) */
+  .fail-open #preloader { display: none; }
+  .fail-open #main-wrapper { opacity: 1; filter: none; transition: none; }
+  .fail-open .topbar { opacity: 1; transform: none; }
+  html.fail-open, html.fail-open body { overflow: auto !important; }
+
   /* repeat visit in the same session: no preloader at all */
   .skip-pl #preloader { display: none; }
   .skip-pl #main-wrapper { opacity: 1; filter: none; transition: none; }
@@ -120,6 +142,13 @@
   .tab:hover { color: var(--obsidian); background: rgba(0,0,0,0.03); }
   .tab.active { color: var(--obsidian); border-bottom-color: var(--accent-green); }
   .tab:focus-visible { outline: 2px solid var(--obsidian); outline-offset: -3px; }
+  /* Desktop shows short one-line labels; the phone menu and the section headings show the full titles. */
+  .t-short { display: none; }
+  @media (min-width: 1101px) {
+    .t-full { display: none; }
+    .t-short { display: inline; }
+    .tab { white-space: nowrap; min-width: auto; }
+  }
 
   .mobile-bar { display: none; }
 
@@ -143,8 +172,16 @@
   h1 { font-size: clamp(2.8rem, 7.5vw, 6rem); font-weight: 900; line-height: 0.9; text-transform: uppercase; letter-spacing: -3px; margin: 0 0 15px; }
   .subtitle { font-size: clamp(0.8rem, 1.05vw, 1.1rem); color: var(--slate); margin: 0 0 14px; text-transform: uppercase; letter-spacing: 0.6px; }
   .subtitle .nb { display: inline-block; }
-  .edu { font-size: 0.8rem; font-weight: 700; color: var(--obsidian); margin: 0 0 36px; letter-spacing: 0.3px; line-height: 1.6; }
+  .edu { font-size: 0.8rem; font-weight: 700; color: var(--obsidian); margin: 0 0 18px; letter-spacing: 0.3px; line-height: 1.6; }
   .edu span { color: var(--accent-green); padding: 0 6px; }
+  .availability {
+    display: inline-flex; align-items: center; gap: 10px; align-self: flex-start;
+    margin: 0 0 36px; padding: 8px 14px;
+    background: var(--white); border: 2px solid var(--obsidian);
+    font-size: 0.72rem; font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; line-height: 1.3;
+  }
+  .availability .dot { width: 9px; height: 9px; flex: none; border-radius: 50%; background: var(--accent-green); box-shadow: 0 0 0 0 rgba(40,167,69,0.5); animation: pulse 2.2s ease-out infinite; }
+  @keyframes pulse { 70% { box-shadow: 0 0 0 9px rgba(40,167,69,0); } 100% { box-shadow: 0 0 0 0 rgba(40,167,69,0); } }
 
   .button-stack { display: flex; flex-direction: column; gap: 18px; width: 100%; max-width: 340px; }
   .contact-line { margin: 26px 0 0; font-size: 0.85rem; font-weight: 700; color: var(--slate); line-height: 1.8; }
@@ -164,6 +201,15 @@
   .btn:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--obsidian); }
   .btn:focus-visible { outline: 3px solid var(--accent-green); outline-offset: 3px; }
   .btn.small { padding: 12px 18px; font-size: 0.7rem; box-shadow: 3px 3px 0 var(--obsidian); }
+
+  /* =====================================================
+     SKILLS STRIP
+     ===================================================== */
+  .skills { padding: 34px 8%; background: var(--white); border-top: 2px solid var(--obsidian); border-bottom: 1px solid var(--line); }
+  .skills-inner { max-width: 1180px; margin: 0 auto; display: flex; align-items: center; flex-wrap: wrap; gap: 14px 28px; }
+  .skills .kicker { margin: 0; flex: none; }
+  .chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 10px; flex: 1 1 520px; }
+  .chips li { padding: 7px 12px; background: var(--cream); border: 2px solid var(--obsidian); font-size: 0.72rem; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; line-height: 1.3; }
 
   /* =====================================================
      RESUME
@@ -198,6 +244,17 @@
   .carousel-track { display: flex; gap: 24px; width: max-content; padding: 6px 12px 14px; will-change: transform; }
   .slide { flex: none; margin: 0; background: var(--white); border: 2px solid var(--obsidian); box-shadow: 4px 4px 0 var(--obsidian); }
   .slide:not(.ready) { display: none; }
+  .slide[data-section] { cursor: pointer; }
+  .carousel.dragging, .carousel.dragging .slide { cursor: grabbing; }
+  .slide figcaption {
+    width: 0; min-width: 100%;            /* caption never makes the slide wider than its photo */
+    padding: 9px 12px; background: var(--white); border-top: 2px solid var(--obsidian);
+    font-size: 0.66rem; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    transition: background .2s, color .2s;
+  }
+  .slide[data-section] figcaption::after { content: " \2192"; color: var(--accent-green); }
+  @media (hover: hover) { .slide[data-section]:hover figcaption { background: var(--obsidian); color: #fff; } }
   .slide img { height: 270px; width: auto; max-width: none; object-fit: cover; pointer-events: none; -webkit-user-drag: none; }
   .carousel.static { overflow-x: auto; touch-action: auto; }
 
@@ -229,6 +286,8 @@
   }
   .media-frame > img { width: 100%; height: 100%; object-fit: cover; }
   .media-frame > img.contain { object-fit: contain; padding: 14px; }
+  .media-frame > img { cursor: zoom-in; }
+  .media-frame > img:focus-visible { outline: 3px solid var(--accent-green); outline-offset: -3px; }
   .media-frame canvas { position: absolute; top: 0; left: 0; width: 100%; height: auto; }
   a.media-frame { display: block; color: inherit; text-decoration: none; cursor: zoom-in; }
   .frame-fallback {
@@ -263,6 +322,7 @@
   .sheet-head .kicker { margin-bottom: 8px; }
   .close-btn { flex: none; width: 44px; height: 44px; border: 2px solid var(--obsidian); background: var(--white); cursor: pointer; font-size: 1.1rem; box-shadow: 3px 3px 0 var(--obsidian); }
   .close-btn:hover { background: var(--obsidian); color: #fff; }
+  .sheet-body:focus-visible { outline: 3px solid var(--accent-green); outline-offset: -3px; }
   .sheet-body { flex: 1 1 auto; min-height: 0; padding: 30px; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y; }
   .sheet-body p { color: var(--slate); margin: 0 0 18px; font-size: 0.98rem; line-height: 1.65; }
   .sheet-body h4 { margin: 28px 0 14px; font-size: 0.72rem; font-weight: 800; letter-spacing: 1.6px; text-transform: uppercase; }
@@ -279,6 +339,8 @@
     transition: .2s;
   }
   .file:hover { border-color: var(--obsidian); transform: translateX(3px); }
+  .file.static { cursor: default; }
+  .file.static:hover { border-color: var(--line); transform: none; }
   .file .ficon { width: 44px; height: 44px; display: grid; place-items: center; background: var(--cream); font-size: 1.15rem; }
   .file strong { display: block; font-size: 0.92rem; font-weight: 800; }
   .file small { display: block; color: var(--slate); font-size: 0.82rem; line-height: 1.4; margin-top: 2px; }
@@ -288,6 +350,45 @@
   .thumb:hover { border-color: var(--obsidian); transform: translateY(-3px); }
   .thumb img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
   .thumb span { display: block; padding: 10px 12px; font-size: 0.78rem; font-weight: 700; line-height: 1.35; }
+
+  /* =====================================================
+     PHOTO VIEWER (opens from the section photos and the photo tiles in the details panels)
+     ===================================================== */
+  .viewer {
+    position: fixed; inset: 0; z-index: 800;
+    display: none; flex-direction: column;
+    background: rgba(20, 20, 20, 0.96); color: #fff;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+  .viewer.open { display: flex; animation: fade .2s ease; }
+  .v-top { display: flex; align-items: center; gap: 16px; padding: 14px 18px; }
+  .v-count { margin-right: auto; font-size: 0.72rem; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase; }
+  .v-open { display: inline-flex; align-items: center; gap: 8px; padding-bottom: 2px; color: #fff; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,0.4); font-size: 0.7rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
+  .v-open:hover { border-color: #fff; }
+  .v-btn {
+    width: 48px; height: 48px; flex: none; display: grid; place-items: center;
+    background: var(--white); color: var(--obsidian); border: 2px solid var(--obsidian);
+    box-shadow: 3px 3px 0 rgba(0,0,0,0.45); font-size: 1.05rem; cursor: pointer;
+    transition: transform .15s, box-shadow .15s;
+  }
+  .v-btn:hover { transform: translate(-1px, -1px); box-shadow: 5px 5px 0 rgba(0,0,0,0.45); }
+  .v-btn:focus-visible, .v-open:focus-visible { outline: 3px solid var(--accent-green); outline-offset: 3px; }
+  .v-stage { position: relative; flex: 1 1 auto; min-height: 0; touch-action: pan-y pinch-zoom; -webkit-user-select: none; user-select: none; }
+  .v-prev, .v-next { position: absolute; top: 50%; margin-top: -24px; z-index: 2; }
+  .v-prev { left: 14px; }
+  .v-next { right: 14px; }
+  .v-img {
+    position: absolute; top: 0; right: 0; bottom: 0; left: 0; margin: auto;
+    max-width: calc(100% - 152px); max-height: 100%; width: auto; height: auto;
+    background: #111; box-shadow: 0 10px 40px rgba(0,0,0,0.45);
+    transition: opacity .18s ease, transform .18s ease; will-change: transform, opacity;
+    -webkit-user-drag: none; user-select: none;
+  }
+  .v-img.hide { opacity: 0; }
+  .v-img.dragging { transition: none; }
+  .v-cap { margin: 0; padding: 14px 24px 22px; min-height: 3.6em; text-align: center; font-size: 0.8rem; font-weight: 700; line-height: 1.45; color: rgba(255,255,255,0.88); }
+  .viewer.single .v-prev, .viewer.single .v-next { display: none; }
+  .viewer.single .v-img { max-width: calc(100% - 32px); }
 
   /* =====================================================
      TOAST
@@ -372,6 +473,8 @@
     .hero-text { padding: 30px 24px 70px; text-align: center; align-items: center; }
     h1 { letter-spacing: -2px; }
     .subtitle { font-size: 1rem; }
+    .availability { align-self: center; }
+    .skills { padding: 30px 24px; }
 
     .resume { padding: 80px 24px 40px; }
     .carousel-label { padding: 0 24px; }
@@ -386,7 +489,18 @@
   @media (max-width: 600px) {
     h1 { font-size: 2.6rem; letter-spacing: -1.5px; }
     .subtitle { font-size: 0.95rem; }
-    .edu { font-size: 0.74rem; margin-bottom: 28px; }
+    .edu { font-size: 0.74rem; margin-bottom: 14px; }
+    .availability { margin-bottom: 28px; font-size: 0.68rem; }
+    .skills { padding: 28px 20px; }
+    .chips li { padding: 6px 10px; font-size: 0.66rem; }
+    .v-top { padding: 12px 14px; gap: 12px; }
+    .v-btn { width: 44px; height: 44px; }
+    .v-prev, .v-next { margin-top: -22px; }
+    .v-prev { left: 8px; }
+    .v-next { right: 8px; }
+    .v-img { max-width: calc(100% - 16px); }
+    .viewer.single .v-img { max-width: calc(100% - 16px); }
+    .v-cap { padding: 12px 18px 18px; font-size: 0.76rem; }
     .slide img { height: 200px; }
     .carousel-track { gap: 16px; }
     .section { padding: 90px 20px; }
@@ -403,6 +517,8 @@
 
   @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
+    .availability .dot { animation: none; }
+    .v-img { transition: none; }
   }
 </style>
 </head>
@@ -432,13 +548,14 @@
   <nav class="tabs" id="tabs" aria-label="Sections">
     <a class="tab tab-home" href="#top"><i class="fas fa-house"></i>Home</a>
     <a class="tab tab-resume" href="#resume">Resume</a>
-    <a class="tab" href="#rocketry">Swamp Launch Rocketry</a>
-    <a class="tab" href="#windtunnel">Wind Tunnel Test Engineer</a>
-    <a class="tab" href="#uas">Personal UAS Project</a>
-    <a class="tab" href="#garney">Garney Internship</a>
-    <a class="tab" href="#aerospace">Aerospace Analysis Reports</a>
-    <a class="tab" href="#mechanics">Mechanics of Materials Laboratory</a>
-    <a class="tab" href="#certifications">Certifications</a>
+    <!-- Each tab has a short label for the desktop bar (t-short) and the full title for the phone menu (t-full). -->
+    <a class="tab" href="#rocketry" title="Swamp Launch Rocketry"><span class="t-full">Swamp Launch Rocketry</span><span class="t-short">Rocketry</span></a>
+    <a class="tab" href="#windtunnel" title="Wind Tunnel Test Engineer"><span class="t-full">Wind Tunnel Test Engineer</span><span class="t-short">Wind Tunnel</span></a>
+    <a class="tab" href="#uas" title="Personal UAS Project"><span class="t-full">Personal UAS Project</span><span class="t-short">UAS Project</span></a>
+    <a class="tab" href="#garney" title="Garney Internship"><span class="t-full">Garney Internship</span><span class="t-short">Garney</span></a>
+    <a class="tab" href="#aerospace" title="Aerospace Analysis Reports"><span class="t-full">Aerospace Analysis Reports</span><span class="t-short">Analysis Reports</span></a>
+    <a class="tab" href="#mechanics" title="Mechanics of Materials Laboratory"><span class="t-full">Mechanics of Materials Laboratory</span><span class="t-short">Materials Lab</span></a>
+    <a class="tab" href="#certifications"><span class="t-full">Certifications</span><span class="t-short">Certifications</span></a>
   </nav>
 </header>
 
@@ -450,17 +567,39 @@
       <h1>Samuel <br>Crabbendam</h1>
       <p class="subtitle"><span class="nb">Aerospace Engineering Student</span> <span class="nb">&amp; Private Pilot</span></p>
       <p class="edu">University of Florida<span>&middot;</span>B.S. Aerospace Engineering<span>&middot;</span>Graduating May 2028<span>&middot;</span>GPA 3.6</p>
+      <!-- Availability line: edit the wording here when it changes. -->
+      <p class="availability"><span class="dot" aria-hidden="true"></span>Seeking Summer 2027 engineering internships</p>
       <div class="button-stack">
         <a href="#resume" class="btn btn-primary"><i class="fas fa-file-lines"></i><span>View Resume</span></a>
         <a href="mailto:crabbendams@gmail.com" class="btn"><i class="fas fa-envelope"></i><span>Email Me</span></a>
         <a href="https://www.linkedin.com/in/samuel-crabbendam-93ab33349" target="_blank" rel="noopener" class="btn"><i class="fab fa-linkedin"></i><span>LinkedIn</span></a>
       </div>
       <p class="contact-line">
-        <a href="mailto:crabbendams@gmail.com">crabbendams@gmail.com</a><br>
-        <a href="tel:+14079735067">407-973-5067</a>
+        <a href="mailto:crabbendams@gmail.com">crabbendams@gmail.com</a>
       </p>
     </div>
     <div class="hero-image" role="img" aria-label="Portrait of Samuel Crabbendam"></div>
+  </section>
+
+  <!-- ================= SKILLS STRIP ================= -->
+  <!-- Edit this list so it matches your resume. One <li> per skill. -->
+  <section class="skills" aria-label="Skills and tools">
+    <div class="skills-inner">
+      <span class="kicker">Skills &amp; Tools</span>
+      <ul class="chips">
+        <li>SolidWorks (CSWA)</li>
+        <li>CAD for Additive Manufacturing</li>
+        <li>3D Printing</li>
+        <li>Design for Manufacturing</li>
+        <li>Material Selection</li>
+        <li>Wind Tunnel Flow Characterization</li>
+        <li>Pitot Probe Measurement</li>
+        <li>Data Acquisition (DAQ)</li>
+        <li>Uncertainty Analysis (Monte Carlo)</li>
+        <li>Submittal Review &amp; Takeoffs</li>
+        <li>FAA Part 107 &middot; Private Pilot</li>
+      </ul>
+    </div>
   </section>
 
   <!-- ================= RESUME ================= -->
@@ -478,6 +617,7 @@
     <div class="resume-frame" id="resume-frame" data-pdf="images/Samuel Crabbendam.pdf">
       <div class="resume-msg">Loading resume&hellip;</div>
     </div>
+    <noscript><p style="text-align:center;font-weight:700;margin:18px 0 0"><a href="images/Samuel Crabbendam.pdf" target="_blank" rel="noopener">Open the resume (PDF)</a></p></noscript>
   </section>
 
   <!-- ================= CAROUSEL ================= -->
@@ -507,7 +647,7 @@
           <h2>Swamp Launch Rocketry</h2>
           <p class="summary">Responsible Engineer for payload mechanics subteam on the University of Florida's collegiate rocketry team, leading the mechanical design of the 2027 IREC sensor payload with 3 years of experience on the competition team.</p>
           <ul class="highlights">
-            <li>Selected PETG for the avionic & sensor structure for its high melting temperature of 158°F at desired cost</li>
+            <li>Selected PETG for the avionics &amp; sensor structure for its high heat deflection temperature (158°F) within the target cost</li>
             <li>Designed complex payload geometry for additive manufacturing</li>
             <li>Payload structure prototype 1 is heading into manufacturing for the 2027 competition</li>
             <!-- ADD A NUMBER if you have one: payload mass, target altitude, team size, number of parts, etc. -->
@@ -528,11 +668,11 @@
         <div class="copy">
           <span class="kicker">UF Graduate Research Group &middot; Aug 2026 – Present</span>
           <h2>Experimental Wind Tunnel Test Engineer</h2>
-          <p class="summary">Experimental Aerodynamics Test Engineer developing wind tunnel facility for quantitative aerodynamic testing in a University of Florida graduate research group.</p>
+          <p class="summary">Experimental Aerodynamics Test Engineer developing a large wind tunnel facility (3'5" &times; 3'5" test section) for quantitative aerodynamic testing in a University of Florida graduate research group.</p>
           <ul class="highlights">
             <li>Fabricated the Unistrut assembly supporting the DYNAMO Model Positioning System beneath the test section: cutting, measuring, assembly, and positioning</li>
             <li>Designing a laser-cut test section floor opening and snug-fit insert for full yaw range while maintaining steady uniform flow</li>
-            <li>Performing flow characterization of test section with a 3 axis Velmex pitot probe, reading boundary layer & velocity data within test section at 90 points.</li>
+            <li>Performing flow characterization of the test section with a 3-axis Velmex pitot probe, reading boundary layer and velocity data at 90 points.</li>
             <!-- ADD A NUMBER if you have one: tunnel speed range, test section size, number of tests run, etc. -->
           </ul>
           <button class="btn" data-details="windtunnel">View details &amp; files <i class="fas fa-arrow-right"></i></button>
@@ -544,16 +684,17 @@
     <section class="section tone" id="uas">
       <div class="section-inner">
         <div class="media-frame">
-          <img class="contain" src="images/UAS General Model.png" alt="Personal UAS design model" onerror="this.closest('.section').classList.add('no-media')">
+          <!-- Add class="contain" to the img below if you ever want the whole photo shown uncropped. -->
+          <img src="images/IMG_9552.jpeg" alt="NACA 2412 formed wings with wingtips" onerror="this.closest('.section').classList.add('no-media')">
         </div>
         <div class="copy">
           <span class="kicker">Independent Project &middot; Jul 2026 – Present</span>
           <h2>Personal UAS Project</h2>
-          <p class="summary">Building a 5 ft wingspan fixed-wing aircraft from foamboard and PLA, designed for autonomous GPS-guided flight with an independently controlled camera. Creating over a 16 week design & manufacturing schedule with iterative design-build-test methodology.</p>
+          <p class="summary">Building a 5 ft wingspan fixed-wing aircraft from foamboard and PLA, designed for autonomous GPS-guided flight with an independently controlled camera. Creating over a 16 week design &amp; manufacturing schedule with iterative design-build-test methodology.</p>
           <ul class="highlights">
             <li>GPS-guided autonomous flight and FPV capability</li>
             <li>Hemispherical camera gimbal with independent control</li>
-            <li>Stable long-range flight with a NACA 2412 airfoil</li>
+            <li>Designed for stable long-range flight with a NACA 2412 airfoil</li>
           </ul>
           <button class="btn" data-details="uas">View details &amp; files <i class="fas fa-arrow-right"></i></button>
         </div>
@@ -572,8 +713,8 @@
           <p class="summary">Supported project management and construction of the David L. Tippin Water Treatment facility providing clean drinking water to the city of Tampa by managing procurement tracking, field quality inspections, material testing, and submittal review, keeping work in compliance with engineering drawings and specifications.</p>
           <ul class="highlights">
             <li>Worked cross-functionally across multidisciplinary teams, mitigating weekly slowdowns on site, safety concerns, and maintaining project life cycle pace.</li>
-            <li>Built a procurement log that eliminated sitewide production delays across crews by 20% every week on site.</li>
-            <li>Inspected structural assemblies and caught tolerance errors before concrete placement, stopping a 2" rebar offset from impacting beam strength for the finished project.</li>
+            <li>Built a procurement log that cut weekly material-related production delays across crews by 20%.</li>
+            <li>Inspected structural assemblies and caught rebar placed within 2" of the formwork before concrete placement, protecting beam strength in the finished structure.</li>
             <li>Verified material quality through standardized testing and submittal review, verifying concrete strength for 5 valley gutters on site.</li>
             <li>Produced material takeoffs for transformer pad rebar fabrication, procuring 120 5/8" x 20' rebar rods to support electrical structures across the site.</li>
             <!-- ADD NUMBERS if you have them: crews supported, items tracked in the log, inspections performed, cylinders tested, etc. -->
@@ -651,8 +792,7 @@
       <a href="mailto:crabbendams@gmail.com" class="btn"><i class="fas fa-envelope"></i><span>Email Me</span></a>
     </div>
     <p class="footer-contact">
-      <a href="mailto:crabbendams@gmail.com">crabbendams@gmail.com</a><br>
-      <a href="tel:+14079735067">407-973-5067</a>
+      <a href="mailto:crabbendams@gmail.com">crabbendams@gmail.com</a>
     </p>
     <div class="footer-social">
       <a href="https://www.linkedin.com/in/samuel-crabbendam-93ab33349" target="_blank" rel="noopener" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
@@ -664,6 +804,21 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"><i class="fas fa-circle-check"></i><span id="toast-text"></span></div>
 
+<!-- ================= PHOTO VIEWER ================= -->
+<div class="viewer" id="viewer" role="dialog" aria-modal="true" aria-label="Photo viewer" aria-hidden="true">
+  <div class="v-top">
+    <span class="v-count" id="v-count" aria-live="polite"></span>
+    <a class="v-open" id="v-open" href="#" target="_blank" rel="noopener"><i class="fas fa-up-right-from-square"></i><span>Open original</span></a>
+    <button class="v-btn" id="v-close" type="button" aria-label="Close photo viewer"><i class="fas fa-xmark"></i></button>
+  </div>
+  <div class="v-stage" id="v-stage">
+    <button class="v-btn v-prev" id="v-prev" type="button" aria-label="Previous photo"><i class="fas fa-chevron-left"></i></button>
+    <img class="v-img hide" id="v-img" alt="">
+    <button class="v-btn v-next" id="v-next" type="button" aria-label="Next photo"><i class="fas fa-chevron-right"></i></button>
+  </div>
+  <p class="v-cap" id="v-cap"></p>
+</div>
+
 <!-- ================= DETAILS OVERLAY ================= -->
 <div class="overlay" id="overlay" aria-hidden="true">
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
@@ -674,7 +829,7 @@
       </div>
       <button class="close-btn" id="close-btn" aria-label="Close details"><i class="fas fa-xmark"></i></button>
     </div>
-    <div class="sheet-body" id="sheet-body"></div>
+    <div class="sheet-body" id="sheet-body" tabindex="0"></div>
   </div>
 </div>
 
@@ -700,23 +855,30 @@
 
 <template id="details-windtunnel" data-kicker="UF Graduate Research Group &middot; Aug 2026 – Present" data-title="Experimental Wind Tunnel Test Engineer">
   <h5>Role</h5>
-  <p>Experimental Aerodynamics Test Engineer in a University of Florida graduate research group, supporting wind tunnel testing hardware and setup.</p>
-  <h5>DYNAMO support structure</h5>
-  <p>I fabricated the Unistrut assembly that supports the DYNAMO four-axis model positioner beneath the wind tunnel test section. The work covered cutting, measuring, assembling, and positioning the structure.</p>
-  <h5>Test section modification (planned)</h5>
-  <p>The DYNAMO does not fit through the existing hole in the test section floor, and the research needs full yaw control. The plan is to laser cut a new floor opening along with a snug-fit insert so the positioner can move through its full yaw range.</p>
-  <!-- ADD MORE HERE: photos of the Unistrut assembly, CAD of the insert, test matrix, results. -->
+  <p>Experimental Aerodynamics Test Engineer in a University of Florida graduate research group, developing a large wind tunnel facility with a 3'5" &times; 3'5" (about 1.04 m) test section. My work covers the test section, model positioning, and velocity measurement, so the facility can support quantitative aerodynamic experiments.</p>
+  <h5>Flow characterization</h5>
+  <p>I am surveying the test section with a 3-axis Velmex pitot probe system, recording boundary layer and velocity data at 90 points. The survey documents the flow the facility delivers, which is the baseline for any model testing that follows.</p>
+  <h5>DYNAMO model positioning</h5>
+  <p>I fabricated the Unistrut assembly that supports the DYNAMO four-axis model positioner beneath the test section. The work covered cutting, measuring, assembling, and positioning the structure.</p>
+  <h5>Test section modification (in design)</h5>
+  <p>The DYNAMO does not fit through the existing hole in the test section floor, and the research needs full yaw control. I am designing a laser-cut floor opening with a snug-fit insert so the positioner can move through its full yaw range while the test section keeps steady, uniform flow.</p>
+  <h4>Images</h4>
+  <div class="thumb-grid">
+    <a class="thumb" href="images/IMG_9568.jpeg" target="_blank" rel="noopener"><img loading="lazy" src="images/IMG_9568.jpeg" alt=""><span>Wind tunnel test setup</span></a>
+    <!-- ADD MORE PHOTOS HERE: copy the line above and change both file names and the caption. -->
+  </div>
+  <!-- ADD MORE HERE: CAD of the insert, test matrix, velocity survey plots, results. -->
 </template>
 
 <template id="details-uas" data-kicker="Independent Project &middot; Jul 2026 – Present" data-title="Personal UAS Project">
   <h5>Overview</h5>
   <p>A 5 ft wingspan fixed-wing UAS built from foamboard and PLA. Features include GPS-guided autonomous flight, FPV capability, and a hemispherical camera gimbal for independent camera control.</p>
   <h5>Status</h5>
-  <p>The project is in the design phase. The preliminary model is being analyzed aerodynamically so adjustments can be made before initial construction. Wing fabrication is underway, with the wing formed as a NACA 2412 airfoil.</p>
+  <p>The project is in the design-and-build phase. The preliminary model is being analyzed aerodynamically so adjustments can be made as construction proceeds, and the NACA 2412 wings have been formed and fitted with wingtips (shown in the section photo).</p>
   <h4>Images</h4>
   <div class="thumb-grid">
     <a class="thumb" href="images/UAS General Model.png" target="_blank" rel="noopener"><img loading="lazy" src="images/UAS General Model.png" alt=""><span>Preliminary design model</span></a>
-    <a class="thumb" href="images/IMG_9552.jpeg" target="_blank" rel="noopener"><img loading="lazy" src="images/IMG_9552.jpeg" alt=""><span>NACA 2412 formed wings with wingtips</span></a>  
+    <!-- ADD MORE PHOTOS HERE: copy the line above and change both file names and the caption. -->
   </div>
 </template>
 
@@ -727,7 +889,7 @@
   <div class="file-list">
     <a class="file" href="images/Material Install Log.xlsx" target="_blank" rel="noopener">
       <span class="ficon"><i class="fas fa-file-excel"></i></span>
-      <span><strong>Material Install Log</strong><small>Document to manage and update procurement status for tools and materials, eliminating sitewide production delays across all crews.</small></span>
+      <span><strong>Material Install Log</strong><small>Document to manage and update procurement status for tools and materials, reducing sitewide production delays across crews.</small></span>
       <span class="go"><i class="fas fa-download"></i></span>
     </a>
     <a class="file" href="images/Transformer Takeoff.pdf" target="_blank" rel="noopener">
@@ -773,6 +935,12 @@
   <h4>Documents</h4>
   <div class="file-list">
     <!-- Update these file paths to match your uploaded reports. -->
+    <!-- Lab 1 has no file yet. When you have it, replace this <div class="file static"> ... </div> with an <a class="file" href="images/YOUR-LAB1.pdf" target="_blank" rel="noopener"> ... </a> like the rows below. -->
+    <div class="file static">
+      <span class="ficon"><i class="fas fa-file-pdf"></i></span>
+      <span><strong>Lab 1: Radial Measurement with a Strain Gauge</strong><small>Radial measurement with a strain gauge and DAQ assembly.</small></span>
+      <span class="go"></span>
+    </div>
     <a class="file" href="images/Lab2 Report.pdf" target="_blank" rel="noopener">
       <span class="ficon"><i class="fas fa-file-pdf"></i></span>
       <span><strong>Lab 2: Instrumented Cantilever Beam Scale</strong><small>Calibrated an instrumented beam as a scale and compared measurement methods, with Monte Carlo uncertainty analysis on the calibration slope.</small></span>
@@ -887,7 +1055,7 @@
     tabs.forEach(function (t) {
       var on = t.getAttribute('href') === '#' + cur;
       t.classList.toggle('active', on);
-      if (on) { t.setAttribute('aria-current', 'true'); if (cur !== 'top') label = t.textContent; } else t.removeAttribute('aria-current');
+      if (on) { t.setAttribute('aria-current', 'true'); if (cur !== 'top') { var f = t.querySelector('.t-full'); label = (f || t).textContent; } } else t.removeAttribute('aria-current');
     });
     menuCurrent.textContent = label || 'Tap for portfolio!';
   }
@@ -1014,20 +1182,22 @@
           and every photo inside that section's details panel. Duplicates are skipped. */
     function collect() {
       var seen = {}, list = [];
-      function add(src, alt) {
+      function add(src, alt, sec, title) {
         if (!src) return;
         var key; try { key = new URL(src, location.href).href; } catch (e) { key = src; }
         if (seen[key]) return;
-        seen[key] = true; list.push({ src: src, alt: alt || '' });
+        seen[key] = true; list.push({ src: src, alt: alt || '', sec: sec || '', title: title || '' });
       }
       Array.prototype.forEach.call(track.querySelectorAll('.slide img'), function (im) { add(im.getAttribute('src'), im.alt); });
       Array.prototype.forEach.call(document.querySelectorAll('main .section'), function (sec) {
         var im = sec.querySelector('.media-frame > img');
-        if (im) add(im.getAttribute('src'), im.alt);
+        var h = sec.querySelector('h2');
+        var title = h ? h.textContent : '';
+        if (im) add(im.getAttribute('src'), im.alt, sec.id, title);
         var tpl = document.getElementById('details-' + sec.id);
         if (tpl) Array.prototype.forEach.call(tpl.content.querySelectorAll('img'), function (i) {
           var cap = i.parentNode.querySelector('span');
-          add(i.getAttribute('src'), i.alt || (cap ? cap.textContent : ''));
+          add(i.getAttribute('src'), i.alt || (cap ? cap.textContent : ''), sec.id, title);
         });
       });
       return list;
@@ -1047,6 +1217,12 @@
         img.addEventListener('error', function () { fig.remove(); schedule(); });
         img.src = it.src;
         fig.appendChild(img);
+        if (it.sec) {
+          fig.setAttribute('data-section', it.sec);
+          var fc = document.createElement('figcaption');
+          fc.textContent = it.title;
+          fig.appendChild(fc);
+        }
         track.appendChild(fig);
       });
     }
@@ -1115,6 +1291,12 @@
     function endDrag(e) {
       if (!dragging) return;
       dragging = false;
+      /* a tap (almost no movement) on a captioned slide jumps to that section */
+      if (e.type === 'pointerup' && Math.abs(e.clientX - startX) < 8 && Math.abs(offset - startOffset) < 8) {
+        var el = document.elementFromPoint(e.clientX, e.clientY);
+        var slide = el && el.closest ? el.closest('.slide[data-section]') : null;
+        if (slide && document.getElementById(slide.getAttribute('data-section'))) goTo(slide.getAttribute('data-section'));
+      }
       carousel.classList.remove('dragging');
       if (e.type === 'pointercancel') momentum = 0;
       var touchLike = e.pointerType && e.pointerType !== 'mouse';
@@ -1161,17 +1343,57 @@
     });
   })();
 
-  /* ---------- DETAILS OVERLAY ---------- */
+  /* ---------- ANALYTICS EVENTS (GoatCounter): counts clicks; does nothing if the script is blocked ---------- */
+  function track(name) {
+    try { if (window.goatcounter && window.goatcounter.count) window.goatcounter.count({ path: name, title: name, event: true }); } catch (e) {}
+  }
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('a, button') : null;
+    if (!el) return;
+    var h = el.getAttribute('href') || '';
+    if (el.dataset && el.dataset.details) track('details-' + el.dataset.details);
+    else if (/^mailto:/i.test(h)) track('click-email');
+    else if (/linkedin\.com/i.test(h)) track('click-linkedin');
+    else if (/instagram\.com/i.test(h)) track('click-instagram');
+    else if (/Samuel Crabbendam\.pdf/i.test(h) && el.hasAttribute('download')) track('resume-download');
+    else if (h === '#resume') track('resume-view');
+    else if (/\.pdf(\?|$)/i.test(h)) track('pdf-' + decodeURIComponent(h.split('/').pop()));
+  }, true);
+
+  /* ---------- LAYERS: details panel + photo viewer (focus trap, inert page, Back button closes top layer) ---------- */
   var overlay = document.getElementById('overlay');
   var sheetBody = document.getElementById('sheet-body');
   var sheetTitle = document.getElementById('sheet-title');
   var sheetKicker = document.getElementById('sheet-kicker');
-  var lastFocus = null;
+  var viewer = document.getElementById('viewer');
+  var vImg = document.getElementById('v-img'), vCap = document.getElementById('v-cap'), vCount = document.getElementById('v-count');
+  var vOpen = document.getElementById('v-open'), vStage = document.getElementById('v-stage');
+  var pageEls = ['main-wrapper', 'topbar'].map(function (id) { return document.getElementById(id); }).filter(Boolean);
+  var layers = [];        /* stack: 'details', 'viewer' */
+  var focusBack = {};
+  var skipPops = 0;
+  var supportsInert = 'inert' in HTMLElement.prototype;
 
+  function setPageInert(on) {
+    pageEls.forEach(function (el) {
+      if (supportsInert) el.inert = on;
+      if (on) el.setAttribute('aria-hidden', 'true'); else el.removeAttribute('aria-hidden');
+    });
+  }
+  function pushLayer(name) {
+    layers.push(name);
+    try { history.pushState({ layer: name }, ''); } catch (e) {}
+  }
+  /* close from UI (button / Esc / backdrop): also removes the history entry we added */
+  function popLayerViaUI() {
+    try { skipPops++; history.back(); } catch (e) { skipPops = 0; }
+  }
+
+  /* ----- details panel ----- */
   function openDetails(id, trigger) {
     var tpl = document.getElementById('details-' + id);
-    if (!tpl) return;
-    lastFocus = trigger || document.activeElement;
+    if (!tpl || layers.indexOf('details') !== -1) return;
+    focusBack.details = trigger || document.activeElement;
     sheetTitle.textContent = tpl.dataset.title || '';
     sheetKicker.innerHTML = tpl.dataset.kicker || '';
     sheetBody.innerHTML = '';
@@ -1180,23 +1402,196 @@
     overlay.classList.add('open');
     overlay.setAttribute('aria-hidden', 'false');
     root.classList.add('modal-open');
+    setPageInert(true);
+    pushLayer('details');
     document.getElementById('close-btn').focus();
   }
-  function closeDetails() {
+  function hideDetails() {
     overlay.classList.remove('open');
     overlay.setAttribute('aria-hidden', 'true');
     root.classList.remove('modal-open');
-    if (lastFocus && lastFocus.focus) lastFocus.focus();
+    setPageInert(false);
+    var f = focusBack.details;
+    if (f && f.focus && document.contains(f)) { try { f.focus({ preventScroll: true }); } catch (e) { f.focus(); } }
   }
+
+  /* ----- photo viewer ----- */
+  var vItems = [], vIndex = 0, vBusy = 0;
+  function vShow(i, dir) {
+    if (!vItems.length) return;
+    vIndex = (i + vItems.length) % vItems.length;
+    var it = vItems[vIndex], token = ++vBusy;
+    vImg.classList.add('hide');
+    vImg.style.transform = dir ? 'translateX(' + (dir > 0 ? 40 : -40) + 'px)' : '';
+    var pre = new Image();
+    var done = function () {
+      if (token !== vBusy) return;
+      vImg.src = it.src; vImg.alt = it.alt;
+      vCap.textContent = it.alt;
+      vOpen.href = it.src;
+      vCount.textContent = vItems.length > 1 ? (vIndex + 1) + ' / ' + vItems.length : '';
+      requestAnimationFrame(function () { vImg.style.transform = ''; vImg.classList.remove('hide'); });
+    };
+    pre.onload = pre.onerror = done;
+    pre.src = it.src;
+    if (pre.decode) pre.decode().then(function () {}, function () {});
+  }
+  function openViewer(items, index, trigger) {
+    if (!items.length || layers.indexOf('viewer') !== -1) return;
+    vItems = items;
+    focusBack.viewer = trigger || document.activeElement;
+    viewer.classList.toggle('single', items.length < 2);
+    viewer.classList.add('open');
+    viewer.setAttribute('aria-hidden', 'false');
+    root.classList.add('modal-open');
+    /* page behind is already inert if the viewer was opened from the details panel; otherwise make it inert now */
+    if (layers.indexOf('details') !== -1) { overlay.setAttribute('aria-hidden', 'true'); if (supportsInert) overlay.inert = true; }
+    else setPageInert(true);
+    pushLayer('viewer');
+    vShow(index, 0);
+    document.getElementById('v-close').focus();
+  }
+  function hideViewer() {
+    viewer.classList.remove('open');
+    viewer.setAttribute('aria-hidden', 'true');
+    vBusy++;
+    vImg.classList.add('hide');
+    if (layers.indexOf('details') !== -1) {
+      if (supportsInert) overlay.inert = false;
+      overlay.setAttribute('aria-hidden', 'false');
+    } else {
+      root.classList.remove('modal-open');
+      setPageInert(false);
+    }
+    var f = focusBack.viewer;
+    if (f && f.focus && document.contains(f)) { try { f.focus({ preventScroll: true }); } catch (e) { f.focus(); } }
+  }
+
+  /* closing: UI paths go through history.back() so the stack stays in sync; popstate does the real work */
+  function closeTop() {
+    if (!layers.length) return;
+    popLayerViaUI();
+  }
+  window.addEventListener('popstate', function () {
+    if (skipPops > 0) skipPops--;
+    /* either way, make our layer stack match: a popstate always means one layer went away */
+    if (!layers.length) return;
+    var top = layers.pop();
+    if (top === 'viewer') hideViewer(); else if (top === 'details') hideDetails();
+  });
+  /* safety: if history.back() could not fire a popstate, close directly */
+  function closeTopSafe() {
+    var before = layers.length;
+    closeTop();
+    setTimeout(function () {
+      if (layers.length === before && before > 0) {
+        var top = layers.pop();
+        if (top === 'viewer') hideViewer(); else hideDetails();
+        skipPops = 0;
+      }
+    }, 400);
+  }
+
   document.querySelectorAll('[data-details]').forEach(function (b) {
     b.addEventListener('click', function () { openDetails(b.dataset.details, b); });
   });
-  document.getElementById('close-btn').addEventListener('click', closeDetails);
-  overlay.addEventListener('click', function (e) { if (e.target === overlay) closeDetails(); });
+  document.getElementById('close-btn').addEventListener('click', closeTopSafe);
+  overlay.addEventListener('click', function (e) { if (e.target === overlay) closeTopSafe(); });
+  document.getElementById('v-close').addEventListener('click', closeTopSafe);
+  document.getElementById('v-prev').addEventListener('click', function () { vShow(vIndex - 1, -1); });
+  document.getElementById('v-next').addEventListener('click', function () { vShow(vIndex + 1, 1); });
+
+  /* photo tiles inside the details panel open the viewer (Ctrl/Cmd/middle click still opens the file normally) */
+  sheetBody.addEventListener('click', function (e) {
+    var a = e.target.closest ? e.target.closest('a.thumb') : null;
+    if (!a || e.ctrlKey || e.metaKey || e.shiftKey || e.button > 0) return;
+    var tiles = Array.prototype.slice.call(sheetBody.querySelectorAll('a.thumb'));
+    var items = tiles.map(function (t) {
+      var im = t.querySelector('img'), sp = t.querySelector('span');
+      return { src: t.getAttribute('href'), alt: (sp ? sp.textContent : '') || (im ? im.alt : '') };
+    }).filter(function (it) { return /\.(png|jpe?g|gif|webp|avif)(\?|$)/i.test(it.src); });
+    var idx = items.map(function (it) { return it.src; }).indexOf(a.getAttribute('href'));
+    if (idx < 0) return;           /* not an image (a PDF tile): let the link open normally */
+    e.preventDefault();
+    openViewer(items, idx, a);
+  });
+
+  /* section photos on the page open the viewer with that section's photo plus its panel photos */
+  Array.prototype.forEach.call(document.querySelectorAll('main .section .media-frame > img'), function (im) {
+    var sec = im.closest('.section');
+    function go() {
+      if (!im.complete || !im.naturalWidth) return;
+      var items = [{ src: im.getAttribute('src'), alt: im.alt }];
+      var tpl = document.getElementById('details-' + sec.id);
+      if (tpl) Array.prototype.forEach.call(tpl.content.querySelectorAll('a.thumb'), function (t) {
+        var h = t.getAttribute('href'), sp = t.querySelector('span');
+        if (!/\.(png|jpe?g|gif|webp|avif)(\?|$)/i.test(h)) return;
+        var abs; try { abs = new URL(h, location.href).href; } catch (er) { abs = h; }
+        var dup = items.some(function (x) { try { return new URL(x.src, location.href).href === abs; } catch (er) { return x.src === h; } });
+        if (!dup) items.push({ src: h, alt: sp ? sp.textContent : '' });
+      });
+      openViewer(items, 0, im);
+    }
+    im.addEventListener('click', go);
+    im.setAttribute('tabindex', '0');
+    im.setAttribute('role', 'button');
+    im.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
+  });
+
+  /* swipe in the viewer */
+  (function () {
+    var sx = 0, sy = 0, down = false, dx = 0, id = null;
+    vStage.addEventListener('pointerdown', function (e) {
+      if (e.target.closest && e.target.closest('.v-btn')) return;
+      down = true; dx = 0; sx = e.clientX; sy = e.clientY; id = e.pointerId;
+    });
+    vStage.addEventListener('pointermove', function (e) {
+      if (!down || e.pointerId !== id) return;
+      dx = e.clientX - sx;
+      if (Math.abs(dx) > 6 && viewer.classList.contains('single') === false) {
+        vImg.classList.add('dragging');
+        vImg.style.transform = 'translateX(' + dx + 'px)';
+      }
+    });
+    function end(e) {
+      if (!down || (e && e.pointerId !== id)) return;
+      down = false;
+      vImg.classList.remove('dragging');
+      var dy = e ? e.clientY - sy : 0;
+      if (!viewer.classList.contains('single') && Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) vShow(vIndex + (dx < 0 ? 1 : -1), dx < 0 ? 1 : -1);
+      else vImg.style.transform = '';
+      dx = 0;
+    }
+    vStage.addEventListener('pointerup', end);
+    vStage.addEventListener('pointercancel', end);
+    /* tapping the dark area (not the photo) closes the viewer */
+    vStage.addEventListener('click', function (e) { if (e.target === vStage) closeTopSafe(); });
+  })();
+
+  /* keyboard: Esc closes the top layer, arrows move through photos, Tab stays inside the open layer */
   document.addEventListener('keydown', function (e) {
-    if (e.key !== 'Escape') return;
-    if (overlay.classList.contains('open')) closeDetails();
-    else if (topbar.classList.contains('open')) setMenu(false);
+    if (e.key === 'Escape') {
+      if (layers.length) { e.preventDefault(); closeTopSafe(); }
+      else if (topbar.classList.contains('open')) setMenu(false);
+      return;
+    }
+    var top = layers[layers.length - 1];
+    if (top === 'viewer') {
+      if (e.key === 'ArrowLeft') { e.preventDefault(); vShow(vIndex - 1, -1); return; }
+      if (e.key === 'ArrowRight') { e.preventDefault(); vShow(vIndex + 1, 1); return; }
+    }
+    if (e.key === 'Tab' && top) {
+      var box = top === 'viewer' ? viewer : overlay;
+      var f = Array.prototype.filter.call(
+        box.querySelectorAll('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'),
+        function (n) { return n.offsetParent !== null || n === document.activeElement; }
+      ).filter(function (n) { return !(top === 'viewer' && viewer.classList.contains('single') && (n.id === 'v-prev' || n.id === 'v-next')); });
+      if (!f.length) return;
+      var first = f[0], last = f[f.length - 1];
+      if (!box.contains(document.activeElement)) { e.preventDefault(); first.focus(); }
+      else if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
   });
 })();
 </script>
