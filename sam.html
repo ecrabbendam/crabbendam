@@ -114,7 +114,7 @@
     transition: color .2s, border-color .2s, background .2s;
   }
   .tab:first-child { border-left: 0; }
-  .tab-home { flex: 0 0 auto; padding-left: 24px; padding-right: 24px; }
+  .tab-home, .tab-resume { flex: 0 0 auto; padding-left: 24px; padding-right: 24px; }
   .tab:hover { color: var(--obsidian); background: rgba(0,0,0,0.03); }
   .tab.active { color: var(--obsidian); border-bottom-color: var(--accent-green); }
   .tab:focus-visible { outline: 2px solid var(--obsidian); outline-offset: -3px; }
@@ -324,7 +324,7 @@
      ===================================================== */
   @media (max-width: 1280px) {
     .tab { font-size: 0.76rem; padding: 17px 9px; letter-spacing: 0.2px; }
-    .tab-home { padding-left: 14px; padding-right: 14px; }
+    .tab-home, .tab-resume { padding-left: 14px; padding-right: 14px; }
   }
 
   /* Tablet + phone: bars / HOME / green text, and a list of ALL tabs */
@@ -429,6 +429,7 @@
   <!-- Tab order here must match the section order on the page below -->
   <nav class="tabs" id="tabs" aria-label="Sections">
     <a class="tab tab-home" href="#top"><i class="fas fa-house"></i>Home</a>
+    <a class="tab tab-resume" href="#resume">Resume</a>
     <a class="tab" href="#rocketry">Swamp Launch Rocketry</a>
     <a class="tab" href="#windtunnel">Wind Tunnel Test Engineer</a>
     <a class="tab" href="#uas">Personal UAS Project</a>
