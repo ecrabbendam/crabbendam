@@ -128,6 +128,15 @@
 }
 @media (max-width:700px){#acsim .bar{position:static}#acsim .fgrid{grid-template-columns:minmax(0,1fr)}#acsim .fld{grid-template-columns:minmax(0,1fr) 88px 36px 84px}#acsim .ck{grid-template-columns:minmax(0,1fr)}#acsim h1{font-size:21px}}
 @media print{#acsim .bar,#acsim nav.toc{display:none}#acsim .layout{display:block}}
+#acsim .simbar{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;font-size:13px;color:var(--mut)}
+#acsim .simbar select{padding:3px 6px;font-size:13px}
+#acsim .simview{position:relative;width:100%;aspect-ratio:16/9;max-height:680px;min-height:300px;background:#16263c;border-top:4px solid var(--maroon);border-bottom:4px solid var(--tan);overflow:hidden;touch-action:none}
+#acsim .simview:focus-visible{outline:2px solid var(--maroon);outline-offset:2px}
+#acsim .simview canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
+#acsim .simend{margin-top:8px;font-size:13.5px;padding:6px 10px;border-left:3px solid var(--maroon);background:var(--sand2)}
+#acsim .simsticks{display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;margin-top:10px;font-size:13px}
+#acsim .simsticks label{display:flex;flex-direction:column;gap:2px;color:var(--mut)}
+#acsim .simsticks input[type=range]{width:190px;padding:0;border:0;background:none;accent-color:var(--maroon)}
 </style>
 </head>
 <body>
@@ -268,6 +277,9 @@ F('crit','crit.phZeta','Phugoid damping ratio, minimum','',0.04,'guess',0,0,1);
 F('crit','crit.drZeta','Dutch roll damping ratio, minimum','',0.08,'guess',0,0,1);
 F('crit','crit.spiralT2','Spiral time to double, minimum','s',12,'guess',0,0,120,'Applies only if the spiral mode is unstable.');
 F('crit','crit.rollTau','Roll time constant, maximum','s',1,'guess',0,0.05,10);
+F('flight','env.windSpd','Wind speed','m/s',0,'guess',0,0,30,'Steady wind for the flight simulation.');
+F('flight','env.windDir','Wind from','deg',0,'guess',0,0,360,'Direction the wind blows from. 0 is north, the simulation start heading.',{abs:true});
+F('flight','sim.alt','Simulation start altitude','m',60,'guess',0,5,2000,'For runs that start in the air.');
 
 var ATTS=['','wing','tail','prop'];
 function inferAtt(name){
@@ -1146,6 +1158,29 @@ function selfTests(cur){
     near('Reference aircraft: phugoid period against Lanchester (s)',ds.ph.period,ds.phApproxPeriod,0.35*ds.phApproxPeriod,'π√2 V/g');
   }
   truth('Reference aircraft: Dutch roll, roll and spiral modes found',!!(ds&&ds.dr&&ds.roll&&ds.spiral),'Mode identification');
+  /* Six-degree-of-freedom model on the same reference aircraft */
+  var sm6=simModel(cs,rs);
+  truth('Reference aircraft: flight model builds',!!sm6,'Needs mass, inertia, propulsion and derivatives');
+  if(sm6){
+    var t6=sm6.trim(rs.V),u6={thr:t6.thr,de:t6.de,da:0,dr:0},x6=sm6.init(rs.V,100,t6.alpha,0,0),k6,a6;
+    near('6-DOF trim: residual acceleration (m/s² and rad/s², summed)',t6.res,0,1e-6,'Newton iteration converged');
+    near('6-DOF trim throttle against the performance model',t6.thr,rs.perf.cruise?rs.perf.cruise.tau:NaN,0.03,'Two independent solutions');
+    near('6-DOF trim elevator against the trim model (deg)',deg(t6.de),deg(rs.cruise.de),0.6,'Two independent solutions');
+    for(k6=0;k6<1000;k6++)x6=sm6.step(x6,u6,0.005);
+    a6=sm6.aero(x6,u6);
+    near('6-DOF: altitude change after 5 s hands off from trim (m)',-x6[2]-100,0,0.05,'Trim holds');
+    near('6-DOF: airspeed change after 5 s hands off from trim (m/s)',a6.Vt-rs.V,0,0.02,'Trim holds');
+    var xa=sm6.init(rs.V,100,t6.alpha,0,0),ue={thr:t6.thr,de:t6.de+rad(1),da:0,dr:0};
+    for(k6=0;k6<60;k6++)xa=sm6.step(xa,ue,0.005);
+    var le=linSim(ds.Alon,ds.Blon.map(function(v){return v*rad(1);}),0.3,120);
+    near('6-DOF against the linear model: pitch rate 0.3 s after a 1° elevator step (deg/s)',deg(xa[11]),deg(le[le.length-1][3]),0.12*Math.abs(deg(le[le.length-1][3])),'Small-input agreement');
+    var xb=sm6.init(rs.V,100,t6.alpha,0,0),ua={thr:t6.thr,de:t6.de,da:rad(1),dr:0};
+    for(k6=0;k6<40;k6++)xb=sm6.step(xb,ua,0.005);
+    var la=linSim(ds.Alat,ds.Ba.map(function(v){return v*rad(1);}),0.2,80);
+    near('6-DOF against the linear model: roll rate 0.2 s after a 1° aileron step (deg/s)',deg(xb[10]),deg(la[la.length-1][2]),0.1*Math.abs(deg(la[la.length-1][2])),'Small-input agreement');
+    var q6=quatFromEuler(0.3,-0.2,1.1),e6=eulerFromQuat(q6);
+    near('Quaternion and Euler angles round trip (rad, summed error)',Math.abs(e6.phi-0.3)+Math.abs(e6.theta+0.2)+Math.abs(e6.psi-1.1),0,1e-12,'Consistency');
+  }
   /* Consistency of the configuration on screen */
   var cc=cur||d0,r=compute(cc,true);
   if(r.mass.M>0){
@@ -1497,7 +1532,8 @@ function dynamics(cfg,r,lite){
   else if(mt.osc.length===2){out.dr=add('Dutch roll','lat',mt.osc[0]);add('Coupled roll and spiral','lat',mt.osc[1]);}
   else if(mt.real.length===4){out.roll=add('Roll subsidence','lat',mt.real[0]);add('Dutch roll, real root','lat',mt.real[1]);add('Dutch roll, real root','lat',mt.real[2]);out.spiral=add('Spiral','lat',mt.real[3]);}
   else{mt.osc.forEach(function(x){add('Lateral oscillation','lat',x);});mt.real.forEach(function(x){add('Lateral real root','lat',x);});}
-  out.modes=modes;
+  out.modes=modes;out.Blon=Blon;out.Ba=Ba;out.Br=Br;
+  out.co={CLa:CLa,Cma:Cma,CLq:CLq,Cmq:Cmq+Cmad,CLde:CLde,Cmde:Cmde,CYb:CYb,Clb:Clb,Cnb:Cnb,Clp:Clp,Cnp:Cnp,Clr:Clr,Cnr:Cnr,CYr:CYr,Clda:Clda,Cnda:Cnda,CYdr:CYdr,Cldr:Cldr,Cndr:Cndr};
   out.lonStable=eLon.every(function(e){return e.re<0;});
   /* short-period approximation, for cross-checking the full solution */
   var wsp2=Zw*Mq-u0*Mw;out.spApprox=wsp2>0?{wn:Math.sqrt(wsp2),zeta:-(Mq+Zw+u0*Mwd)/(2*Math.sqrt(wsp2))}:null;
@@ -1513,19 +1549,583 @@ function dynamics(cfg,r,lite){
   var T1=Math.max(1.5,Math.min(6,4*Tsp)),T2=Math.max(10,Math.min(90,3*Tph));
   function scl(B){return B.map(function(v){return v*d1;});}
   /* a diverging trace stops where the small-perturbation model no longer applies */
-  var limL=[0.5*u0,0.3*u0,10,1.2],limT=[0.4*u0,20,10,1.5];
+  var limL=[0.3*u0,0.26*u0,10,0.52],limT=[0.26*u0,20,10,0.79];
   var s1=linSim(Alon,scl(Blon),T1,240,limL),s2=linSim(Alon,scl(Blon),T2,900,limL);
   C.pitch={T:T1,alpha:s1.map(function(p){return [p[0],deg(p[2]/u0)];}),theta:s1.map(function(p){return [p[0],deg(p[4])];}),cut:s1.length<241};
   C.speed={T:T2,u:s2.map(function(p){return [p[0],p[1]];}),cut:s2.length<901};
   var T3=Math.max(1.5,Math.min(5,out.roll?6/Math.abs(out.roll.re):3)),s3=linSim(Alat,scl(Ba),T3,240,limT);
-  C.roll={T:T3,p:s3.map(function(q){return [q[0],deg(q[2])];}),r:s3.map(function(q){return [q[0],deg(q[3])];})};
+  C.roll={T:T3,p:s3.map(function(q){return [q[0],deg(q[2])];}),r:s3.map(function(q){return [q[0],deg(q[3])];}),cut:s3.length<241};
   var T4=Math.max(3,Math.min(12,out.dr?4*out.dr.period:6)),s4=linSim(Alat,scl(Br),T4,360,limT);
-  C.yaw={T:T4,beta:s4.map(function(q){return [q[0],deg(q[1]/u0)];}),phi:s4.map(function(q){return [q[0],deg(q[4])];})};
+  C.yaw={T:T4,beta:s4.map(function(q){return [q[0],deg(q[1]/u0)];}),phi:s4.map(function(q){return [q[0],deg(q[4])];}),cut:s4.length<361};
   out.curves=C;
   return out;
 }
+/* ---------- Six-degree-of-freedom flight model ----------
+   Rigid body, flat Earth, quaternion attitude (Stevens and Lewis, Aircraft Control and Simulation;
+   Beard and McLain, Small Unmanned Aircraft). Axes: north-east-down for position, body
+   forward-right-down for velocity and rates. Aerodynamic coefficients are the same derivatives
+   the linear model uses, with lift and drag blended to a flat-plate model beyond the stall angle
+   (Beard and McLain, sec. 4.2). Thrust comes from the propulsion model at the instantaneous airspeed.
+   State: [pn, pe, pd, u, v, w, q0, q1, q2, q3, p, q, r, Ah used]. */
+function quatToR(q){ /* body to NED */
+  var a=q[0],b=q[1],c=q[2],d=q[3];
+  return [[a*a+b*b-c*c-d*d,2*(b*c-a*d),2*(b*d+a*c)],[2*(b*c+a*d),a*a-b*b+c*c-d*d,2*(c*d-a*b)],[2*(b*d-a*c),2*(c*d+a*b),a*a-b*b-c*c+d*d]];
+}
+function quatFromEuler(phi,th,psi){
+  var c1=Math.cos(phi/2),s1=Math.sin(phi/2),c2=Math.cos(th/2),s2=Math.sin(th/2),c3=Math.cos(psi/2),s3=Math.sin(psi/2);
+  return [c1*c2*c3+s1*s2*s3,s1*c2*c3-c1*s2*s3,c1*s2*c3+s1*c2*s3,c1*c2*s3-s1*s2*c3];
+}
+function eulerFromQuat(q){
+  var s=2*(q[0]*q[2]-q[3]*q[1]);s=Math.max(-1,Math.min(1,s));
+  return {phi:Math.atan2(2*(q[0]*q[1]+q[2]*q[3]),1-2*(q[1]*q[1]+q[2]*q[2])),theta:Math.asin(s),psi:Math.atan2(2*(q[0]*q[3]+q[1]*q[2]),1-2*(q[2]*q[2]+q[3]*q[3]))};
+}
+function simModel(cfg,r){
+  if(!(r.mass.M>0)||!r.dyn||!r.dyn.ok||!r.perf||!r.perf.ok)return null;
+  var co=r.dyn.co,mp=r.mass,m=mp.M,Ix=mp.I.xx,Iy=mp.I.yy,Iz=mp.I.zz,Ixz=mp.I.xz,gam=Ix*Iz-Ixz*Ixz;
+  var S=r.wing.S,c=r.wing.mac,b=r.wing.b,rho=r.atm.rho,pm=r.perf.pm,el=r.perf.el,tm=r.tm;
+  var CL0=tmCL(tm,0,0),Cm0=tmCm(tm,0,0,r.hcg,0),cd0=r.cd0,K=r.K,zT=(cfg.prop.z-mp.cg.z)/1000;
+  var aS=r.stall.alpha,a0=-CL0/co.CLa,aN=a0-0.7*(aS-a0),MB=40;        /* positive and negative stall angles, blend sharpness */
+  var wd=rad(cfg.env.windDir),wind=[-cfg.env.windSpd*Math.cos(wd),-cfg.env.windSpd*Math.sin(wd),0];
+  var lim={de:rad(cfg.tail.maxDefl),da:rad(cfg.wing.ailMaxDefl),dr:rad(cfg.tail.rudDefl)};
+  function clampC(u){return {thr:Math.max(0,Math.min(1,u.thr)),de:Math.max(-lim.de,Math.min(lim.de,u.de)),da:Math.max(-lim.da,Math.min(lim.da,u.da)),dr:Math.max(-lim.dr,Math.min(lim.dr,u.dr))};}
+  /* forces and moments for a state and control set; also the quantities the display needs */
+  function aero(x,u){
+    var R=quatToR([x[6],x[7],x[8],x[9]]);
+    var ua=x[3]-(R[0][0]*wind[0]+R[1][0]*wind[1]),va=x[4]-(R[0][1]*wind[0]+R[1][1]*wind[1]),wa=x[5]-(R[0][2]*wind[0]+R[1][2]*wind[1]);
+    var Vt=Math.max(0.5,Math.sqrt(ua*ua+va*va+wa*wa)),al=Math.atan2(wa,ua),be=Math.asin(Math.max(-1,Math.min(1,va/Vt)));
+    var qb=0.5*rho*Vt*Vt,ph=x[10]*b/(2*Vt),qh=x[11]*c/(2*Vt),rh=x[12]*b/(2*Vt);
+    var e1=Math.exp(-MB*(al-aS)),e2=Math.exp(MB*(al-aN)),sg=(1+e1+e2)/((1+e1)*(1+e2));
+    var sa=Math.sin(al),ca=Math.cos(al),CLl=CL0+co.CLa*al;
+    var CL=(1-sg)*CLl+sg*2*(al<0?-1:1)*sa*sa*ca+co.CLq*qh+co.CLde*u.de;
+    var CD=(1-sg)*(cd0+K*CLl*CLl)+sg*(cd0+2*sa*sa);
+    var Cm=Cm0+co.Cma*al+co.Cmq*qh+co.Cmde*u.de;
+    var CY=co.CYb*be+co.CYr*rh+co.CYdr*u.dr;
+    var Cl=co.Clb*be+co.Clp*ph+co.Clr*rh+co.Clda*u.da+co.Cldr*u.dr;
+    var Cn=co.Cnb*be+co.Cnp*ph+co.Cnr*rh+co.Cnda*u.da+co.Cndr*u.dr;
+    var op=u.thr>0.004?propOp(pm,el,rho,Math.max(ua,0.01),u.thr):{T:0,Ib:el.aux,rpm:0},T=Math.max(0,op.T);
+    var L=qb*S*CL,D=qb*S*CD;
+    return {R:R,Vt:Vt,alpha:al,beta:be,qb:qb,L:L,D:D,T:T,Ib:op.Ib,rpm:op.rpm,stalled:sg>0.5,
+      X:-D*ca+L*sa+T,Y:qb*S*CY,Z:-D*sa-L*ca,Mx:qb*S*b*Cl,My:qb*S*c*Cm-T*zT,Mz:qb*S*b*Cn,n:(L*ca+D*sa)/(m*G0)};
+  }
+  function deriv(x,u){
+    var a=aero(x,u),R=a.R,U=x[3],V=x[4],W=x[5],p=x[10],q=x[11],rr=x[12],q0=x[6],q1=x[7],q2=x[8],q3=x[9];
+    var Mx=a.Mx-(Iz-Iy)*q*rr+Ixz*p*q,My=a.My-(Ix-Iz)*p*rr-Ixz*(p*p-rr*rr),Mz=a.Mz-(Iy-Ix)*p*q-Ixz*q*rr;
+    return [R[0][0]*U+R[0][1]*V+R[0][2]*W,R[1][0]*U+R[1][1]*V+R[1][2]*W,R[2][0]*U+R[2][1]*V+R[2][2]*W,
+      rr*V-q*W+a.X/m+G0*R[2][0],p*W-rr*U+a.Y/m+G0*R[2][1],q*U-p*V+a.Z/m+G0*R[2][2],
+      0.5*(-q1*p-q2*q-q3*rr),0.5*(q0*p+q2*rr-q3*q),0.5*(q0*q-q1*rr+q3*p),0.5*(q0*rr+q1*q-q2*p),
+      (Iz*Mx+Ixz*Mz)/gam,My/Iy,(Ixz*Mx+Ix*Mz)/gam,a.Ib/3600];
+  }
+  function step(x,u,dt){
+    function ax(s,k){var o=new Array(14);for(var i=0;i<14;i++)o[i]=x[i]+s*k[i];return o;}
+    var k1=deriv(x,u),k2=deriv(ax(dt/2,k1),u),k3=deriv(ax(dt/2,k2),u),k4=deriv(ax(dt,k3),u),o=new Array(14),i;
+    for(i=0;i<14;i++)o[i]=x[i]+dt/6*(k1[i]+2*k2[i]+2*k3[i]+k4[i]);
+    var nq=Math.sqrt(o[6]*o[6]+o[7]*o[7]+o[8]*o[8]+o[9]*o[9]);
+    for(i=6;i<10;i++)o[i]/=nq;
+    return o;
+  }
+  function init(V,alt,alpha,gamma,psi){ /* air-relative speed V at angle of attack alpha, flight path angle gamma */
+    var q=quatFromEuler(0,alpha+(gamma||0),psi||0),R=quatToR(q);
+    var ub=V*Math.cos(alpha)+(R[0][0]*wind[0]+R[1][0]*wind[1]),vb=(R[0][1]*wind[0]+R[1][1]*wind[1]),wb=V*Math.sin(alpha)+(R[0][2]*wind[0]+R[1][2]*wind[1]);
+    return [0,0,-alt,ub,vb,wb,q[0],q[1],q[2],q[3],0,0,0,0];
+  }
+  /* level-flight trim: Newton iteration on angle of attack, elevator and throttle */
+  function trim(V){
+    var z=[r.cruise?r.cruise.alpha:0.03,r.cruise?r.cruise.de:0,(r.perf.cruise?r.perf.cruise.tau:0.4)],res=1,it,i,j;
+    function f(z){var x=init(V,100,z[0],0,0),d=deriv(x,{thr:z[2],de:z[1],da:0,dr:0});return [d[3],d[5],d[11]];}
+    for(it=0;it<30;it++){
+      var f0=f(z);res=Math.abs(f0[0])+Math.abs(f0[1])+Math.abs(f0[2]);
+      if(res<1e-9)break;
+      var J=[[0,0,0],[0,0,0],[0,0,0]],h=[1e-5,1e-5,1e-4];
+      for(j=0;j<3;j++){var z2=z.slice();z2[j]+=h[j];var f1=f(z2);for(i=0;i<3;i++)J[i][j]=(f1[i]-f0[i])/h[j];}
+      var dz=solveLin(J,[-f0[0],-f0[1],-f0[2]]);if(!dz)break;
+      for(j=0;j<3;j++){var s=Math.max(-0.2,Math.min(0.2,dz[j]));z[j]+=s;}
+      z[0]=Math.max(-0.3,Math.min(0.4,z[0]));z[2]=Math.max(0,Math.min(1,z[2]));
+    }
+    return {alpha:z[0],de:z[1],thr:z[2],res:res,ok:res<1e-5&&Math.abs(z[1])<=lim.de};
+  }
+  /* attitude-hold gains from the control power at the design speed: pitch loop near 5 rad/s, roll loop near 4 rad/s */
+  var Mde=co.Cmde*r.q*S*c/Iy,Lda=co.Clda*r.q*S*b/Ix;
+  var gains={kpT:Math.min(2,25/Math.max(1e-6,Math.abs(Mde))),kdT:Math.min(0.6,8/Math.max(1e-6,Math.abs(Mde))),sT:Mde<0?-1:1,
+    kpR:Math.min(2,16/Math.max(1e-6,Math.abs(Lda))),kdR:Math.min(0.3,2/Math.max(1e-6,Math.abs(Lda))),sR:Lda<0?-1:1};
+  /* proportional, integral and rate feedback on pitch; proportional and rate on roll. st carries the integrator. */
+  function hold(x,thetaC,phiC,deTrim,st,t){
+    var e=eulerFromQuat([x[6],x[7],x[8],x[9]]),dt=t-st.t;st.t=t;
+    if(dt>0&&dt<0.1)st.i=Math.max(-0.15,Math.min(0.15,st.i+(thetaC-e.theta)*dt));
+    return {de:deTrim+gains.sT*(gains.kpT*(thetaC-e.theta)+1.5*gains.kpT*st.i-gains.kdT*x[11]),da:gains.sR*(gains.kpR*(phiC-e.phi)-gains.kdR*x[10])};
+  }
+  return {aero:aero,deriv:deriv,step:step,init:init,trim:trim,hold:hold,clamp:clampC,lim:lim,gains:gains,wind:wind,alphaStall:aS,m:m,
+    capAh:cfg.batt.mAh/1000*cfg.batt.usable/100};
+}
+/* Scripted runs. Each returns the starting state and a command function of time and state. */
+var SIM_PRESETS=[
+ ['cruise','Level cruise, hands off'],['doublet','Elevator doublet'],['launch','Hand launch and climb'],['stall','Stall and recovery'],
+ ['glide','Power-off glide'],['turn','30° banked turn'],['free','Free flight']];
+function simPreset(id,cfg,r,sm){
+  var V=r.V,tr=sm.trim(V),alt=cfg.sim.alt,d2=rad(2),hs={i:0,t:0},rec=-1;
+  var base={x:sm.init(V,alt,tr.alpha,0,0),trim:tr,mode:'direct',note:''};
+  function direct(fn){base.cmd=function(t,x,stick){var u=fn(t,x)||{};return {thr:u.thr==null?tr.thr:u.thr,de:u.de==null?tr.de:u.de,da:u.da||0,dr:u.dr||0};};return base;}
+  function held(fn){base.mode='hold';base.cmd=function(t,x,stick){var c=fn(t,x),h=sm.hold(x,c.theta,c.phi||0,tr.de,hs,t);return {thr:c.thr==null?tr.thr:c.thr,de:h.de,da:h.da,dr:0};};return base;}
+  if(id==='cruise'){base.note='Trimmed at the design speed with fixed controls.';return direct(function(){return {};});}
+  if(id==='doublet'){base.note='Fixed controls, with the elevator moved 2° down from t = 1.0 s to 1.5 s and 2° up from 1.5 s to 2.0 s.';
+    return direct(function(t){return {de:tr.de+(t>=1&&t<1.5?d2:(t>=1.5&&t<2?-d2:0))};});}
+  if(id==='launch'){base.x=sm.init(cfg.flt.launchV,1.8,Math.min(sm.alphaStall-rad(2),rad(8)),0,0);
+    base.note='Released level at the hand-launch airspeed from 1.8 m, full throttle, attitude hold with a 12° nose-up target.';
+    return held(function(){return {theta:rad(12),thr:1};});}
+  if(id==='stall'){base.note='Attitude hold, throttle closed, pitch target raised 2° per second until the angle of attack passes the wing stall angle by 1°. The target then drops to 5° nose down for 1.5 s and returns to the trim attitude, with throttle back at the trim setting.';
+    return held(function(t,x){
+      if(rec<0&&sm.aero(x,{thr:0,de:0,da:0,dr:0}).alpha>sm.alphaStall+rad(1)){rec=t;hs.i=0;}
+      if(rec<0)return {theta:tr.alpha+rad(2)*Math.max(0,t-1),thr:0};
+      return {theta:t-rec<1.5?rad(-5):tr.alpha,thr:tr.thr};});}
+  if(id==='glide'){base.note='Trimmed at the design speed, then throttle closed at t = 1 s with fixed controls.';
+    return direct(function(t){return {thr:t<1?tr.thr:0};});}
+  if(id==='turn'){base.note='Attitude hold: bank target 30° from t = 1 s, pitch held at the trim attitude, throttle fixed.';
+    return held(function(t){return {theta:tr.alpha,phi:t<1?0:rad(30)};});}
+  base.note='You have control. Stick inputs act through the selected control mode.';base.mode='free';
+  base.cmd=function(t,x,stick){
+    if(stick.hold){var h=sm.hold(x,tr.alpha+stick.pitch*rad(30),stick.roll*rad(60),tr.de,hs,t);return {thr:stick.thr,de:h.de,da:h.da,dr:stick.yaw*sm.lim.dr};}
+    return {thr:stick.thr,de:tr.de-stick.pitch*sm.lim.de,da:stick.roll*sm.lim.da,dr:stick.yaw*sm.lim.dr};
+  };
+  return base;
+}
 /*CORE-END*/
 
+/* =====================================================================
+   Flight simulation view: WebGL 2 scene, head-up display, run control.
+   The physics is simModel() in the core; nothing here changes a result.
+   ===================================================================== */
+var SIM={built:false,gl:null,glOk:false,model:null,preset:'cruise',ps:null,run:false,ended:'',x:null,u:null,t:0,log:[],trail:[],
+  cam:'chase',speed:1,forces:false,stick:{thr:0.4,pitch:0,roll:0,yaw:0,hold:true},az:0.9,el:0.28,eye:null,raf:0,last:0,lastCharts:0,keys:{},prop:0,meshes:null};
+var SIM_DT=0.005,SIM_TMAX=300;
+function v3sub(a,b){return [a[0]-b[0],a[1]-b[1],a[2]-b[2]];}
+function v3cross(a,b){return [a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];}
+function v3dot(a,b){return a[0]*b[0]+a[1]*b[1]+a[2]*b[2];}
+function v3norm(a){var l=Math.sqrt(v3dot(a,a))||1;return [a[0]/l,a[1]/l,a[2]/l];}
+function rodrigues(v,a,ang){var c=Math.cos(ang),s=Math.sin(ang),d=v3dot(a,v),x=v3cross(a,v);return [v[0]*c+x[0]*s+a[0]*d*(1-c),v[1]*c+x[1]*s+a[1]*d*(1-c),v[2]*c+x[2]*s+a[2]*d*(1-c)];}
+function m4mul(a,b){var o=new Float32Array(16),i,j,k;for(i=0;i<4;i++)for(j=0;j<4;j++){var s=0;for(k=0;k<4;k++)s+=a[k*4+j]*b[i*4+k];o[i*4+j]=s;}return o;}
+function m4persp(fovy,asp,n,f){var t=1/Math.tan(fovy/2),o=new Float32Array(16);o[0]=t/asp;o[5]=t;o[10]=(f+n)/(n-f);o[11]=-1;o[14]=2*f*n/(n-f);return o;}
+function m4look(e,c,up){var f=v3norm(v3sub(c,e)),s=v3norm(v3cross(f,up)),u=v3cross(s,f);
+  return {m:new Float32Array([s[0],u[0],-f[0],0,s[1],u[1],-f[1],0,s[2],u[2],-f[2],0,-v3dot(s,e),-v3dot(u,e),v3dot(f,e),1]),f:f,s:s,u:u};}
+function m4hinge(hg,ang){ /* rotation by ang about the hinge line */
+  var a=hg.a,p=hg.p,c0=rodrigues([1,0,0],a,ang),c1=rodrigues([0,1,0],a,ang),c2=rodrigues([0,0,1],a,ang),rp=rodrigues(p,a,ang);
+  return new Float32Array([c0[0],c0[1],c0[2],0,c1[0],c1[1],c1[2],0,c2[0],c2[1],c2[2],0,p[0]-rp[0],p[1]-rp[1],p[2]-rp[2],1]);}
+
+/* ---------- aircraft geometry from the configuration (body axes: forward, right, down; metres from the CG) ---------- */
+function simMeshes(cfg,r){
+  var xcg=r.xcg,zcg=r.mass.cg.z,w=cfg.wing,t=cfg.tail,fu=cfg.fus,pr=cfg.prop,parts={},solid=null;
+  var FOAM=[0.94,0.93,0.90],DARK=[0.20,0.20,0.22],MAROON=[0.48,0.10,0.17],BODY=[0.88,0.84,0.76];
+  function B(x,y,z){return [-(x-xcg)/1000,y/1000,-(z-zcg)/1000];}
+  function part(n){return parts[n]||(parts[n]={v:[],hinge:null});}
+  function begin(n,col){solid={p:part(n),col:col,tris:[]};}
+  function tri(a,b,c){solid.tris.push([a,b,c]);}
+  function quad(a,b,c,d){tri(a,b,c);tri(a,c,d);}
+  function end(){ /* orient every face away from the solid's centroid */
+    var cx=[0,0,0],n=0;
+    solid.tris.forEach(function(T){T.forEach(function(p){cx[0]+=p[0];cx[1]+=p[1];cx[2]+=p[2];n++;});});
+    if(!n)return;cx=[cx[0]/n,cx[1]/n,cx[2]/n];
+    solid.tris.forEach(function(T){
+      var nr=v3cross(v3sub(T[1],T[0]),v3sub(T[2],T[0])),l=Math.sqrt(v3dot(nr,nr));if(l<1e-12)return;
+      nr=[nr[0]/l,nr[1]/l,nr[2]/l];
+      var ce=[(T[0][0]+T[1][0]+T[2][0])/3,(T[0][1]+T[1][1]+T[2][1])/3,(T[0][2]+T[1][2]+T[2][2])/3];
+      if(v3dot(nr,v3sub(ce,cx))<0){var s=T[1];T[1]=T[2];T[2]=s;nr=[-nr[0],-nr[1],-nr[2]];}
+      T.forEach(function(p){solid.p.v.push(p[0],p[1],p[2],nr[0],nr[1],nr[2],solid.col[0],solid.col[1],solid.col[2]);});
+    });
+  }
+  function cap(A){var c=[0,0,0];A.forEach(function(p){c[0]+=p[0]/A.length;c[1]+=p[1]/A.length;c[2]+=p[2]/A.length;});for(var i=0;i<A.length;i++)tri(c,A[i],A[(i+1)%A.length]);}
+  function loft(A,Bq,capA,capB){for(var i=0;i<A.length;i++){var j=(i+1)%A.length;quad(A[i],A[j],Bq[j],Bq[i]);}if(capA)cap(A);if(capB)cap(Bq);}
+  function hinge(name,p,q,te,up){ /* +angle moves the trailing edge away from the surface's upper side */
+    var a=v3norm(v3sub(q,p)),moved=v3sub(rodrigues(v3sub(te,p),a,0.1),v3sub(te,p));
+    part(name).hinge={p:p,a:a,sgn:v3dot(moved,up)<0?1:-1};
+  }
+  /* wing */
+  var af=thinAirfoil(w.naca),half=w.span/2,dih=rad(w.dihedral),inc=rad(w.incidence),tanS=Math.tan(rad(w.sweepLE));
+  function camber(x){if(!(af.m>0&&af.p>0))return 0;return x<af.p?af.m/(af.p*af.p)*(2*af.p*x-x*x):af.m/((1-af.p)*(1-af.p))*((1-2*af.p)+2*af.p*x-x*x);}
+  function thick(x){return 5*af.t*(0.2969*Math.sqrt(x)-0.1260*x-0.3516*x*x+0.2843*x*x*x-0.1036*x*x*x*x);}
+  function wpt(side,yf,f,sg){
+    var c=w.rootChord+(w.tipChord-w.rootChord)*yf,s=yf*half,X=f*c,Z=(camber(f)+sg*thick(f))*c;
+    return B(w.xLE+tanS*s+X*Math.cos(inc)+Z*Math.sin(inc),side*s*Math.cos(dih),w.z+s*Math.sin(dih)-X*Math.sin(inc)+Z*Math.cos(inc));
+  }
+  function wsec(side,yf,f0,f1,n){var o=[],i,f;
+    for(i=0;i<=n;i++){f=f0+(f1-f0)*(f0===0?1-Math.cos(i/n*PI/2):i/n);o.push(wpt(side,yf,f,1));}
+    for(i=n;i>=0;i--){f=f0+(f1-f0)*(f0===0?1-Math.cos(i/n*PI/2):i/n);o.push(wpt(side,yf,f,-1));}
+    return o;}
+  var hasAil=w.ailSpanFrac>0&&w.ailChordFrac>0,yA=hasAil?1-w.ailSpanFrac:1,cfA=w.ailChordFrac;
+  [1,-1].forEach(function(side){
+    if(yA>0){begin('static',FOAM);loft(wsec(side,0,0,1,10),wsec(side,yA,0,1,10),true,!hasAil);end();}
+    if(hasAil){
+      begin('static',FOAM);loft(wsec(side,yA,0,1-cfA,9),wsec(side,1,0,1-cfA,9),true,true);end();
+      var nm=side>0?'ailR':'ailL';
+      begin(nm,MAROON);loft(wsec(side,yA,1-cfA,1,3),wsec(side,1,1-cfA,1,3),true,true);end();
+      hinge(nm,wpt(side,yA,1-cfA,0),wpt(side,1,1-cfA,0),wpt(side,yA,1,0),[0,0,-1]);
+    }
+  });
+  /* tail */
+  function plate(name,fixedName,root,dir,len,nrm,cr,ct,cf,th){
+    function sec(j,f0,f1){var c=j?ct:cr,bx=root[0]+dir[0]*len*j,by=root[1]+dir[1]*len*j,bz=root[2]+dir[2]*len*j,h=th/2;
+      function P(f,s){return B(bx+f*c+nrm[0]*h*s,by+nrm[1]*h*s,bz+nrm[2]*h*s);}
+      return [P(f0,1),P(f1,1),P(f1,-1),P(f0,-1)];}
+    begin(fixedName,FOAM);loft(sec(0,0,1-cf),sec(1,0,1-cf),true,true);end();
+    if(cf>0){
+      begin(name,MAROON);loft(sec(0,1-cf,1),sec(1,1-cf,1),true,true);end();
+      hinge(name,B(root[0]+(1-cf)*cr,root[1],root[2]),B(root[0]+dir[0]*len+(1-cf)*ct,root[1]+dir[1]*len,root[2]+dir[2]*len),B(root[0]+cr,root[1],root[2]),[-nrm[0],nrm[1],-nrm[2]]);
+    }
+  }
+  var isV=t.type==='vtail',g=isV?rad(t.dihedral):0,tS=Math.tan(rad(t.sweepLE)),th=Math.max(2,t.thickness);
+  [1,-1].forEach(function(s){
+    plate(s>0?'rvR':'rvL','static',[t.xLE,s*t.yRoot,t.z],[tS,s*Math.cos(g),Math.sin(g)],t.slant,[0,-s*Math.sin(g),Math.cos(g)],t.rootChord,t.tipChord,t.surfChordFrac,th);
+  });
+  if(!isV)plate('rud','static',[t.xLE,0,t.z],[(t.finRootChord-t.finTipChord)/t.finHeight,0,1],t.finHeight,[0,1,0],t.finRootChord,t.finTipChord,t.surfChordFrac,th);
+  /* fuselage */
+  var hw=fu.width/2,hh=fu.height/2,xb=fu.noseLen+fu.boomLen,Lf=xb+fu.tailLen,zm=Math.max(-hh,Math.min(hh,pr.z)),sw=Math.min(hw,17),sh=Math.min(hh,17);
+  function rect(x,a,b,zc){return [B(x,-a,zc+b),B(x,a,zc+b),B(x,a,zc-b),B(x,-a,zc-b)];}
+  begin('static',BODY);loft(rect(fu.noseLen,hw,hh,0),rect(xb,hw,hh,0),true,true);end();
+  if(fu.noseLen>0){begin('static',DARK);var tip=B(0,0,0);loft([tip,tip,tip,tip],rect(fu.noseLen,hw,hh,0),false,true);end();}
+  if(fu.tailLen>0){begin('static',DARK);loft(rect(xb,hw,hh,0),rect(Lf,sw,sh,zm),true,true);end();}
+  begin('static',DARK);loft(rect(Lf,sw*0.9,sh*0.9,zm),rect(Math.max(Lf+1,pr.x-6),sw*0.9,sh*0.9,zm),true,true);end();
+  /* propeller */
+  var R=pr.diam/2,nb=Math.max(1,pr.blades),k;
+  for(k=0;k<nb;k++){
+    var ph=2*PI*k/nb,er=[0,Math.cos(ph),Math.sin(ph)],et=[0,-Math.sin(ph),Math.cos(ph)];
+    var bs=function(rr,wd){function P(sx,st){return B(pr.x+sx*2,er[1]*rr+et[1]*wd/2*st,pr.z+er[2]*rr+et[2]*wd/2*st);}return [P(1,1),P(1,-1),P(-1,-1),P(-1,1)];};
+    begin('prop',[0.10,0.10,0.11]);loft(bs(0.06*R,0.16*R),bs(R,0.07*R),true,true);end();
+  }
+  begin('prop',MAROON);loft(rect(pr.x-5,0.07*R,0.07*R,pr.z),rect(pr.x+7,0.04*R,0.04*R,pr.z),true,true);end();
+  part('prop').hinge={p:B(pr.x,0,pr.z),a:[1,0,0],sgn:1};
+  return {parts:parts,ac:B(r.xacwb,0,w.z),propAt:B(pr.x,0,pr.z),span:w.span/1000,isV:isV};
+}
+
+/* ---------- WebGL ---------- */
+var SIM_VS_SKY='#version 300 es\nin vec2 aP;out vec2 vN;void main(){vN=aP;gl_Position=vec4(aP,0.,1.);}';
+var SIM_FS_SKY='#version 300 es\nprecision highp float;in vec2 vN;out vec4 o;uniform vec3 uCam,uRight,uUp,uFwd,uSun;uniform float uTan,uAsp;\n'+
+'void main(){vec3 d=normalize(uFwd+vN.x*uAsp*uTan*uRight+vN.y*uTan*uUp);vec3 hz=vec3(.80,.87,.93);vec3 c;\n'+
+'if(d.y<-1e-4){float t=-uCam.y/d.y;vec2 p=uCam.xz+d.xz*t;vec3 g=vec3(.30,.40,.27)*(0.93+0.07*sin(p.x*.013)*sin(p.y*.017));\n'+
+'vec2 q1=p/10.;vec2 f1=abs(fract(q1-.5)-.5)/max(fwidth(q1),vec2(1e-6));float l1=1.-min(min(f1.x,f1.y),1.);\n'+
+'vec2 q2=p/100.;vec2 f2=abs(fract(q2-.5)-.5)/max(fwidth(q2),vec2(1e-6));float l2=1.-min(min(f2.x,f2.y),1.);\n'+
+'g=mix(g,vec3(.48,.58,.42),l1*.55*exp(-t/260.));g=mix(g,vec3(.86,.89,.78),l2*.75*exp(-t/2600.));\n'+
+'if(p.x>-30.&&p.x<220.&&abs(p.y)<5.){g=vec3(.27,.28,.30);if(abs(p.y)<.16&&fract(p.x/12.)>.5)g=vec3(.93);if(abs(abs(p.y)-4.6)<.1)g=vec3(.93);}\n'+
+'c=mix(g,hz,1.-exp(-t/3200.));}\n'+
+'else{float h=clamp(d.y,0.,1.);c=mix(hz,vec3(.15,.37,.72),pow(h,.5));float s=max(dot(d,uSun),0.);c+=vec3(1.,.92,.75)*(pow(s,400.)*1.6+pow(s,10.)*.16);}\n'+
+'o=vec4(c,1.);}';
+var SIM_VS='#version 300 es\nin vec3 aP;in vec3 aN;in vec3 aC;uniform mat4 uVP,uM;uniform vec3 uSun;uniform float uShadow;out vec3 vN;out vec3 vC;out vec3 vW;\n'+
+'void main(){vec4 w=uM*vec4(aP,1.);if(uShadow>.5){w.xz-=uSun.xz*(w.y/uSun.y);w.y=.02;}vW=w.xyz;vN=mat3(uM)*aN;vC=aC;gl_Position=uVP*w;}';
+var SIM_FS='#version 300 es\nprecision highp float;in vec3 vN;in vec3 vC;in vec3 vW;out vec4 o;uniform vec3 uSun,uCam;uniform float uShadow,uUnlit,uAlpha;\n'+
+'void main(){if(uShadow>.5){o=vec4(0.,0.,0.,.30);return;}vec3 c=vC;if(uUnlit<.5){vec3 n=normalize(vN);float d=max(dot(n,uSun),0.);c=vC*(.36+.22*(.5+.5*n.y)+.60*d);\n'+
+'vec3 v=normalize(uCam-vW);c+=vec3(.22)*pow(max(dot(reflect(-uSun,n),v),0.),28.);}\n'+
+'c=mix(c,vec3(.80,.87,.93),1.-exp(-length(uCam-vW)/3200.));o=vec4(c,uAlpha);}';
+function simGLInit(canvas){
+  var gl=null;
+  try{gl=canvas.getContext('webgl2',{antialias:true,alpha:false});}catch(e){gl=null;}
+  if(!gl)return false;
+  function sh(type,src){var s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(s));return s;}
+  function prog(vs,fs,attrs){var p=gl.createProgram();gl.attachShader(p,sh(gl.VERTEX_SHADER,vs));gl.attachShader(p,sh(gl.FRAGMENT_SHADER,fs));
+    attrs.forEach(function(a,i){gl.bindAttribLocation(p,i,a);});gl.linkProgram(p);if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(p));
+    var u={},n=gl.getProgramParameter(p,gl.ACTIVE_UNIFORMS),i;for(i=0;i<n;i++){var inf=gl.getActiveUniform(p,i);u[inf.name]=gl.getUniformLocation(p,inf.name);}
+    return {p:p,u:u};}
+  try{
+    SIM.pSky=prog(SIM_VS_SKY,SIM_FS_SKY,['aP']);SIM.pMesh=prog(SIM_VS,SIM_FS,['aP','aN','aC']);
+  }catch(e){return false;}
+  SIM.vSky=gl.createVertexArray();gl.bindVertexArray(SIM.vSky);
+  var b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
+  SIM.dyn=simVao(gl,null);SIM.gl=gl;SIM.bufs={};
+  return true;
+}
+function simVao(gl,data){
+  var v=gl.createVertexArray(),b=gl.createBuffer();gl.bindVertexArray(v);gl.bindBuffer(gl.ARRAY_BUFFER,b);
+  if(data)gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(data),gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,3,gl.FLOAT,false,36,0);
+  gl.enableVertexAttribArray(1);gl.vertexAttribPointer(1,3,gl.FLOAT,false,36,12);
+  gl.enableVertexAttribArray(2);gl.vertexAttribPointer(2,3,gl.FLOAT,false,36,24);
+  return {vao:v,buf:b,n:data?data.length/9:0};
+}
+function simUpload(){
+  var gl=SIM.gl;if(!gl||!SIM.meshes)return;
+  Object.keys(SIM.bufs).forEach(function(k){gl.deleteBuffer(SIM.bufs[k].buf);gl.deleteVertexArray(SIM.bufs[k].vao);});
+  SIM.bufs={};
+  Object.keys(SIM.meshes.parts).forEach(function(k){SIM.bufs[k]=simVao(gl,SIM.meshes.parts[k].v);});
+}
+/* world axes for drawing: x north, y up, z east */
+function simPose(x){
+  var R=quatToR([x[6],x[7],x[8],x[9]]);
+  return {R:R,pos:[x[0],-x[2],x[1]],m:new Float32Array([R[0][0],-R[2][0],R[1][0],0,R[0][1],-R[2][1],R[1][1],0,R[0][2],-R[2][2],R[1][2],0,x[0],-x[2],x[1],1])};
+}
+function simCamera(pose,dt,asp){
+  var b=SIM.meshes?SIM.meshes.span:1.5,p=pose.pos,e=eulerFromQuat([SIM.x[6],SIM.x[7],SIM.x[8],SIM.x[9]]),eye,tgt=p,fov=rad(52);
+  if(SIM.cam==='ground'){
+    eye=[-7,1.7,9];var d=Math.sqrt(v3dot(v3sub(p,eye),v3sub(p,eye)));
+    fov=Math.max(rad(1.5),Math.min(rad(50),2*Math.atan(2.2*b/Math.max(d,1))));
+  }else if(SIM.cam==='orbit'){
+    var rr=2.2*b;eye=[p[0]-rr*Math.cos(SIM.el)*Math.cos(SIM.az),p[1]+rr*Math.sin(SIM.el),p[2]-rr*Math.cos(SIM.el)*Math.sin(SIM.az)];
+  }else{
+    /* fixed distance behind the aircraft; only the camera's heading lags, so the aircraft stays the same size */
+    if(SIM.eye==null||dt<=0)SIM.eye=e.psi;
+    else{var dp=Math.atan2(Math.sin(e.psi-SIM.eye),Math.cos(e.psi-SIM.eye));SIM.eye+=dp*Math.min(1,dt*SIM.speed*3.5);}
+    var cp=Math.cos(SIM.eye),sp=Math.sin(SIM.eye);
+    eye=[p[0]-cp*2.0*b,p[1]+0.55*b,p[2]-sp*2.0*b];tgt=[p[0]+cp*0.4*b,p[1]-0.02*b,p[2]+sp*0.4*b];
+  }
+  if(eye[1]<0.15)eye=[eye[0],0.15,eye[2]];
+  var L=m4look(eye,tgt,[0,1,0]);
+  return {eye:eye,L:L,fov:fov,vp:m4mul(m4persp(fov,asp,0.05,6000),L.m)};
+}
+function simDrawGL(dt){
+  var gl=SIM.gl,cv=SIM.cvGL;if(!gl||!SIM.x||!SIM.meshes)return;
+  var W=cv.width,H=cv.height,pose=simPose(SIM.x),cam=simCamera(pose,dt,W/H),sun=v3norm([0.45,0.80,0.35]),u=SIM.u||{de:0,da:0,dr:0,thr:0};
+  gl.viewport(0,0,W,H);gl.disable(gl.DEPTH_TEST);gl.disable(gl.BLEND);gl.disable(gl.CULL_FACE);
+  gl.useProgram(SIM.pSky.p);var us=SIM.pSky.u;
+  gl.uniform3fv(us.uCam,cam.eye);gl.uniform3fv(us.uRight,cam.L.s);gl.uniform3fv(us.uUp,cam.L.u);gl.uniform3fv(us.uFwd,cam.L.f);gl.uniform3fv(us.uSun,sun);
+  gl.uniform1f(us.uTan,Math.tan(cam.fov/2));gl.uniform1f(us.uAsp,W/H);
+  gl.bindVertexArray(SIM.vSky);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+  gl.useProgram(SIM.pMesh.p);var um=SIM.pMesh.u;
+  gl.uniformMatrix4fv(um.uVP,false,cam.vp);gl.uniform3fv(um.uSun,sun);gl.uniform3fv(um.uCam,cam.eye);
+  var ang={ailR:-u.da,ailL:u.da,rvR:u.de+(SIM.meshes.isV?u.dr:0),rvL:u.de-(SIM.meshes.isV?u.dr:0),rud:-u.dr,prop:SIM.prop};
+  function drawParts(shadow){
+    gl.uniform1f(um.uShadow,shadow?1:0);gl.uniform1f(um.uUnlit,0);gl.uniform1f(um.uAlpha,1);
+    Object.keys(SIM.bufs).forEach(function(k){
+      var bf=SIM.bufs[k],hg=SIM.meshes.parts[k].hinge,m=pose.m;if(!bf.n)return;
+      if(hg)m=m4mul(pose.m,m4hinge(hg,hg.sgn*(ang[k]||0)));
+      gl.uniformMatrix4fv(um.uM,false,m);gl.bindVertexArray(bf.vao);gl.drawArrays(gl.TRIANGLES,0,bf.n);
+    });
+  }
+  gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+  drawParts(true);
+  gl.enable(gl.DEPTH_TEST);gl.clear(gl.DEPTH_BUFFER_BIT);
+  var I=new Float32Array([1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]);
+  function dynDraw(arr,mode,alpha,m){
+    if(!arr.length)return;
+    gl.bindVertexArray(SIM.dyn.vao);gl.bindBuffer(gl.ARRAY_BUFFER,SIM.dyn.buf);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(arr),gl.DYNAMIC_DRAW);
+    gl.uniform1f(um.uShadow,0);gl.uniform1f(um.uUnlit,1);gl.uniform1f(um.uAlpha,alpha);gl.uniformMatrix4fv(um.uM,false,m||I);
+    gl.drawArrays(mode,0,arr.length/9);
+  }
+  /* wingtip ribbon and height posts */
+  var rb=[],posts=[],i,tr=SIM.trail;
+  for(i=0;i<tr.length;i++){var q=tr[i];rb.push(q[0],q[1],q[2],0,1,0,1,0.97,0.9,q[3],q[4],q[5],0,1,0,0.79,0.69,0.54);
+    if(i%10===0){var mx=(q[0]+q[3])/2,my=(q[1]+q[4])/2,mz=(q[2]+q[5])/2;posts.push(mx,my,mz,0,1,0,1,1,1,mx,0,mz,0,1,0,1,1,1);}}
+  gl.depthMask(false);dynDraw(rb,gl.TRIANGLE_STRIP,0.5);dynDraw(posts,gl.LINES,0.35);gl.depthMask(true);
+  drawParts(false);
+  if(SIM.forces&&SIM.a){
+    var a=SIM.a,sc=0.05,R=pose.R,ca=Math.cos(a.alpha),sa=Math.sin(a.alpha),W8=SIM.model.m*G0,ln=[];
+    var arrow=function(p,f,col){var q=[p[0]+f[0]*sc,p[1]+f[1]*sc,p[2]+f[2]*sc],d=v3norm(f),s=v3norm(v3cross(d,[0,1,0.01])),hl=0.06;
+      [[p,q],[q,[q[0]-d[0]*hl+s[0]*hl*0.5,q[1]-d[1]*hl+s[1]*hl*0.5,q[2]-d[2]*hl+s[2]*hl*0.5]],[q,[q[0]-d[0]*hl-s[0]*hl*0.5,q[1]-d[1]*hl-s[1]*hl*0.5,q[2]-d[2]*hl-s[2]*hl*0.5]]].forEach(function(sg){
+        ln.push(sg[0][0],sg[0][1],sg[0][2],0,1,0,col[0],col[1],col[2],sg[1][0],sg[1][1],sg[1][2],0,1,0,col[0],col[1],col[2]);});};
+    arrow(SIM.meshes.ac,[a.L*sa,0,-a.L*ca],[0.25,0.75,1]);
+    arrow([0,0,0],[-a.D*ca,0,-a.D*sa],[1,0.8,0.3]);
+    arrow(SIM.meshes.propAt,[a.T,0,0],[1,0.35,0.35]);
+    arrow([0,0,0],[R[2][0]*W8,R[2][1]*W8,R[2][2]*W8],[1,1,1]);
+    gl.disable(gl.DEPTH_TEST);dynDraw(ln,gl.LINES,1,pose.m);
+  }
+}
+
+/* ---------- head-up display ---------- */
+function simDrawHUD(){
+  var cv=SIM.cvHUD,ctx=cv.getContext('2d'),dpr=cv.width/Math.max(1,cv.clientWidth),W=cv.clientWidth,H=cv.clientHeight;
+  ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,H);
+  if(!SIM.glOk){var g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#27497a');g.addColorStop(0.55,'#c9dbe9');g.addColorStop(0.56,'#55683f');g.addColorStop(1,'#33422a');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);}
+  if(!SIM.x||!SIM.a)return;
+  var a=SIM.a,x=SIM.x,e=eulerFromQuat([x[6],x[7],x[8],x[9]]),alt=-x[2],cx=W/2,cy=H/2,k=Math.max(0.7,Math.min(1.25,H/520));
+  var R=a.R,vd=R[2][0]*x[3]+R[2][1]*x[4]+R[2][2]*x[5],roc=-vd,white='#fff',warn='#ffcf5a';
+  ctx.lineWidth=1.6*k;ctx.strokeStyle=white;ctx.fillStyle=white;ctx.shadowColor='rgba(0,0,0,.75)';ctx.shadowBlur=3;ctx.textBaseline='middle';
+  function font(px,b){ctx.font=(b?'600 ':'')+Math.round(px*k)+'px "Segoe UI",system-ui,Arial,sans-serif';}
+  /* attitude indicator, bottom centre: horizon and pitch lines move, the aircraft symbol is fixed */
+  var small=W<560,rb=(small?38:70)*k,bx=cx,byc=H-rb-(small?10:22)*k,pp=rb/22,th=deg(e.theta),p;
+  ctx.save();ctx.shadowBlur=0;ctx.beginPath();ctx.arc(bx,byc,rb,0,2*PI);ctx.clip();
+  ctx.translate(bx,byc);ctx.rotate(-e.phi);ctx.translate(0,th*pp);
+  ctx.fillStyle='rgba(58,118,196,.82)';ctx.fillRect(-3*rb,-6*rb,6*rb,6*rb);ctx.fillStyle='rgba(92,74,48,.86)';ctx.fillRect(-3*rb,0,6*rb,6*rb);
+  ctx.strokeStyle=white;ctx.fillStyle=white;ctx.lineWidth=1.4*k;ctx.beginPath();ctx.moveTo(-3*rb,0);ctx.lineTo(3*rb,0);ctx.stroke();
+  font(9);ctx.textAlign='left';
+  for(p=-80;p<=80;p+=5){if(p===0)continue;var y=-p*pp,hw=(p%10===0?17:8)*k;ctx.beginPath();ctx.moveTo(-hw,y);ctx.lineTo(hw,y);ctx.stroke();if(p%10===0)ctx.fillText(String(Math.abs(p)),hw+4*k,y);}
+  ctx.restore();
+  ctx.save();ctx.shadowBlur=0;ctx.lineWidth=2*k;ctx.strokeStyle='rgba(255,255,255,.9)';ctx.beginPath();ctx.arc(bx,byc,rb,0,2*PI);ctx.stroke();
+  ctx.translate(bx,byc);ctx.lineWidth=1.5*k;
+  [-60,-45,-30,-20,-10,0,10,20,30,45,60].forEach(function(b){var an=rad(b)-PI/2,l=(b%30===0?9:5)*k;ctx.beginPath();ctx.moveTo(Math.cos(an)*rb,Math.sin(an)*rb);ctx.lineTo(Math.cos(an)*(rb+l),Math.sin(an)*(rb+l));ctx.stroke();});
+  ctx.save();ctx.rotate(-Math.max(-rad(60),Math.min(rad(60),e.phi)));ctx.fillStyle=warn;ctx.beginPath();ctx.moveTo(0,-rb+2*k);ctx.lineTo(-6*k,-rb+13*k);ctx.lineTo(6*k,-rb+13*k);ctx.closePath();ctx.fill();ctx.restore();
+  ctx.strokeStyle=warn;ctx.lineWidth=3*k;ctx.beginPath();ctx.moveTo(-34*k,0);ctx.lineTo(-12*k,0);ctx.lineTo(0,8*k);ctx.lineTo(12*k,0);ctx.lineTo(34*k,0);ctx.stroke();
+  ctx.restore();
+  if(!small){font(11);ctx.textAlign='center';ctx.fillText('Pitch '+th.toFixed(0)+'°   Bank '+deg(e.phi).toFixed(0)+'°',bx,H-9*k);}
+  /* tapes */
+  function tape(xc,val,step,major,label,right,dp){
+    var h2=130*k,w2=58*k,x0=right?xc:xc-w2,pxu=h2/(step*6),v;
+    ctx.save();ctx.fillStyle='rgba(10,20,34,.38)';ctx.shadowBlur=0;ctx.fillRect(x0,cy-h2,w2,2*h2);ctx.restore();
+    ctx.save();ctx.beginPath();ctx.rect(x0,cy-h2,w2,2*h2);ctx.clip();font(11);ctx.textAlign=right?'left':'right';
+    for(v=Math.floor((val-step*7)/step)*step;v<=val+step*7;v+=step){
+      var y=cy-(v-val)*pxu,mj=Math.abs(Math.round(v/major)*major-v)<1e-6;
+      ctx.beginPath();ctx.moveTo(right?x0:x0+w2,y);ctx.lineTo(right?x0+(mj?10:5)*k:x0+w2-(mj?10:5)*k,y);ctx.stroke();
+      if(mj)ctx.fillText(v.toFixed(0),right?x0+14*k:x0+w2-14*k,y);
+    }
+    ctx.restore();
+    ctx.save();ctx.shadowBlur=0;ctx.fillStyle='rgba(8,14,24,.85)';ctx.strokeStyle=white;ctx.lineWidth=1.4*k;ctx.fillRect(x0-3*k,cy-13*k,w2+6*k,26*k);ctx.strokeRect(x0-3*k,cy-13*k,w2+6*k,26*k);ctx.restore();
+    font(15,true);ctx.textAlign='center';ctx.fillText(val.toFixed(dp),x0+w2/2,cy+1);
+    font(11);ctx.fillText(label,x0+w2/2,cy-h2-11*k);
+  }
+  var vs=toDisp(a.Vt,'m/s'),hs=toDisp(alt,'m');
+  tape(78*k,vs,isImp()?2:1,isImp()?10:5,'Airspeed '+ulabel('m/s'),false,1);
+  tape(W-78*k,hs,isImp()?20:5,isImp()?100:25,'Altitude '+ulabel('m'),true,isImp()?0:1);
+  /* heading */
+  var hd=(deg(e.psi)%360+360)%360;font(15,true);ctx.textAlign='center';ctx.fillText(('00'+Math.round(hd)%360).slice(-3)+'°',cx,34*k);
+  font(11);ctx.fillText('Heading',cx,17*k);
+  /* readouts */
+  var lx=14*k,by=H-14*k,rows=[['Throttle',Math.round((SIM.u?SIM.u.thr:0)*100)+'%'],['Angle of attack',deg(a.alpha).toFixed(1)+'°'],['Load factor',a.n.toFixed(2)+' g'],['Thrust',toDisp(a.T,'N').toFixed(1)+' '+ulabel('N')]];
+  var rows2=[['Climb rate',toDisp(roc,'roc').toFixed(isImp()?0:1)+' '+ulabel('roc')],['Pack current',a.Ib.toFixed(1)+' A'],['Battery used',Math.round(x[13]*1000)+' mAh'],['Time',SIM.t.toFixed(1)+' s']];
+  if(small){rows=rows.slice(0,3);rows2=rows2.slice(0,3);}
+  font(12);
+  rows.forEach(function(rw,i){var y=by-(rows.length-1-i)*17*k;ctx.textAlign='left';ctx.globalAlpha=0.8;ctx.fillText(rw[0],lx,y);ctx.globalAlpha=1;ctx.fillText(rw[1],lx+(small?92:104)*k,y);});
+  rows2.forEach(function(rw,i){var y=by-(rows2.length-1-i)*17*k;ctx.textAlign='right';ctx.fillText(rw[1],W-lx,y);ctx.globalAlpha=0.8;ctx.fillText(rw[0],W-lx-84*k,y);ctx.globalAlpha=1;});
+  /* status */
+  font(12);ctx.textAlign='left';ctx.fillText(SIM.ended?'Ended':(SIM.run?'Running':(SIM.t>0?'Paused':'Ready'))+(SIM.speed!==1?'  ×'+SIM.speed:''),lx,18*k);
+  if(a.stalled){font(22,true);ctx.textAlign='center';ctx.fillStyle=warn;ctx.fillText('STALL',cx,66*k);ctx.fillStyle=white;}
+  if(alt<3&&roc<-0.5&&!SIM.ended){font(16,true);ctx.textAlign='center';ctx.fillStyle=warn;ctx.fillText('GROUND',cx,92*k);ctx.fillStyle=white;}
+}
+
+/* ---------- run control ---------- */
+function simFrame(dt){
+  if(SIM.model&&SIM.x){SIM.u=SIM.model.clamp(SIM.ps.cmd(SIM.t,SIM.x,SIM.stick));SIM.a=SIM.model.aero(SIM.x,SIM.u);}
+  if(SIM.glOk)simDrawGL(dt||0);
+  simDrawHUD();
+}
+function simLogPoint(){
+  var a=SIM.a,x=SIM.x,e=eulerFromQuat([x[6],x[7],x[8],x[9]]),u=SIM.u;
+  SIM.log.push({t:SIM.t,V:a.Vt,h:-x[2],al:deg(a.alpha),th:deg(e.theta),ph:deg(e.phi),de:deg(u.de),da:deg(u.da),dr:deg(u.dr),n:a.n,pn:x[0],pe:x[1],ah:x[13],st:a.stalled});
+}
+function simReset(){
+  SIM.run=false;SIM.ended='';SIM.t=0;SIM.log=[];SIM.trail=[];SIM.eye=null;SIM.prop=0;SIM.lastCharts=0;
+  if(SIM.raf){cancelAnimationFrame(SIM.raf);SIM.raf=0;}
+  if(!SIM.model){SIM.x=null;simUI();return;}
+  SIM.ps=simPreset(SIM.preset,cur(),last,SIM.model);SIM.x=SIM.ps.x.slice();
+  if(SIM.preset==='free'){SIM.stick.thr=SIM.ps.trim.thr;SIM.stick.pitch=0;SIM.stick.roll=0;SIM.stick.yaw=0;}
+  simFrame(0);simLogPoint();simUI();simCharts();
+}
+function simStop(why){SIM.run=false;SIM.ended=why;simUI();simCharts();simFrame(0);}
+function simTick(now){
+  SIM.raf=0;if(!SIM.run)return;
+  var dtw=Math.min(0.05,Math.max(0,(now-SIM.last)/1000));SIM.last=now;
+  var n=Math.max(1,Math.round(dtw*SIM.speed/SIM_DT)),i,b=SIM.meshes.span;
+  for(i=0;i<n;i++){
+    SIM.u=SIM.model.clamp(SIM.ps.cmd(SIM.t,SIM.x,SIM.stick));
+    SIM.x=SIM.model.step(SIM.x,SIM.u,SIM_DT);SIM.t+=SIM_DT;
+    var step=Math.round(SIM.t/SIM_DT);
+    if(!isFinite(SIM.x[3])||!isFinite(SIM.x[6])){simStop('The integration produced a non-finite state at t = '+SIM.t.toFixed(2)+' s.');return;}
+    if(step%10===0){SIM.a=SIM.model.aero(SIM.x,SIM.u);simLogPoint();}
+    if(step%20===0){var ps=simPose(SIM.x),R=ps.R,rt=[R[0][1],-R[2][1],R[1][1]],p=ps.pos,hb=0.10*b;
+      SIM.trail.push([p[0]-rt[0]*hb,p[1]-rt[1]*hb,p[2]-rt[2]*hb,p[0]+rt[0]*hb,p[1]+rt[1]*hb,p[2]+rt[2]*hb]);if(SIM.trail.length>2400)SIM.trail.shift();}
+    if(-SIM.x[2]<=0){
+      SIM.a=SIM.model.aero(SIM.x,SIM.u);simLogPoint();
+      var R2=SIM.a.R,x=SIM.x,vd=R2[2][0]*x[3]+R2[2][1]*x[4]+R2[2][2]*x[5],e=eulerFromQuat([x[6],x[7],x[8],x[9]]);
+      simStop('Ground contact at t = '+SIM.t.toFixed(1)+' s: airspeed '+fx(toDisp(SIM.a.Vt,'m/s'),1)+' '+ulabel('m/s')+', sink rate '+fx(toDisp(vd,'roc'),isImp()?0:1)+' '+ulabel('roc')+', pitch '+deg(e.theta).toFixed(0)+'°, bank '+deg(e.phi).toFixed(0)+'°.');return;}
+    if(SIM.x[13]>=SIM.model.capAh){simStop('Usable battery capacity reached at t = '+SIM.t.toFixed(0)+' s.');return;}
+    if(SIM.t>=SIM_TMAX){simStop('Run length limit of '+SIM_TMAX+' s reached.');return;}
+  }
+  SIM.prop+=Math.min(1.1,(SIM.a?SIM.a.rpm:0)/60*2*PI*dtw);
+  simFrame(dtw);
+  if(now-SIM.lastCharts>600){SIM.lastCharts=now;simCharts();}
+  SIM.raf=requestAnimationFrame(simTick);
+}
+function simStart(){
+  if(!SIM.model||!SIM.x)return;
+  if(SIM.ended)simReset();
+  SIM.run=true;SIM.last=window.performance.now();simUI();
+  if(!SIM.raf)SIM.raf=requestAnimationFrame(simTick);
+}
+function simPause(){SIM.run=false;simUI();simCharts();simFrame(0);}
+function simResize(){
+  var bx=SIM.view;if(!bx)return;
+  var dpr=Math.min(2,window.devicePixelRatio||1),w=Math.max(2,Math.round(bx.clientWidth*dpr)),h2=Math.max(2,Math.round(bx.clientHeight*dpr));
+  [SIM.cvGL,SIM.cvHUD].forEach(function(c){if(c.width!==w||c.height!==h2){c.width=w;c.height=h2;}});
+  simFrame(0);
+}
+function simUI(){
+  if(!SIM.built)return;
+  SIM.bStart.textContent=SIM.run?'Pause':(SIM.ended?'Run again':(SIM.t>0?'Resume':'Start'));
+  SIM.bStart.disabled=!SIM.model;
+  SIM.note.textContent=SIM.model?(SIM.ps?SIM.ps.note:''):'The simulation needs component masses with dimensions and a valid propulsion model.';
+  SIM.endMsg.textContent=SIM.ended;SIM.endMsg.className=SIM.ended?'simend':'hide';
+  SIM.sticks.className=SIM.preset==='free'?'simsticks':'hide';
+  SIM.modeSel.parentNode.className=SIM.preset==='free'?'':'hide';
+  ['thr','pitch','roll','yaw'].forEach(function(k){if(SIM.sl&&SIM.sl[k]){SIM.sl[k].value=SIM.stick[k];}});
+}
+function simCharts(){
+  var host=SIM.charts;if(!host)return;clear(host);
+  var L=SIM.log;if(L.length<2){host.appendChild(h('p',{class:'hint',text:'Start a run to record its time histories.'}));return;}
+  var vu=ulabel('m/s'),hu=ulabel('m'),r=last,g=h('div',{class:'g2'});
+  function ext(key){var lo=L[0],hi=L[0];L.forEach(function(p){if(p[key]<lo[key])lo=p;if(p[key]>hi[key])hi=p;});return {lo:lo,hi:hi};}
+  var eV=ext('V'),eH=ext('h'),eA=ext('al'),eN=ext('n'),eP=ext('ph'),dist=0,i,stT=0;
+  for(i=1;i<L.length;i++){dist+=Math.sqrt(Math.pow(L[i].pn-L[i-1].pn,2)+Math.pow(L[i].pe-L[i-1].pe,2)+Math.pow(L[i].h-L[i-1].h,2));if(L[i].st)stT+=L[i].t-L[i-1].t;}
+  var end=L[L.length-1],bank=Math.max(Math.abs(eP.lo.ph),Math.abs(eP.hi.ph));
+  host.appendChild(h('h3',{text:'Recorded run: '+end.t.toFixed(1)+' s'+(SIM.run?' so far':'')}));
+  host.appendChild(tbl([
+    kvRow('Airspeed, lowest',eV.lo.V,'m/s',1,'At t = '+eV.lo.t.toFixed(1)+' s; stall speed '+fx(toDisp(r.Vs,'m/s'),1)+' '+vu),
+    kvRow('Airspeed, highest',eV.hi.V,'m/s',1,'At t = '+eV.hi.t.toFixed(1)+' s'),
+    kvRow('Altitude, lowest',eH.lo.h,'m',1,'At t = '+eH.lo.t.toFixed(1)+' s'),
+    kvRow('Altitude, highest',eH.hi.h,'m',1,'At t = '+eH.hi.t.toFixed(1)+' s'),
+    kvRow('Altitude change, start to end',end.h-L[0].h,'m',1,''),
+    kvRow('Angle of attack, highest',eA.hi.al,'deg',1,'At t = '+eA.hi.t.toFixed(1)+' s; wing stall angle '+deg(r.stall.alpha).toFixed(1)+'°'),
+    kvRow('Time beyond the stall angle',stT,'s',1,''),
+    kvRow('Load factor, highest',eN.hi.n,'',2,'At t = '+eN.hi.t.toFixed(1)+' s'),
+    kvRow('Bank angle, largest',bank,'deg',0,''),
+    kvRow('Path length',dist,'m',0,''),
+    kvRow('Battery used',end.ah*1000,'mAh',0,'')]));
+  host.appendChild(g);
+  function ser(key,conv){return L.map(function(p){return [p.t,conv?conv(p[key]):p[key]];});}
+  lineChart(g,{title:'Airspeed',cap:'Recorded from the run. Range '+fx(toDisp(eV.lo.V,'m/s'),1)+' to '+fx(toDisp(eV.hi.V,'m/s'),1)+' '+vu+'.',xl:'Time (s)',yl:'Airspeed ('+vu+')',xs:'Time',xu:'s',xd:1,ys:'Airspeed',yu:vu,yd:1,
+    series:[{name:'Airspeed',pts:ser('V',function(v){return toDisp(v,'m/s');})}],h:[{y:toDisp(r.Vs,'m/s'),label:'Stall speed'}]});
+  lineChart(g,{title:'Altitude',cap:'Recorded from the run. Range '+fx(toDisp(eH.lo.h,'m'),1)+' to '+fx(toDisp(eH.hi.h,'m'),1)+' '+hu+'.',xl:'Time (s)',yl:'Altitude ('+hu+')',xs:'Time',xu:'s',xd:1,ys:'Altitude',yu:hu,yd:1,
+    series:[{name:'Altitude',pts:ser('h',function(v){return toDisp(v,'m');})}]});
+  lineChart(g,{title:'Attitude and angle of attack',cap:'Recorded from the run.',xl:'Time (s)',yl:'Angle (°)',xs:'Time',xu:'s',xd:1,yu:'°',yd:1,
+    series:[{name:'Angle of attack',pts:ser('al')},{name:'Pitch',pts:ser('th')},{name:'Bank',pts:ser('ph')}],h:[{y:deg(r.stall.alpha),label:'Wing stall angle'}]});
+  lineChart(g,{title:'Control surfaces',cap:'Commanded deflections after travel limits. Elevator: trailing edge down positive. Aileron: roll right positive. Rudder: nose right positive.',xl:'Time (s)',yl:'Deflection (°)',xs:'Time',xu:'s',xd:1,yu:'°',yd:1,
+    series:[{name:'Elevator',pts:ser('de')},{name:'Aileron',pts:ser('da')},{name:'Rudder',pts:ser('dr')}]});
+}
+function simBuild(host){
+  SIM.built=true;
+  function sel(opts,val,fn,label){var s=h('select',{'aria-label':label});opts.forEach(function(o){s.appendChild(h('option',{value:o[0],text:o[1]}));});s.value=val;s.addEventListener('change',function(){fn(s.value);});return s;}
+  SIM.bStart=h('button',{class:'btn pri',text:'Start',onclick:function(){if(SIM.run)simPause();else simStart();}});
+  SIM.modeSel=sel([['hold','Attitude hold'],['direct','Direct surfaces']],'hold',function(v){SIM.stick.hold=v==='hold';},'Control mode');
+  var fc=h('input',{type:'checkbox',id:'acs_sim_forces'});fc.addEventListener('change',function(){SIM.forces=fc.checked;simFrame(0);});
+  host.appendChild(h('div',{class:'simbar'},
+    h('label',null,'Run ',sel(SIM_PRESETS,SIM.preset,function(v){SIM.preset=v;simReset();},'Run')),
+    SIM.bStart,h('button',{class:'btn',text:'Reset',onclick:simReset}),
+    h('label',null,'Speed ',sel([['0.25','× 0.25'],['0.5','× 0.5'],['1','× 1'],['2','× 2'],['4','× 4']],'1',function(v){SIM.speed=parseFloat(v);simFrame(0);},'Simulation speed')),
+    h('label',null,'Camera ',sel([['chase','Chase'],['orbit','Orbit (drag)'],['ground','Ground observer']],SIM.cam,function(v){SIM.cam=v;SIM.eye=null;simFrame(0);},'Camera')),
+    h('label',null,'Control ',SIM.modeSel),
+    h('label',{for:'acs_sim_forces'},fc,' Force vectors')));
+  SIM.note=h('p',{class:'hint',style:'margin:6px 0 8px'});host.appendChild(SIM.note);
+  SIM.cvGL=h('canvas');SIM.cvHUD=h('canvas');
+  SIM.view=h('div',{class:'simview',tabindex:'0',role:'img','aria-label':'Three-dimensional view of the simulated aircraft with a head-up display'},SIM.cvGL,SIM.cvHUD);
+  host.appendChild(SIM.view);
+  SIM.endMsg=h('p',{class:'hide'});host.appendChild(SIM.endMsg);
+  SIM.sl={};
+  function slider(key,label,min,max){var s=h('input',{type:'range',min:String(min),max:String(max),step:'0.01','aria-label':label});s.value=SIM.stick[key];
+    s.addEventListener('input',function(){SIM.stick[key]=parseFloat(s.value);if(!SIM.run)simFrame(0);});
+    if(key!=='thr')s.addEventListener('change',function(){});
+    SIM.sl[key]=s;return h('label',null,h('span',{text:label}),s);}
+  SIM.sticks=h('div',{class:'simsticks'},slider('thr','Throttle',0,1),slider('pitch','Pitch (right is nose up)',-1,1),slider('roll','Roll (right is roll right)',-1,1),slider('yaw','Rudder (right is nose right)',-1,1),
+    h('button',{class:'btn',text:'Centre sticks',onclick:function(){SIM.stick.pitch=0;SIM.stick.roll=0;SIM.stick.yaw=0;simUI();}}),
+    h('p',{class:'hint',style:'margin:0;flex-basis:100%',text:'Keyboard, with the view focused: arrow keys for pitch and roll (down arrow is nose up), A and D for rudder, W and S for throttle, space to start or pause. In attitude hold, full stick commands 30° of pitch and 60° of bank.'}));
+  host.appendChild(SIM.sticks);
+  SIM.charts=h('div',{class:'sub'});host.appendChild(SIM.charts);
+  SIM.glOk=simGLInit(SIM.cvGL);
+  if(!SIM.glOk)host.insertBefore(h('p',{class:'hint',text:'This browser did not provide WebGL 2, so the 3D scene is not drawn. The simulation, display and recorded charts still work.'}),SIM.view);
+  /* orbit drag */
+  var drag=null;
+  SIM.view.addEventListener('pointerdown',function(e){SIM.view.focus();if(SIM.cam!=='orbit')return;drag={x:e.clientX,y:e.clientY,az:SIM.az,el:SIM.el};try{SIM.view.setPointerCapture(e.pointerId);}catch(er){}});
+  SIM.view.addEventListener('pointermove',function(e){if(!drag)return;SIM.az=drag.az+(e.clientX-drag.x)*0.008;SIM.el=Math.max(-0.2,Math.min(1.4,drag.el+(e.clientY-drag.y)*0.006));if(!SIM.run)simFrame(0);});
+  function up(){drag=null;}SIM.view.addEventListener('pointerup',up);SIM.view.addEventListener('pointercancel',up);
+  /* keyboard, only while the view has focus */
+  var KM={ArrowUp:['pitch',-1],ArrowDown:['pitch',1],ArrowLeft:['roll',-1],ArrowRight:['roll',1],a:['yaw',-1],d:['yaw',1]};
+  SIM.view.addEventListener('keydown',function(e){
+    var key=e.key.length===1?e.key.toLowerCase():e.key;
+    if(key===' '){e.preventDefault();if(SIM.run)simPause();else simStart();return;}
+    if(SIM.preset!=='free')return;
+    if(KM[key]){e.preventDefault();SIM.stick[KM[key][0]]=KM[key][1]*(e.shiftKey?1:0.5);simUI();}
+    else if(key==='w'||key==='s'){e.preventDefault();SIM.stick.thr=Math.max(0,Math.min(1,SIM.stick.thr+(key==='w'?0.05:-0.05)));simUI();}
+  });
+  SIM.view.addEventListener('keyup',function(e){var key=e.key.length===1?e.key.toLowerCase():e.key;if(SIM.preset==='free'&&KM[key]){SIM.stick[KM[key][0]]=0;simUI();}});
+  if(typeof ResizeObserver!=='undefined')new ResizeObserver(simResize).observe(SIM.view);else window.addEventListener('resize',simResize);
+}
+function renderSim(r){
+  if(!SIM.built)simBuild(els.sim);
+  SIM.model=(r.mass.M>0)?simModel(cur(),r):null;
+  SIM.meshes=SIM.model?simMeshes(cur(),r):null;
+  if(SIM.glOk)simUpload();
+  simResize();simReset();
+}
 /* =====================================================================
    UI. Reads results from the core; holds no physics.
    ===================================================================== */
@@ -1550,6 +2150,7 @@ var MODS=[
  ['prop','Propulsion','Motor and propeller model calibrated on the manufacturer\u2019s bench table.'],
  ['perf','Performance','Speeds, climb, endurance, launch and manoeuvre limits at the current mass.'],
  ['dyn','Dynamics','Natural modes and control responses, linearised about level flight at the design speed.'],
+ ['sim','Flight simulation','Six-degree-of-freedom model flown in real time. Scripted runs apply fixed, stated inputs; free flight is yours.'],
  ['data','Derived values','Every computed quantity with its basis.'],
  ['compare','Compare configurations','Results and differing inputs for up to three configurations.'],
  ['verify','Verification','Checks of the code against exact solutions, hand calculations and its own consistency.'],
@@ -1743,7 +2344,10 @@ function renderShell(){
     h('li',null,h('b',{text:'Performance. '}),'Steady point-mass relations. Climb uses sin \u03b3 = (T \u2212 D)/W with level-flight drag. Glide figures omit the drag of a stopped prop. The hand launch holds maximum lift from a level release. The flight envelope takes negative maximum lift as half the positive value and the dive speed as 1.25 \u00d7 maximum level speed; the load-factor limits are inputs, not a structural analysis.'),
     h('li',null,h('b',{text:'Dynamics. '}),'Small-perturbation equations about level flight at the design speed, four longitudinal and four lateral states (Nelson; Etkin and Reid). Stability derivatives come from the geometry; each is graded good, fair or low in the Dynamics module. Roots are found from the characteristic polynomial. The roll-yaw cross derivatives are the least certain, so treat Dutch roll damping and the spiral root as indicative until flight data refines them. Unsteady aerodynamics, structural flexibility and servo lag are not included.'),
     h('li',null,h('b',{text:'Handling criteria. '}),'The default damping and time-constant criteria are Level 1 values for piloted aircraft from MIL-F-8785C, quoted from memory. They are inputs: an autopilot-flown aircraft can accept less.'),
-    h('li',null,h('b',{text:'Not yet modelled. '}),'The nonlinear flight simulation, thrust-line angles, wind and gusts.')));
+    h('li',null,h('b',{text:'Flight simulation. '}),'Rigid-body six-degree-of-freedom equations on a flat Earth with quaternion attitude, integrated by fourth-order Runge-Kutta at 200 Hz (Stevens and Lewis; Beard and McLain). Aerodynamic coefficients are the same derivatives the linear model uses, evaluated at the instantaneous airspeed, angle of attack and sideslip. Beyond the stall angle, lift and drag blend to a flat-plate model; pitching moment and the lateral derivatives stay linear, so behaviour after the stall is qualitative only: wing drop and spins are not reproduced. Thrust comes from the propulsion model at the current airspeed. Steady wind is included; gusts, ground effect, landing gear and servo lag are not. A run ends when the altitude reaches zero.'),
+    h('li',null,h('b',{text:'Attitude hold. '}),'Proportional, integral and rate feedback on pitch and proportional and rate feedback on roll, with gains set from the control power at the design speed. It is a stand-in for a pilot or autopilot, not a model of PX4.'),
+    h('li',null,h('b',{text:'Captions. '}),'Chart captions state what is plotted and values read from the plotted data for the current configuration. They contain no general commentary.'),
+    h('li',null,h('b',{text:'Not yet modelled. '}),'Thrust-line angles, gusts, uncertainty propagation and calibration against flight logs.')));
   attachDrag();
 }
 function updateBar(){
@@ -1911,7 +2515,7 @@ function renderInputs(){
 /* ---------- live update ---------- */
 function live(now){
   last=compute(cur());
-  renderCards(last);drawSide(last);drawTop(last);renderBalance(last);renderAero(last);renderStab(last);renderProp(last);renderPerf(last);renderDyn(last);renderResults(last);renderCompare();
+  renderCards(last);drawSide(last);drawTop(last);renderBalance(last);renderAero(last);renderStab(last);renderProp(last);renderPerf(last);renderDyn(last);renderSim(last);renderResults(last);renderCompare();
   clearTimeout(ckTimer);
   if(now)renderChecks();else ckTimer=setTimeout(renderChecks,160);
 }
@@ -2067,7 +2671,7 @@ function renderAero(r){
   host.appendChild(g);
   lineChart(g,{title:'Trimmed lift curve',cap:'Lift coefficient against body angle of attack, elevator set for zero pitching moment.',xl:'Angle of attack (°)',yl:'Lift coefficient',xs:'Angle',xu:'°',ys:'CL',
     series:[{name:'CL',pts:C.lift}],marks:[{x:deg(r.cruise.alpha),y:r.CLcr,label:'Design speed'},{x:deg(r.stall.alpha),y:C.lift[C.lift.length-1][1],label:'Wing stall'}]});
-  lineChart(g,{title:'Spanwise lift',cap:'Local section lift coefficient from lifting-line theory. The wing stalls where the curve first meets the section limit.',xl:'Fraction of semi-span',yl:'Section lift coefficient',xs:'Station',xd:2,ys:'cl',y0:true,
+  lineChart(g,{title:'Spanwise lift',cap:'Local section lift coefficient from lifting-line theory. At the stall the first station to reach the section limit is '+(r.stall.eta<0.02?'the root':Math.round(r.stall.eta*100)+'% of the semi-span')+'.',xl:'Fraction of semi-span',yl:'Section lift coefficient',xs:'Station',xd:2,ys:'cl',y0:true,
     series:[{name:'At the stall',pts:C.span.map(function(p){return [p.eta,p.stall];})},{name:'At design speed',pts:C.span.map(function(p){return [p.eta,p.cruise];})}],
     h:[{y:c.wing.clMax,label:'Section limit '+c.wing.clMax}],v:c.wing.ailSpanFrac>0?[{x:1-c.wing.ailSpanFrac,label:'Aileron starts'}]:[]});
   lineChart(g,{title:'Drag polar',cap:'CD = '+fx(r.cd0,4)+' + '+fx(r.K,4)+' CL², zero-lift drag evaluated at the design speed.',xl:'Lift coefficient',yl:'Drag coefficient',xs:'CL',xd:2,ys:'CD',yd:4,y0:true,
@@ -2103,9 +2707,9 @@ function renderStab(r){
     series:[{name:'Elevator',pts:C.speed.map(function(p){return [toDisp(p.V,'m/s'),Math.max(-60,Math.min(60,deg(p.de)))];})}],h:[{y:-md,label:'Up limit'},{y:md,label:'Down limit'}],v:[{x:toDisp(r.V,'m/s'),label:'Design'}]});
   lineChart(g,{title:'Angle of attack in level flight',cap:'Body angle of attack needed to carry the weight at each airspeed.',xl:'Airspeed ('+vu+')',yl:'Angle of attack (°)',xs:'Airspeed',xu:vu,ys:'Angle',yu:'°',yd:1,
     series:[{name:'Angle of attack',pts:C.speed.map(function(p){return [toDisp(p.V,'m/s'),deg(p.alpha)];})}],h:[{y:deg(r.stall.alpha),label:'Wing stall'}],v:[{x:toDisp(r.V,'m/s'),label:'Design'}]});
-  lineChart(g,{title:'Pitching moment about the CG',cap:'A falling line is stable. The trimmed line crosses zero at the design-speed angle of attack.',xl:'Angle of attack (°)',yl:'Moment coefficient',xs:'Angle',xu:'°',ys:'Cm',yd:3,y0:true,
+  lineChart(g,{title:'Pitching moment about the CG',cap:'Moment about the CG against angle of attack, for two elevator settings. Slope '+fx(r.cma,3)+' per radian; the trimmed line crosses zero at '+fx(deg(r.cruise.alpha),1)+'\u00b0.',xl:'Angle of attack (°)',yl:'Moment coefficient',xs:'Angle',xu:'°',ys:'Cm',yd:3,y0:true,
     series:[{name:'Elevator at design-speed trim',pts:C.cmTrim},{name:'Elevator neutral',pts:C.cm0}]});
-  lineChart(g,{title:'Elevator needed at the stall against CG position',cap:'Power off. The forward CG limit is where the line meets the up limit, or where the tail stalls first.',xl:'CG from nose ('+lu+')',yl:'Elevator (°)',xs:'CG',xu:lu,xd:isImp()?2:0,ys:'Elevator',yu:'°',yd:1,
+  lineChart(g,{title:'Elevator needed at the stall against CG position',cap:'Power off, at the wing stall angle. At the current CG the elevator needed is '+fx(deg(r.stall.trim.deReq),1)+'\u00b0 of \u00b1'+md+'\u00b0.',xl:'CG from nose ('+lu+')',yl:'Elevator (°)',xs:'CG',xu:lu,xd:isImp()?2:0,ys:'Elevator',yu:'°',yd:1,
     series:[{name:'Elevator',pts:C.cg.map(function(p){return [toDisp(p[0],'mm'),Math.max(-60,Math.min(60,p[1]))];})}],h:[{y:-md,label:'Up limit'}],
     v:[{x:toDisp(r.xcg,'mm'),label:'CG'},{x:toDisp(r.xnp,'mm'),label:'Neutral point'}],band:r.xFwd<r.xAft?{x0:toDisp(r.xFwd,'mm'),x1:toDisp(r.xAft,'mm'),label:'usable range'}:null});
   function lv(ok,warn){return ok?'pass':(warn?'caution':'fail');}
@@ -2264,7 +2868,7 @@ function renderProp(r){
   var lvl=C.rows.filter(function(q){return q.lv;});
   lineChart(g,{title:'Bench thrust against current',cap:'Model at the bench condition (25.2 V, no airframe) against the manufacturer\u2019s table. Largest error '+fx(pf.benchWorst,0)+'%.',xl:'Current (A)',yl:'Thrust ('+gu+')',xs:'Current',xu:'A',ys:'Thrust',yu:gu,yd:0,y0:true,
     series:[{name:'Model',pts:C.bench.map(function(p){return [p[0],toDisp(p[1],'g')];})},{name:'Manufacturer',dots:true,pts:pm.data.map(function(d){return [d.I,toDisp(d.T,'g')];})}]});
-  lineChart(g,{title:'Thrust and drag against airspeed',cap:'Full throttle within the current limits, at '+c.batt.vCell+' V per cell. Level flight is possible where thrust exceeds drag.',xl:'Airspeed ('+vu+')',yl:'Force ('+nu+')',xs:'Airspeed',xu:vu,ys:'Force',yu:nu,yd:2,y0:true,
+  lineChart(g,{title:'Thrust and drag against airspeed',cap:'Full throttle within the current limits, at '+c.batt.vCell+' V per cell. '+(pf.Vmax?'The curves cross at '+fx(V(pf.Vmax),1)+' '+vu+'.':'Thrust is below drag at every plotted speed.'),xl:'Airspeed ('+vu+')',yl:'Force ('+nu+')',xs:'Airspeed',xu:vu,ys:'Force',yu:nu,yd:2,y0:true,
     series:[{name:'Thrust available',pts:C.rows.map(function(q){return [V(q.V),toDisp(q.T,'N')];})},{name:'Drag',pts:C.rows.map(function(q){return [V(q.V),toDisp(q.D,'N')];})}],
     v:[{x:V(r.V),label:'Design'}].concat(pf.Vmax?[{x:V(pf.Vmax),label:'Maximum'}]:[])});
   lineChart(g,{title:'Efficiency in level flight',cap:'Thrust power over shaft power, and over power drawn from the pack.',xl:'Airspeed ('+vu+')',yl:'Efficiency (%)',xs:'Airspeed',xu:vu,yu:'%',yd:0,y0:true,
@@ -2301,7 +2905,7 @@ function renderPerf(r){
   function V(v){return toDisp(v,'m/s');}
   lineChart(g,{title:'Power required and available',cap:'Thrust power at full throttle against drag power in level flight.',xl:'Airspeed ('+vu+')',yl:'Power (W)',xs:'Airspeed',xu:vu,yu:'W',yd:0,y0:true,
     series:[{name:'Available',pts:C.rows.map(function(q){return [V(q.V),q.Pav];})},{name:'Required',pts:C.rows.map(function(q){return [V(q.V),q.Preq];})}],v:[{x:V(r.V),label:'Design'}]});
-  lineChart(g,{title:'Rate of climb',cap:'Full throttle, steady climb at each airspeed.',xl:'Airspeed ('+vu+')',yl:'Rate of climb ('+ru+')',xs:'Airspeed',xu:vu,ys:'Climb',yu:ru,yd:rdp,y0:true,
+  lineChart(g,{title:'Rate of climb',cap:'Full throttle, steady climb at each airspeed. Peak '+fx(toDisp(pf.rocMax,'roc'),rdp)+' '+ru+' at '+fx(V(pf.Vy),1)+' '+vu+'.',xl:'Airspeed ('+vu+')',yl:'Rate of climb ('+ru+')',xs:'Airspeed',xu:vu,ys:'Climb',yu:ru,yd:rdp,y0:true,
     series:[{name:'Rate of climb',pts:C.rows.map(function(q){return [V(q.V),toDisp(q.roc,'roc')];})}],v:[{x:V(pf.Vy),label:'Best rate'}],h:[{y:toDisp(c.flt.rocMin,'roc'),label:'Criterion'}]});
   lineChart(g,{title:'Flight envelope',cap:'Load factor against airspeed: stall boundaries and the limit load factors entered under Flight condition.',xl:'Airspeed ('+vu+')',yl:'Load factor',xs:'Airspeed',xu:vu,yd:2,
     series:[{name:'Positive limit',pts:C.vnPos.map(function(p){return [V(p[0]),p[1]];})},{name:'Negative limit',pts:C.vnNeg.map(function(p){return [V(p[0]),p[1]];})}],
@@ -2342,18 +2946,24 @@ function renderDyn(r){
   host.appendChild(g);
   function poles(axis,eigs,title){
     var marks=d.modes.filter(function(m){return m.axis===axis;}).map(function(m){return {x:m.re,y:m.im,label:m.name};});
-    lineChart(g,{title:title,cap:'Roots of the system matrix. Left of zero decays; right of zero grows. Each oscillatory mode also has a mirror root below the axis.',xl:'Real part (1/s)',yl:'Imaginary part (rad/s)',xs:'Real',ys:'Imaginary',y0:true,
+    lineChart(g,{title:title,cap:'The four roots of the system matrix. '+(function(n){return n===0?'All have a negative real part.':n+' of 4 '+(n===1?'has':'have')+' a positive real part.';})(eigs.filter(function(e){return e.re>0;}).length),xl:'Real part (1/s)',yl:'Imaginary part (rad/s)',xs:'Real',ys:'Imaginary',y0:true,
       series:[{name:'Roots',dots:true,pts:eigs.map(function(e){return [e.re,e.im];})}],marks:marks,v:[{x:0,label:''}]});
   }
   poles('lon',d.eLon,'Longitudinal roots');
   poles('lat',d.eLat,'Lateral roots');
-  lineChart(g,{title:'Pitch response to a 1° elevator step',cap:'Trailing edge down, held. Change from trim'+(C.pitch.cut?'. The motion diverges; the trace stops where the linear model no longer applies.':' over the first '+fx(C.pitch.T,1)+' s.'),xl:'Time (s)',yl:'Angle (°)',xs:'Time',xu:'s',xd:2,yu:'°',yd:2,y0:true,
+  function endOf(a){return a[a.length-1];}
+  function cutNote(cv){return 'The trace ends at t = '+fx(endOf(cv)[0],2)+' s, where a state passes the range this linear model is used for: 15° of angle of attack or sideslip, 30° of pitch, 45° of bank, or a 30% change in airspeed.';}
+  var pa=endOf(C.pitch.alpha),pt=endOf(C.pitch.theta);
+  lineChart(g,{title:'Pitch response to a 1° elevator step',cap:'1° trailing edge down, held from t = 0. '+(C.pitch.cut?cutNote(C.pitch.alpha):'At t = '+fx(pa[0],1)+' s: angle of attack '+fx(pa[1],2)+'°, pitch angle '+fx(pt[1],2)+'° from trim.'),xl:'Time (s)',yl:'Angle (°)',xs:'Time',xu:'s',xd:2,yu:'°',yd:2,y0:true,
     series:[{name:'Angle of attack',pts:C.pitch.alpha},{name:'Pitch angle',pts:C.pitch.theta}]});
-  lineChart(g,{title:'Airspeed after the same elevator step',cap:'The slow exchange of speed and height (phugoid)'+(C.speed.cut?'. The motion diverges; the trace stops where the linear model no longer applies.':'.'),xl:'Time (s)',yl:'Airspeed change ('+ulabel('m/s')+')',xs:'Time',xu:'s',xd:1,ys:'Change',yu:ulabel('m/s'),yd:2,y0:true,
+  var su=endOf(C.speed.u);
+  lineChart(g,{title:'Airspeed after the same elevator step',cap:'Same input over a longer time. '+(C.speed.cut?cutNote(C.speed.u):'At t = '+fx(su[0],0)+' s the change is '+fx(toDisp(su[1],'m/s'),2)+' '+ulabel('m/s')+'.'),xl:'Time (s)',yl:'Airspeed change ('+ulabel('m/s')+')',xs:'Time',xu:'s',xd:1,ys:'Change',yu:ulabel('m/s'),yd:2,y0:true,
     series:[{name:'Airspeed change',pts:C.speed.u.map(function(p){return [p[0],toDisp(p[1],'m/s')];})}]});
-  lineChart(g,{title:'Roll response to a 1° aileron step',cap:'Roll rate builds to a steady value; yaw rate shows the adverse yaw.',xl:'Time (s)',yl:'Rate (°/s)',xs:'Time',xu:'s',xd:2,yu:'°/s',yd:2,y0:true,
+  var rp=endOf(C.roll.p),rr=endOf(C.roll.r);
+  lineChart(g,{title:'Roll response to a 1° aileron step',cap:'1° of roll-right aileron, held from t = 0. '+(C.roll.cut?cutNote(C.roll.p):'At t = '+fx(rp[0],1)+' s: roll rate '+fx(rp[1],2)+'°/s, yaw rate '+fx(rr[1],2)+'°/s.'),xl:'Time (s)',yl:'Rate (°/s)',xs:'Time',xu:'s',xd:2,yu:'°/s',yd:2,y0:true,
     series:[{name:'Roll rate',pts:C.roll.p},{name:'Yaw rate',pts:C.roll.r}]});
-  lineChart(g,{title:'Yaw response to a 1° rudder step',cap:'Nose-right rudder, held. Sideslip oscillates at the Dutch roll frequency.',xl:'Time (s)',yl:'Angle (°)',xs:'Time',xu:'s',xd:2,yu:'°',yd:2,y0:true,
+  var yb=endOf(C.yaw.beta),yp=endOf(C.yaw.phi);
+  lineChart(g,{title:'Yaw response to a 1° rudder step',cap:'1° of nose-right rudder, held from t = 0. '+(C.yaw.cut?cutNote(C.yaw.beta):'At t = '+fx(yb[0],1)+' s: sideslip '+fx(yb[1],2)+'°, bank angle '+fx(yp[1],2)+'°.'),xl:'Time (s)',yl:'Angle (°)',xs:'Time',xu:'s',xd:2,yu:'°',yd:2,y0:true,
     series:[{name:'Sideslip',pts:C.yaw.beta},{name:'Bank angle',pts:C.yaw.phi}]});
   var rows=[h('tr',null,h('th',{text:'Mode'}),h('th',{class:'n',text:'Root (1/s)'}),h('th',{class:'n',text:'Frequency (Hz)'}),h('th',{class:'n',text:'Damping ratio'}),h('th',{class:'n',text:'Period (s)'}),h('th',{class:'n',text:'Time to half or double (s)'}),h('th',{text:'Status'}))];
   d.modes.forEach(function(m,i){
