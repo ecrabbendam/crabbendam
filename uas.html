@@ -248,6 +248,26 @@ F('crit','flt.stallRatio','Design speed over stall speed, minimum','',1.3,'guess
 F('crit','flt.cnbMin','Directional stability, minimum','1/rad',0.05,'guess',0,0,0.5,'Yawing moment slope with sideslip.');
 F('crit','flt.propGap','Prop to tail clearance, minimum','mm',20,'guess',0,0,500);
 F('crit','flt.groundClr','Prop ground clearance, minimum','mm',15,'guess',0,0,500);
+F('prop','motor.R','Motor winding resistance','ohm',0.058,'spec',5,0.001,2,'Used only when the propeller has no bench table.');
+F('prop','motor.i0','Motor no-load current','A',1.3,'spec',15,0,20);
+F('prop','motor.rSys','System resistance override','ohm',null,'guess',0,0.01,2,'Motor, ESC and leads in series. Leave blank to derive it from the full-throttle bench point.',{nullable:true});
+F('prop','prop.j0k','Zero-thrust advance ratio over pitch/diameter','',1.2,'estimate',10,0.9,1.8,'Sets the airspeed at which the prop stops producing thrust.');
+F('prop','prop.wakeEff','Thrust factor for the airframe wake','',0.95,'estimate',5,0.5,1,'The pusher prop works in the wake of the body and tail.');
+F('prop','batt.vCell','Cell voltage used for performance','V',3.85,'estimate',3,3.3,4.35,'Open circuit, around mid-discharge.');
+F('prop','batt.rCell','Cell internal resistance','mohm',5,'estimate',40,0.5,60);
+F('prop','batt.usable','Usable capacity','%',80,'guess',0,10,100,'Share of rated capacity used before landing.',{abs:true});
+F('prop','batt.auxA','Avionics and servo current','A',0.5,'estimate',40,0,20);
+F('flight','flt.launchV','Hand-launch airspeed','m/s',8,'estimate',20,0,40,'Airspeed at release, including any headwind.');
+F('flight','flt.nMax','Positive limit load factor','',4,'guess',0,1.5,15,'Structural limit. A guess until the wing is load-tested.');
+F('flight','flt.nMin','Negative limit load factor','',-1.5,'guess',0,-10,0,'',{abs:true});
+F('crit','flt.rocMin','Rate of climb, minimum','roc',2,'guess',0,0,30);
+F('crit','flt.launchDrop','Hand-launch height loss, maximum','m',0.5,'guess',0,0,20);
+F('tail','tail.rudDefl','Rudder command at full stick, each way','deg',8,'estimate',20,1,45,'On a V-tail this adds to the elevator command on each surface.');
+F('crit','crit.spZeta','Short-period damping ratio, minimum','',0.35,'guess',0,0,1.5,'Piloted-aircraft handling value; an autopilot tolerates less.');
+F('crit','crit.phZeta','Phugoid damping ratio, minimum','',0.04,'guess',0,0,1);
+F('crit','crit.drZeta','Dutch roll damping ratio, minimum','',0.08,'guess',0,0,1);
+F('crit','crit.spiralT2','Spiral time to double, minimum','s',12,'guess',0,0,120,'Applies only if the spiral mode is unstable.');
+F('crit','crit.rollTau','Roll time constant, maximum','s',1,'guess',0,0.05,10);
 
 var ATTS=['','wing','tail','prop'];
 function inferAtt(name){
@@ -672,6 +692,8 @@ function compute(cfg,lite){
     packV:packV,battI:cfg.batt.C*cfg.batt.mAh/1000,pitchSpeed:cfg.motor.kv*packV*(pr.pitch/1000)/60,
     ground:-fu.height/2-fu.skid
   };
+  if(mp.M>0)r.perf=performance(cfg,{W:W,rho:atm.rho,S:wg.S,K:K,cd0At:cd0At,CLmax:CLmax,Vs:Vs,V:V,Vbg:Vbg},lite);
+  if(mp.M>0)r.dyn=dynamics(cfg,r,lite);
   if(lite||!(mp.M>0))return r;
   /* Curves for the charts */
   var i,n,C={};
@@ -735,6 +757,14 @@ function validity(cfg,r,opt){
     if(!ok||Math.abs(dx)<0.5)return null;
     return {text:'Slide '+movLabel+' '+mm(Math.abs(dx))+' '+(dx<0?'forward':'aft')+'. '+outcome,
       apply:function(c){c.components.forEach(function(k){if(k.mov&&k.mass>0)k.x=round1(k.x+dx);});}};
+  }
+  function propSwaps(outcome,ok,cands){ /* try each listed propeller in place of the current one */
+    Object.keys(PROPS).forEach(function(k){
+      if(k===pr.id)return;
+      function ap(c){var P=PROPS[k];c.prop.id=k;c.prop.diam=P.diam;c.prop.pitch=P.pitch;c.prop.blades=P.blades;c.prop.staticThrust=P.max[1];c.prop.staticCurrent=P.max[0];}
+      var tr=tryCfg(ap);
+      if(tr.r.perf&&tr.r.perf.ok&&ok(tr.cfg,tr.r))cands.push({text:'Fit the '+k+' propeller.'+outcome(tr.r),apply:ap});
+    });
   }
   /* 1. Static margin */
   (function(){
@@ -884,16 +914,128 @@ function validity(cfg,r,opt){
     if(l<0)add('tailgnd','fail','Tail below the ground line','The lowest tail point is '+mm(-l)+' below the ground line.',ok,[
       {text:'Increase the skid or gear height to '+round1(cfg.fus.skid+need)+' mm.',apply:function(c){c.fus.skid=round1(c.fus.skid+need);}}]);
   })();
-  /* 11. Full-throttle current */
-  (function(){
-    var I=pr.staticCurrent;
-    function okE(c){return c.prop.staticCurrent<=c.esc.limit;}
-    function okB(c,rr){return c.prop.staticCurrent<=rr.battI;}
-    var needE=Math.ceil(I/5)*5,needC=Math.ceil(I/(cfg.batt.mAh/1000)/5)*5;
-    add('esc',okE(cfg)?'pass':'fail','ESC current','Full throttle draws '+nm(I)+' A; the ESC is rated '+nm(cfg.esc.limit)+' A.',okE,[{text:'Use an ESC rated '+needE+' A or more.',apply:function(c){c.esc.limit=needE;}}]);
-    add('batt',okB(cfg,r)?'pass':'caution','Battery current','Full throttle draws '+nm(I)+' A; the battery can supply '+Math.round(r.battI)+' A (C rating × capacity).',okB,[{text:'Use a pack rated '+needC+'C or more at this capacity.',apply:function(c){c.batt.C=needC;}}]);
-    if(I>cfg.motor.iMax)items.push({id:'motor',level:'caution',title:'Motor current',detail:'Full throttle draws '+nm(I)+' A; the motor peak rating is '+nm(cfg.motor.iMax)+' A.',cands:[],fixes:[]});
+  /* 11. Full-throttle current, from the propulsion model at full charge */
+  var pf=r.perf;
+  if(pf&&pf.ok)(function(){
+    function okE(c,rr){return rr.perf&&rr.perf.ok&&rr.perf.statFull.Im<=c.esc.limit;}
+    function okB(c,rr){return rr.perf&&rr.perf.ok&&rr.perf.statFull.Ib<=rr.battI;}
+    var s=pf.statFull,needE=Math.ceil(s.Im/5)*5,needC=Math.ceil(s.Ib/(cfg.batt.mAh/1000)/5)*5;
+    var base='At full charge and full throttle, standing still, the model gives '+d1(s.Im)+' A at the motor and '+d1(s.Ib)+' A from the pack (bench figure '+nm(pr.staticCurrent)+' A at 25.2 V). ';
+    add('esc',okE(cfg,r)?'pass':'fail','ESC current',base+'The ESC is rated '+nm(cfg.esc.limit)+' A.',okE,[{text:'Use an ESC rated '+needE+' A or more.',apply:function(c){c.esc.limit=needE;}}]);
+    add('batt',okB(cfg,r)?'pass':'caution','Battery current','The pack would supply '+d1(s.Ib)+' A at full throttle; its limit is '+Math.round(r.battI)+' A (C rating × capacity).',okB,[{text:'Use a pack rated '+needC+'C or more at this capacity.',apply:function(c){c.batt.C=needC;}}]);
+    if(s.Im>cfg.motor.iMax)items.push({id:'motor',level:'caution',title:'Motor current',detail:'The model gives '+d1(s.Im)+' A at full throttle; the motor peak rating is '+nm(cfg.motor.iMax)+' A. Performance figures hold the throttle back to stay inside it.',cands:[],fixes:[]});
   })();
+  /* 13. Level flight at the design speed */
+  if(pf&&pf.ok)(function(){
+    function ok(c,rr){return !!(rr.perf&&rr.perf.ok&&rr.perf.cruise);}
+    var cr=pf.cruise,cands=[],detail;
+    if(cr)detail='Level flight at '+d1(r.V)+' m/s takes '+Math.round(cr.tau*100)+'% throttle, '+d1(cr.Ib)+' A and '+Math.round(cr.Pe)+' W from the pack.'+(pf.Vmax?' Maximum level speed is '+d1(pf.Vmax)+' m/s.':'');
+    else detail='Drag at '+d1(r.V)+' m/s is '+pf.cruiseDrag.toFixed(2)+' N, more than the propulsion system can sustain there'+(pf.Vmax?'; maximum level speed is '+d1(pf.Vmax)+' m/s.':'; thrust is below drag at every speed.');
+    if(!cr&&!noFix){
+      if(pf.Vmax){var vN=Math.floor(pf.Vmax*10)/10;cands.push({text:'Lower the design airspeed to '+vN.toFixed(1)+' m/s.',apply:function(c){c.flt.V=vN;}});}
+      propSwaps(function(rr){return ' Level flight then takes '+Math.round(rr.perf.cruise.tau*100)+'% throttle.';},ok,cands);
+    }
+    add('level',cr?'pass':'fail','Level flight at the design speed',detail,ok,cands);
+  })();
+  /* 14. Rate of climb */
+  if(pf&&pf.ok)(function(){
+    function ok(c,rr){return !!(rr.perf&&rr.perf.ok&&rr.perf.rocMax>=c.flt.rocMin-1e-6);}
+    var pass=ok(cfg,r),cands=[];
+    var detail='Best rate of climb is '+d1(pf.rocMax)+' m/s at '+d1(pf.Vy)+' m/s (criterion '+nm(fl.rocMin)+' m/s)'+(deg(pf.gammaMax)>89.5?'. Thrust exceeds weight plus drag near the stall speed, so it can climb vertically.':'; steepest climb is '+d1(deg(pf.gammaMax))+'° at '+d1(pf.Vx)+' m/s.');
+    if(!pass&&!noFix)propSwaps(function(rr){return ' Best rate of climb becomes '+d1(rr.perf.rocMax)+' m/s.';},ok,cands);
+    add('climb',pass?'pass':(pf.rocMax<=0?'fail':'caution'),'Rate of climb',detail,ok,cands);
+  })();
+  /* 15. Hand launch */
+  if(pf&&pf.ok)(function(){
+    function ok(c,rr){return !!(rr.perf&&rr.perf.ok&&rr.perf.launch.flies&&rr.perf.launch.drop<=c.flt.launchDrop+1e-6);}
+    var L=pf.launch,pass=ok(cfg,r),cands=[],detail;
+    if(fl.launchV>=r.Vs)detail='Released at '+d1(fl.launchV)+' m/s, above the '+d1(r.Vs)+' m/s stall speed: the aircraft flies away without losing height.';
+    else if(!L.flies)detail='Released at '+d1(fl.launchV)+' m/s, below the '+d1(r.Vs)+' m/s stall speed, the aircraft does not reach flying speed.';
+    else detail='Released at '+d1(fl.launchV)+' m/s, below the '+d1(r.Vs)+' m/s stall speed, the aircraft sinks '+L.drop.toFixed(2)+' m over '+L.t.toFixed(1)+' s before lift exceeds weight (criterion '+nm(fl.launchDrop)+' m).';
+    if(!pass&&!noFix){
+      var v=bisect(function(x){var q=pf.launchFn(x);return (q.flies?q.drop:1e3)-fl.launchDrop;},fl.launchV,Math.max(r.Vs*1.05,fl.launchV+0.1),22);
+      v=Math.ceil((v==null?r.Vs:v)*10+0.5)/10;
+      cands.push({text:'Release at '+v.toFixed(1)+' m/s or faster: a harder throw, a headwind or a bungee.',apply:function(c){c.flt.launchV=v;}});
+    }
+    add('launch',pass?'pass':(L.flies?'caution':'fail'),'Hand launch',detail,ok,cands);
+  })();
+  /* 16. Dynamic modes at the design speed (a statically unstable aircraft is covered by the static margin check) */
+  var dy=r.dyn,cr=cfg.crit;
+  if(dy&&dy.ok&&sm>0){
+    (function(){
+      function ok(c,rr){var d=rr.dyn;return !!(d&&d.ok&&d.lonStable&&(!d.sp||d.sp.zeta>=c.crit.spZeta-1e-6));}
+      var sp=dy.sp,ph=dy.ph,level='pass',detail;
+      if(!dy.lonStable){
+        var worst=0;dy.eLon.forEach(function(e){worst=Math.max(worst,e.re);});
+        level='fail';detail='A longitudinal root has a positive real part: the motion grows, doubling in '+d1(Math.LN2/worst)+' s.';
+      }else if(sp){
+        if(sp.zeta<cr.spZeta)level='caution';
+        detail='Short period: '+(sp.wn/(2*PI)).toFixed(2)+' Hz, damping ratio '+sp.zeta.toFixed(2)+' (criterion '+nm(cr.spZeta)+').';
+      }else detail='The short period is overdamped: real roots, no oscillation.';
+      if(dy.lonStable&&ph){
+        detail+=' Phugoid: period '+d1(ph.period)+' s, damping ratio '+ph.zeta.toFixed(2)+' (criterion '+nm(cr.phZeta)+').';
+        if(level==='pass'&&ph.zeta<cr.phZeta)level='note';
+      }
+      add('sp',level,'Pitch dynamics',detail,ok,[]);
+    })();
+    (function(){
+      function z(rr){var d=rr.dyn;if(!d||!d.ok)return NaN;return d.dr?d.dr.zeta:1;}
+      function ok(c,rr){return z(rr)>=c.crit.drZeta-1e-6;}
+      var d=dy.dr,level='pass',detail,cands=[],tgt=cr.drZeta*1.03;
+      if(!d)detail='No Dutch roll oscillation: the lateral roots are real.';
+      else{
+        level=d.zeta<0?'fail':(d.zeta<cr.drZeta?'caution':'pass');
+        detail='Dutch roll: period '+d.period.toFixed(2)+' s, damping ratio '+d.zeta.toFixed(3)+' (criterion '+nm(cr.drZeta)+')'+(d.zeta<0?'. The oscillation grows.':'.');
+      }
+      if(level!=='pass'&&!noFix){
+        var dh=bisect(function(v){return z(tryCfg(function(c){c.wing.dihedral=v;}).r)-tgt;},-5,w.dihedral,22);
+        if(dh!=null){dh=Math.floor(dh*2)/2;
+          cands.push({text:'Reduce the wing dihedral to '+dh+'° per side. Damping ratio becomes '+z(tryCfg(function(c){c.wing.dihedral=dh;}).r).toFixed(2)+'.',apply:function(c){c.wing.dihedral=dh;}});}
+        if(t.type==='vtail'){
+          var tg2=bisect(function(v){return z(tryCfg(function(c){c.tail.dihedral=v;}).r)-tgt;},t.dihedral,65,22);
+          if(tg2!=null){tg2=Math.ceil(tg2*2)/2;
+            cands.push({text:'Steepen the tail panels to '+tg2+'° from horizontal. Damping ratio becomes '+z(tryCfg(function(c){c.tail.dihedral=tg2;}).r).toFixed(2)+'.',apply:function(c){c.tail.dihedral=tg2;}});}
+        }else{
+          var fh=bisect(function(v){return z(tryCfg(function(c){c.tail.finHeight=v;}).r)-tgt;},t.finHeight,t.finHeight*3,22);
+          if(fh!=null){fh=Math.ceil(fh);cands.push({text:'Increase the fin height to '+fh+' mm.',apply:function(c){c.tail.finHeight=fh;}});}
+        }
+      }
+      add('dr',level,'Dutch roll',detail,ok,cands);
+    })();
+    (function(){
+      function t2(rr){var d=rr.dyn;if(!d||!d.ok)return NaN;var s=d.spiral;return (!s||s.stable)?1e3:s.t2;}
+      function ok(c,rr){return t2(rr)>=c.crit.spiralT2-1e-6;}
+      var s=dy.spiral,level='pass',detail,cands=[];
+      if(!s)detail='There is no separate spiral root.';
+      else if(s.stable)detail='The spiral mode is stable: bank angle halves in '+d1(s.t2)+' s.';
+      else{
+        if(s.t2<cr.spiralT2)level='caution';
+        detail='The spiral mode is unstable: bank angle doubles in '+d1(s.t2)+' s (criterion '+nm(cr.spiralT2)+' s or longer).';
+      }
+      if(level!=='pass'&&!noFix){
+        var dh=bisect(function(v){return t2(tryCfg(function(c){c.wing.dihedral=v;}).r)-cr.spiralT2*1.02;},w.dihedral,15,22);
+        if(dh!=null){dh=Math.ceil(dh*2)/2;var tn=t2(tryCfg(function(c){c.wing.dihedral=dh;}).r);
+          cands.push({text:'Increase the wing dihedral to '+dh+'° per side. '+(tn>=1e3?'The spiral mode becomes stable.':'Bank angle then doubles in '+d1(tn)+' s.'),apply:function(c){c.wing.dihedral=dh;}});}
+      }
+      add('spiral',level,'Spiral mode',detail,ok,cands);
+    })();
+    if(dy.roll)(function(){
+      function ok(c,rr){var d=rr.dyn;return !!(d&&d.ok&&(!d.roll||1/Math.abs(d.roll.re)<=c.crit.rollTau+1e-6));}
+      var tr=1/Math.abs(dy.roll.re);
+      add('rollmode',ok(cfg,r)?'pass':'note','Roll response','Roll time constant is '+tr.toFixed(2)+' s (criterion '+nm(cr.rollTau)+' s or less). Full aileron gives a steady roll rate of '+Math.round(deg(dy.rollRate))+'°/s.',ok,[]);
+    })();
+    if(t.type==='vtail')(function(){
+      function need(c,rr){return Math.abs(deg(rr.stall.trim.deReq))+c.tail.rudDefl;}
+      function ok(c,rr){return !(rr.sm>0)||need(c,rr)<=c.tail.maxDefl+1e-6;}
+      var e=Math.abs(deg(r.stall.trim.deReq)),n=need(cfg,r),pass=ok(cfg,r),cands=[];
+      var detail='Each ruddervator carries the elevator and rudder commands together. Trim at the stall takes '+d1(e)+'° and full rudder adds '+nm(t.rudDefl)+'°: '+d1(n)+'° against '+nm(t.maxDefl)+'° of travel.'
+        +(isFinite(dy.xwind)?' Full rudder holds '+d1(deg(dy.betaRud))+'° of sideslip, equal to a '+d1(dy.xwind)+' m/s crosswind at the design speed.':'');
+      var rd=Math.floor((t.maxDefl-e)*2)/2,tv=Math.ceil(n);
+      if(rd>=3)cands.push({text:'Reduce the rudder command to '+rd+'° at full stick.',apply:function(c){c.tail.rudDefl=rd;}});
+      if(tv<=45)cands.push({text:'Increase control surface travel to '+tv+'° each way.',apply:function(c){c.tail.maxDefl=tv;}});
+      add('mix',pass?'pass':'caution','Elevator and rudder mixing',detail,ok,cands);
+    })();
+  }
   /* 12. Area override */
   if(w.areaOverride!=null)(function(){
     function ok(c,rr){return c.wing.areaOverride==null||Math.abs(c.wing.areaOverride-rr.wing.Sgeo)/rr.wing.Sgeo<=0.03;}
@@ -963,13 +1105,47 @@ function selfTests(cur){
   truth('Share link encodes and decodes a config exactly',JSON.stringify(decodeShare(encodeShare('t',d)).cfg)===JSON.stringify(d),'Round trip');
   truth('Bad input falls back to defaults',JSON.stringify(normalizeConfig({wing:{span:'abc'},components:'x'}))===JSON.stringify(defaultsConfig()),'Robustness');
   /* Sanity ranges for the default aircraft */
-  var d0=defaultsConfig(),r0=compute(d0,true);
+  var d0=defaultsConfig(),r0=compute(d0);
   range('Default aircraft: trimmed stall speed (m/s)',r0.Vs,6.5,8.5,'Sanity range');
   range('Default aircraft: cruise CL at 13 m/s',r0.CLcr,0.35,0.45,'Sanity range');
   range('Default aircraft: neutral point (% chord)',r0.hn*100,36,46,'Hand estimate about 41%');
   range('Default aircraft: zero-lift drag coefficient',r0.cd0,0.025,0.050,'Hand estimate about 0.034');
   range('Default aircraft: Oswald efficiency',r0.e,0.70,0.90,'Hand estimate about 0.78');
   range('Default aircraft: maximum lift to drag',r0.LDmax,8,13,'Hand estimate about 10');
+  /* Propulsion model against the bench table and against its own energy balance */
+  Object.keys(PROPS).forEach(function(k){
+    var c=defaultsConfig(),P=PROPS[k];c.prop.id=k;c.prop.diam=P.diam;c.prop.pitch=P.pitch;c.prop.blades=P.blades;c.prop.staticThrust=P.max[1];c.prop.staticCurrent=P.max[0];
+    var pm=propModel(c),bn={D:pm.D,D4:pm.D4,D5:pm.D5,kv:pm.kv,i0:pm.i0,wake:1,J0:pm.J0,CT0:pm.CT0,cpPart:pm.cpPart,cpFull:pm.cpFull,nRef:pm.nRef,nMax:pm.nMax,Reff:pm.Reff};
+    var o=propOp(bn,{voc:V_BENCH,rb:0,aux:0},RHO_BENCH,0.01,1);
+    near(k+': model full-throttle bench thrust (g)',o.T/G0*1000,P.max[1],P.max[1]*0.005,'Manufacturer table');
+    near(k+': model full-throttle bench current (A)',o.Ib,P.max[0],P.max[0]*0.005,'Manufacturer table');
+    var fm=Math.pow(o.T,1.5)/Math.sqrt(2*RHO_BENCH*PI*pm.D*pm.D/4)/o.Psh;
+    range(k+': static figure of merit',fm,0.35,0.85,'Must be below 1; small props run 0.5 to 0.7');
+  });
+  var pe=r0.perf,oc=propOp(pe.pm,pe.el,1.2,12,0.6);
+  near('Motor energy balance: pack power minus losses equals shaft power (W)',oc.Vb*(oc.Ib-pe.el.aux)-oc.Im*oc.Im*pe.pm.Reff-(oc.n*60/pe.pm.kv)*pe.pm.i0,oc.Psh,1e-6*Math.max(1,oc.Psh),'Consistency');
+  truth('Propeller efficiency stays below 1 in flight',oc.etaP>0&&oc.etaP<1,'Sanity');
+  var ol=propForThrust(pe.pm,pe.el,1.2,12,3),ob=propOp(pe.pm,pe.el,1.2,12,ol.tau);
+  near('Throttle solved for 3 N returns 3 N (N)',ob.T,3,1e-6,'Two solvers agree');
+  range('Default aircraft: static thrust to weight at full charge',pe.statFull.T/r0.W,1.4,3,'Sanity range');
+  range('Default aircraft: cruise electrical power (W)',pe.cruise?pe.cruise.Pe:NaN,35,90,'Sanity range');
+  /* Dynamics: solver checks, then the full solution against textbook approximations on a stable reference aircraft */
+  var ev=eigenvalues([[-1,2,0,0],[-2,-1,0,0],[0,0,-3,0],[0,0,0,0.5]]).sort(function(p,q){return p.re-q.re||p.im-q.im;});
+  near('Eigenvalue solver: real root (expect -3)',ev[0].re,-3,1e-8,'Known matrix');
+  near('Eigenvalue solver: complex pair, real part',ev[1].re,-1,1e-8,'Known matrix');
+  near('Eigenvalue solver: complex pair, imaginary part',Math.abs(ev[1].im),2,1e-8,'Known matrix');
+  near('Eigenvalue solver: unstable root',ev[3].re,0.5,1e-8,'Known matrix');
+  var ls=linSim([[-2]],[2],1,200);
+  near('Time integration: first-order lag at t = 1',ls[ls.length-1][1],1-Math.exp(-2),1e-8,'Exact: 1 - e^-2');
+  var cs=defaultsConfig();cs.wing.xLE+=167;shiftGroup(cs,'wing',167);
+  var rs=compute(cs,true),ds=rs.dyn;
+  truth('Reference aircraft (wing 167 mm aft): short period and phugoid both found',!!(ds&&ds.ok&&ds.sp&&ds.ph),'Mode identification');
+  if(ds&&ds.sp&&ds.ph&&ds.spApprox){
+    near('Reference aircraft: short-period frequency, full against approximation (rad/s)',ds.sp.wn,ds.spApprox.wn,0.12*ds.spApprox.wn,'Nelson two-state approximation');
+    near('Reference aircraft: short-period damping, full against approximation',ds.sp.zeta,ds.spApprox.zeta,0.08,'Nelson two-state approximation');
+    near('Reference aircraft: phugoid period against Lanchester (s)',ds.ph.period,ds.phApproxPeriod,0.35*ds.phApproxPeriod,'π√2 V/g');
+  }
+  truth('Reference aircraft: Dutch roll, roll and spiral modes found',!!(ds&&ds.dr&&ds.roll&&ds.spiral),'Mode identification');
   /* Consistency of the configuration on screen */
   var cc=cur||d0,r=compute(cc,true);
   if(r.mass.M>0){
@@ -978,6 +1154,13 @@ function selfTests(cur){
     near('Current config: trim solution has zero pitching moment',tmCm(r.tm,tr.alpha,tr.de,r.hcg,0),0,1e-9,'Consistency');
     var slope=(tmCm(r.tm,0.05,0,r.hcg,0)-tmCm(r.tm,0,0,r.hcg,0))/0.05;
     near('Current config: moment slope equals -(lift slope x static margin)',slope,-r.a*r.sm,1e-9,'Ties the trim model to the neutral point');
+    if(r.perf&&r.perf.ok&&r.perf.cruise)near('Current config: cruise thrust equals drag (N)',r.perf.cruise.T,r.perf.cruiseDrag,1e-6*Math.max(1,r.perf.cruiseDrag),'Consistency');
+    if(r.dyn&&r.dyn.ok){
+      var trL=0,trT=0,sL=0,sT=0,q4;
+      for(q4=0;q4<4;q4++){trL+=r.dyn.Alon[q4][q4];trT+=r.dyn.Alat[q4][q4];sL+=r.dyn.eLon[q4].re;sT+=r.dyn.eLat[q4].re;}
+      near('Current config: longitudinal roots sum to the trace of the system matrix',sL,trL,1e-7*Math.max(1,Math.abs(trL)),'Consistency');
+      near('Current config: lateral roots sum to the trace of the system matrix',sT,trT,1e-7*Math.max(1,Math.abs(trT)),'Consistency');
+    }
     near('Current config: lift equals weight at cruise CL (N)',r.q*r.wing.S*r.CLcr,r.W,1e-9*Math.max(1,r.W),'Consistency');
     var bad=0,n=0;
     validity(cc,r).forEach(function(it){it.fixes.forEach(function(f){
@@ -989,6 +1172,357 @@ function selfTests(cur){
     truth('Current config: all '+n+' recommendations clear their check when applied',bad===0,'Each one is applied to a copy and re-checked');
   }
   return T;
+}
+/* ---------- Propulsion ----------
+   Motor: ideal PWM stage of duty tau feeding a DC motor through one series resistance R_eff
+   (winding, ESC, leads), with back-EMF rpm/Kv and a constant no-load current.
+   Propeller: thrust and power coefficients referred to their static values and to the
+   advance ratio at zero thrust, J0.
+   Calibration against the manufacturer's bench table (25.2 V):
+     CT0    median of the part-throttle points, where rpm was measured
+     R_eff  from the full-throttle point: (V - rpm/Kv) / I, with rpm from CT0 and the thrust
+     CP0    shaft power at each point; a part-throttle and a full-throttle value, blended on rpm */
+var RHO_BENCH=1.225,V_BENCH=25.2;
+function median(a){a=a.slice().sort(function(p,q){return p-q;});var n=a.length;return n?(n%2?a[(n-1)/2]:(a[n/2-1]+a[n/2])/2):NaN;}
+/* Assumed coefficient shapes against x = J / J0. These are the least certain part of the model. */
+function propShape(x){x=Math.max(0,Math.min(x,1.6));return {ct:1-Math.pow(x,1.5),cp:Math.max(0.1,1-0.65*x*x*x)};}
+function propModel(cfg){
+  var pr=cfg.prop,mo=cfg.motor,D=pr.diam/1000,D4=Math.pow(D,4),D5=D4*D,kv=mo.kv,P=PROPS[pr.id];
+  var Tmax=pr.staticThrust/1000*G0,Imax=pr.staticCurrent,pm={D:D,D4:D4,D5:D5,kv:kv,i0:mo.i0,wake:pr.wakeEff,J0:pr.j0k*pr.pitch/pr.diam,fromData:!!P,data:[]};
+  if(P){
+    pm.CT0=median(P.pts.map(function(p){var n=p[2]/60;return p[1]/1000*G0/(RHO_BENCH*n*n*D4);}));
+    pm.nMax=Math.sqrt(Tmax/(pm.CT0*RHO_BENCH*D4));
+    pm.Reff=(V_BENCH-pm.nMax*60/kv)/Imax;
+  }else{
+    pm.Reff=mo.R+0.11;
+    pm.nMax=(V_BENCH-Imax*pm.Reff)*kv/60;
+    pm.CT0=Tmax/(RHO_BENCH*pm.nMax*pm.nMax*D4);
+  }
+  pm.Rderived=pm.Reff;
+  if(mo.rSys!=null)pm.Reff=mo.rSys;
+  function cpAt(I,rpm){ /* motor current from the power balance V I = E Im + Im^2 R */
+    var E=rpm/kv,Im=(-E+Math.sqrt(E*E+4*pm.Reff*V_BENCH*I))/(2*pm.Reff),n=rpm/60;
+    return E*(Im-mo.i0)/(RHO_BENCH*n*n*n*D5);
+  }
+  pm.cpFull=cpAt(Imax,pm.nMax*60);
+  if(P){
+    pm.cpPart=median(P.pts.map(function(p){return cpAt(p[0],p[2]);}));
+    pm.nRef=median(P.pts.map(function(p){return p[2]/60;}));
+    P.pts.forEach(function(p){pm.data.push({I:p[0],T:p[1],rpm:p[2]});});
+  }else{pm.cpPart=pm.cpFull;pm.nRef=pm.nMax;}
+  pm.data.push({I:Imax,T:pr.staticThrust,rpm:null});
+  pm.ok=pm.Reff>0&&pm.nMax>0&&pm.CT0>0&&pm.cpFull>0&&pm.cpPart>0;
+  return pm;
+}
+function cp0At(pm,n){
+  if(!(pm.nMax>pm.nRef))return pm.cpFull;
+  var f=Math.max(0,Math.min(1,(n-pm.nRef)/(pm.nMax-pm.nRef)));
+  return pm.cpPart+(pm.cpFull-pm.cpPart)*f;
+}
+function propPoint(pm,el,rho,V,tau,n,Im){
+  var E=n*60/pm.kv,sh=propShape(V/(n*pm.D)/pm.J0),T=pm.wake*pm.CT0*sh.ct*rho*n*n*pm.D4;
+  var Ib=tau*Im+el.aux,Vb=el.voc-Ib*el.rb,Psh=E*(Im-pm.i0);
+  return {tau:tau,n:n,rpm:n*60,T:T,Im:Im,Ib:Ib,Vb:Vb,Pe:Vb*Ib,Psh:Psh,J:V/(n*pm.D),etaP:Psh>0?T*V/Psh:0,etaTot:Vb*Ib>0?T*V/(Vb*Ib):0};
+}
+/* Operating point at airspeed V and throttle tau: shaft power from the motor equals power absorbed by the prop. */
+function propOp(pm,el,rho,V,tau){
+  function f(n){var E=n*60/pm.kv,Im=(tau*(el.voc-el.aux*el.rb)-E)/(pm.Reff+tau*tau*el.rb);
+    return {Im:Im,d:E*(Im-pm.i0)-cp0At(pm,n)*propShape(V/(n*pm.D)/pm.J0).cp*rho*n*n*n*pm.D5};}
+  var lo=0.5,hi=Math.max(1,tau*el.voc*pm.kv/60);
+  if(!(tau>0)||!(f(lo).d>0))return {tau:tau,n:0,rpm:0,T:0,Im:0,Ib:el.aux,Vb:el.voc-el.aux*el.rb,Pe:(el.voc-el.aux*el.rb)*el.aux,Psh:0,J:0,etaP:0,etaTot:0};
+  for(var i=0;i<34;i++){var m=(lo+hi)/2;if(f(m).d>0)lo=m;else hi=m;}
+  var n=(lo+hi)/2;
+  return propPoint(pm,el,rho,V,tau,n,f(n).Im);
+}
+/* Throttle that gives a required thrust at airspeed V; null if it is beyond full throttle. */
+function propForThrust(pm,el,rho,V,Treq){
+  function T(n){return pm.wake*pm.CT0*propShape(V/(n*pm.D)/pm.J0).ct*rho*n*n*pm.D4;}
+  var lo=0.5,hi=el.voc*pm.kv/60;
+  if(!(Treq>0)||!(T(hi)>=Treq))return null;
+  for(var i=0;i<34;i++){var m=(lo+hi)/2;if(T(m)<Treq)lo=m;else hi=m;}
+  var n=(lo+hi)/2,E=n*60/pm.kv,Psh=cp0At(pm,n)*propShape(V/(n*pm.D)/pm.J0).cp*rho*n*n*n*pm.D5;
+  var Im=Psh/E+pm.i0,Vm=E+Im*pm.Reff,a=Im*el.rb,b=el.voc-el.aux*el.rb,disc=b*b-4*a*Vm;
+  if(disc<0)return null;
+  var tau=a>1e-12?(b-Math.sqrt(disc))/(2*a):Vm/b;
+  if(!(tau<=1))return null;
+  return propPoint(pm,el,rho,V,tau,n,Im);
+}
+/* Full throttle, backed off if the ESC, motor or battery current limit is reached. */
+function propFull(pm,el,rho,V,lim){
+  var op=propOp(pm,el,rho,V,1);
+  if(op.Im<=lim.im&&op.Ib<=lim.ib){op.limited=false;return op;}
+  var lo=0,hi=1;
+  for(var i=0;i<22;i++){var m=(lo+hi)/2,o=propOp(pm,el,rho,V,m);if(o.Im<=lim.im&&o.Ib<=lim.ib)lo=m;else hi=m;}
+  op=propOp(pm,el,rho,V,lo);op.limited=true;return op;
+}
+
+/* ---------- Performance ---------- */
+function performance(cfg,e,lite){
+  var b=cfg.batt,fl=cfg.flt,W=e.W,rho=e.rho,S=e.S,K=e.K,m=W/G0;
+  var pm=propModel(cfg),P={pm:pm,ok:pm.ok};
+  if(!pm.ok)return P;
+  var el={voc:b.cells*b.vCell,rb:b.cells*b.rCell/1000,aux:b.auxA};
+  var lim={im:Math.min(cfg.esc.limit,cfg.motor.iMax),ib:b.C*b.mAh/1000};
+  var Vzero=pm.J0*pm.D*el.voc*pm.kv/60;                 /* airspeed at which a no-load prop makes no thrust */
+  var Vlo=Math.max(e.Vs,1),Vtop=Math.max(Vzero,Vlo*1.5),i;
+  /* zero-lift drag on a table, since the buildup is costly to call inside solvers */
+  var ct=[],NC=14;for(i=0;i<=NC;i++)ct.push(e.cd0At(Math.max(1,Vtop*i/NC)));
+  function cd0(v){var x=Math.max(0,Math.min(NC-1e-9,v/Vtop*NC)),j=Math.floor(x);return ct[j]+(ct[j+1]-ct[j])*(x-j);}
+  function drag(v,n){var q=0.5*rho*v*v,CL=(n||1)*W/(q*S);return (cd0(v)+K*CL*CL)*q*S;}
+  function full(v){return propFull(pm,el,rho,v,lim);}
+  function level(v){var o=propForThrust(pm,el,rho,v,drag(v));return (o&&o.Im<=lim.im&&o.Ib<=lim.ib)?o:null;}
+  var usableAh=b.mAh/1000*b.usable/100;
+  P.el=el;P.lim=lim;P.usableAh=usableAh;P.Vzero=Vzero;
+  /* maximum level speed: highest speed at which full-throttle thrust still equals drag */
+  P.Vmax=null;
+  var pv=null,NS=24;
+  for(i=NS;i>=0;i--){var vs=Vlo+(Vtop-Vlo)*i/NS,ex=full(vs).T-drag(vs);
+    if(ex>=0){P.Vmax=(pv==null)?vs:(bisect(function(x){return full(x).T-drag(x);},vs,pv,24)||vs);break;}
+    pv=vs;}
+  var Vplot=Math.min(Vtop,Math.max(1.2*(P.Vmax||0),2*e.V,Vlo*2));
+  /* speed sweep */
+  var N=lite?18:60,rows=[],best={roc:-Infinity,sin:-Infinity,ib:Infinity,rng:-Infinity};
+  for(i=0;i<=N;i++){
+    var v=Vlo+(Vplot-Vlo)*i/N,D=drag(v),f=full(v),sn=Math.max(-1,Math.min(1,(f.T-D)/W)),lv=lite?null:level(v);
+    var row={V:v,D:D,T:f.T,Preq:D*v,Pav:f.T*v,roc:v*sn,gamma:Math.asin(sn),lv:lv,limited:f.limited};
+    rows.push(row);
+    if(row.roc>best.roc){best.roc=row.roc;best.Vy=v;}
+    if(sn>best.sin){best.sin=sn;best.Vx=v;}
+    if(lv&&v>=1.15*e.Vs){if(lv.Ib<best.ib){best.ib=lv.Ib;best.Vend=v;}if(v/lv.Ib>best.rng){best.rng=v/lv.Ib;best.Vrng=v;}}
+  }
+  P.rocMax=best.roc;P.Vy=best.Vy;P.gammaMax=Math.asin(best.sin);P.Vx=best.Vx;
+  P.Vmin=rows[0].T>=rows[0].D?rows[0].V:null;
+  /* design-speed cruise, endurance and range */
+  P.cruise=level(e.V);P.cruiseDrag=drag(e.V);
+  if(P.cruise){P.endMin=usableAh/P.cruise.Ib*60;P.rangeKm=P.endMin*60*e.V/1000;}
+  if(best.Vend!=null){P.Vend=best.Vend;P.endBest=usableAh/best.ib*60;}
+  if(best.Vrng!=null){P.Vrng=best.Vrng;P.rangeBest=usableAh*best.rng*3600/1000;}
+  /* static thrust: at the performance voltage with limits, and unrestricted at full charge for the current checks */
+  P.stat=full(0.01);P.TW=P.stat.T/W;
+  P.statFull=propOp(pm,{voc:b.cells*b.vFull,rb:el.rb,aux:el.aux},rho,0.01,1);
+  /* glide, power off; drag of the stopped prop is not included */
+  P.Vms=e.Vbg/Math.pow(3,0.25);P.sinkMin=drag(P.Vms)*P.Vms/W;
+  /* hand launch: thrown level at the launch speed, full throttle, held at maximum lift until the descent is arrested */
+  var Tt=[],NT=8,vT=Math.max(e.Vs*1.6,fl.launchV*1.2,2);
+  for(i=0;i<=NT;i++)Tt.push(full(Math.max(0.01,vT*i/NT)).T);
+  function Tat(v){var x=Math.max(0,Math.min(NT-1e-9,v/vT*NT)),j=Math.floor(x);return Tt[j]+(Tt[j+1]-Tt[j])*(x-j);}
+  var CDs=cd0(Math.max(e.Vs,1))+K*e.CLmax*e.CLmax;
+  function launch(v0){
+    var v=v0,z=0,vz=0,t=0,dt=0.01,zmin=0;
+    while(t<6){
+      var q=0.5*rho*v*v,L=q*S*e.CLmax;
+      if(vz>=0&&L>=W)break;
+      v+=(Tat(v)-q*S*CDs)/m*dt;vz+=(L-W)/m*dt;z+=vz*dt;t+=dt;
+      if(z<zmin)zmin=z;
+      if(v<=0.05)return {drop:Infinity,t:t,flies:false};
+    }
+    return {drop:-zmin,t:t,flies:t<6};
+  }
+  P.launchFn=launch;P.launch=launch(fl.launchV);
+  /* turns at the design speed */
+  var q=0.5*rho*e.V*e.V,CL1=W/(q*S),fT=full(e.V).T,nSus2=(fT/(q*S)-cd0(e.V))/K/(CL1*CL1);
+  var nStall=(e.V/e.Vs)*(e.V/e.Vs),nSus=nSus2>1?Math.sqrt(nSus2):1;
+  function bank(n){return n>1?Math.acos(1/n):0;}
+  var nTurn=Math.max(1,Math.min(nStall,nSus,fl.nMax)),phi=bank(nTurn);
+  P.turn={nStall:nStall,nSus:nSus,bankStall:bank(nStall),bankSus:bank(nSus),bankStruct:bank(fl.nMax),n:nTurn,bank:phi,
+    radius:phi>0?e.V*e.V/(G0*Math.tan(phi)):Infinity,rate:phi>0?G0*Math.tan(phi)/e.V:0,
+    limit:nTurn===nStall?'stall':(nTurn===nSus?'thrust':'structure')};
+  P.Va=e.Vs*Math.sqrt(fl.nMax);P.Vd=1.25*(P.Vmax||2*e.V);
+  if(lite)return P;
+  /* curves */
+  var C={};
+  C.rows=rows;
+  var bench={D:pm.D,D4:pm.D4,D5:pm.D5,kv:pm.kv,i0:pm.i0,wake:1,J0:pm.J0,CT0:pm.CT0,cpPart:pm.cpPart,cpFull:pm.cpFull,nRef:pm.nRef,nMax:pm.nMax,Reff:pm.Reff};
+  var eb={voc:V_BENCH,rb:0,aux:0};
+  C.bench=[];for(i=2;i<=40;i++){var o=propOp(bench,eb,RHO_BENCH,0.01,i/40);C.bench.push([o.Ib,o.T/G0*1000]);}
+  /* model thrust at each bench current, for the error figures */
+  function benchT(I){for(var j=1;j<C.bench.length;j++){var p0=C.bench[j-1],p1=C.bench[j];if(I>=p0[0]&&I<=p1[0])return p0[1]+(p1[1]-p0[1])*(I-p0[0])/(p1[0]-p0[0]);}
+    var last=C.bench[C.bench.length-1];return Math.abs(I-last[0])<0.02*last[0]?last[1]:NaN;}
+  var worst=0;pm.data.forEach(function(d){d.Tm=benchT(d.I);if(isFinite(d.Tm)){d.err=(d.Tm-d.T)/d.T*100;worst=Math.max(worst,Math.abs(d.err));}});
+  P.benchWorst=worst;
+  C.vnPos=[];C.vnNeg=[];
+  var VsN=e.Vs/Math.sqrt(0.5);
+  for(i=0;i<=40;i++){var vv=P.Vd*i/40;C.vnPos.push([vv,Math.min(fl.nMax,(vv/e.Vs)*(vv/e.Vs))]);C.vnNeg.push([vv,Math.max(fl.nMin,-(vv/VsN)*(vv/VsN))]);}
+  C.turn=[];for(i=10;i<=80;i+=2){var ph=rad(i);C.turn.push([i,e.V*e.V/(G0*Math.tan(ph))]);}
+  P.curves=C;
+  return P;
+}
+/* ---------- Linear dynamics ----------
+   Small-perturbation equations about level flight at the design speed (Nelson, Flight Stability
+   and Automatic Control, ch. 4 and 5; Etkin and Reid, Dynamics of Flight). Body axes x forward,
+   y right, z down. Longitudinal states: u, w (m/s), q (rad/s), theta (rad). Lateral states:
+   v (m/s), p, r (rad/s), phi (rad). Each derivative carries a confidence grade. */
+function charPoly(A){ /* Faddeev-LeVerrier: coefficients of det(sI - A), highest power first */
+  var n=A.length,c=[1],M=[],i,j,k,m;
+  for(i=0;i<n;i++){M.push([]);for(j=0;j<n;j++)M[i].push(i===j?1:0);}
+  for(k=1;k<=n;k++){
+    var AM=[];
+    for(i=0;i<n;i++){AM.push([]);for(j=0;j<n;j++){var s=0;for(m=0;m<n;m++)s+=A[i][m]*M[m][j];AM[i].push(s);}}
+    var tr=0;for(i=0;i<n;i++)tr+=AM[i][i];
+    var ck=-tr/k;c.push(ck);
+    for(i=0;i<n;i++)for(j=0;j<n;j++)M[i][j]=AM[i][j]+(i===j?ck:0);
+  }
+  return c;
+}
+function polyRoots(c){ /* Durand-Kerner; c is monic, highest power first */
+  var n=c.length-1,z=[],i,j,it;
+  for(i=0;i<n;i++){var a=2*PI*i/n+0.4;z.push({re:0.9*Math.cos(a)*(1+i*0.3),im:0.9*Math.sin(a)*(1+i*0.3)});}
+  for(it=0;it<400;it++){
+    var mx=0;
+    for(i=0;i<n;i++){
+      var pr=1,pi=0;
+      for(j=1;j<=n;j++){var t=pr*z[i].re-pi*z[i].im+c[j];pi=pr*z[i].im+pi*z[i].re;pr=t;}
+      var dr=1,di=0;
+      for(j=0;j<n;j++){if(j===i)continue;var a2=z[i].re-z[j].re,b2=z[i].im-z[j].im,t2=dr*a2-di*b2;di=dr*b2+di*a2;dr=t2;}
+      var den=dr*dr+di*di;if(den<1e-300)den=1e-300;
+      var qr=(pr*dr+pi*di)/den,qi=(pi*dr-pr*di)/den;
+      z[i].re-=qr;z[i].im-=qi;mx=Math.max(mx,Math.abs(qr)+Math.abs(qi));
+    }
+    if(mx<1e-13)break;
+  }
+  return z;
+}
+function eigenvalues(A){return polyRoots(charPoly(A));}
+function modesOf(eigs){ /* conjugate pairs become one oscillatory mode */
+  var osc=[],real=[];
+  eigs.forEach(function(e){
+    var tol=1e-7*Math.max(1,Math.abs(e.re));
+    if(Math.abs(e.im)<=tol)real.push({kind:'real',re:e.re,im:0,wn:Math.abs(e.re),zeta:null,period:null,t2:Math.abs(e.re)>1e-12?Math.LN2/Math.abs(e.re):Infinity,stable:e.re<0});
+    else if(e.im>0){var wn=Math.sqrt(e.re*e.re+e.im*e.im);osc.push({kind:'osc',re:e.re,im:e.im,wn:wn,zeta:-e.re/wn,period:2*PI/e.im,t2:Math.abs(e.re)>1e-12?Math.LN2/Math.abs(e.re):Infinity,stable:e.re<0});}
+  });
+  osc.sort(function(a,b){return b.wn-a.wn;});real.sort(function(a,b){return Math.abs(b.re)-Math.abs(a.re);});
+  return {osc:osc,real:real};
+}
+function linSim(A,B,T,n,lim){ /* RK4 on x' = A x + B from rest; returns [[t, x...], ...]; stops if a state passes its limit */
+  var N=A.length,x=[],i,j,k,h=T/n,out=[];
+  for(i=0;i<N;i++)x.push(0);
+  function f(y){var d=[];for(var a=0;a<N;a++){var s=B[a];for(var b=0;b<N;b++)s+=A[a][b]*y[b];d.push(s);}return d;}
+  function ax(y,d,s){return y.map(function(v,a){return v+s*d[a];});}
+  out.push([0].concat(x));
+  for(k=1;k<=n;k++){
+    var k1=f(x),k2=f(ax(x,k1,h/2)),k3=f(ax(x,k2,h/2)),k4=f(ax(x,k3,h));
+    for(j=0;j<N;j++)x[j]+=h/6*(k1[j]+2*k2[j]+2*k3[j]+k4[j]);
+    var big=false;for(j=0;j<N;j++){if(!isFinite(x[j])||Math.abs(x[j])>(lim?lim[j]:1e4))big=true;}
+    if(big)break;
+    out.push([k*h].concat(x));
+  }
+  return out;
+}
+function dynamics(cfg,r,lite){
+  var w=cfg.wing,t=cfg.tail,ae=cfg.aero,mp=r.mass,wg=r.wing,tg=r.tail;
+  var m=mp.M,Ix=mp.I.xx,Iy=mp.I.yy,Iz=mp.I.zz,Ixz=mp.I.xz;
+  if(!(m>0&&Ix>0&&Iy>0&&Iz>0))return {ok:false};
+  var u0=r.V,Q=r.q,S=wg.S,c=wg.mac,b=wg.b,g=G0,CL=r.CLcr,CD=r.cruise.CD,D=[];
+  var isV=t.type==='vtail',gam=isV?rad(t.dihedral):0,cosG=Math.cos(gam),sinG=Math.sin(gam);
+  var tau=flapTau(t.surfChordFrac)*ae.ctrlEff*t.surfSpanFrac;
+  function der(sym,name,val,basis,conf){D.push({sym:sym,name:name,val:val,basis:basis,conf:conf});return val;}
+  /* ----- longitudinal coefficients ----- */
+  var ltc=r.lt/c,VHcg=r.Vh;
+  var CLa=der('CLα','Lift slope',r.a,'Wing lifting-line plus tail in downwash','good');
+  var Cma=der('Cmα','Pitch stiffness',r.cma,'−CLα × static margin','good');
+  var CLq=der('CLq','Lift due to pitch rate',2*r.at*VHcg,'Tail only: 2 η aₜ V̅H','fair');
+  var Cmq=der('Cmq','Pitch damping',-2.2*r.at*VHcg*ltc,'Tail: −2 η aₜ V̅H lₜ/c, plus 10% for the wing','fair');
+  var CLad=der('CLα̇','Lift due to downwash lag',2*r.at*VHcg*r.epsA,'Tail: 2 η aₜ V̅H dε/dα','fair');
+  var Cmad=der('Cmα̇','Damping due to downwash lag',-2*r.at*VHcg*ltc*r.epsA,'Tail: CLα̇ × −lₜ/c','fair');
+  var CDa=der('CDα','Drag slope',2*r.K*CL*CLa,'From the drag polar: 2 K CL CLα','good');
+  var dTdV=0,pf=r.perf;
+  if(pf&&pf.ok&&pf.cruise){var dv=0.25;dTdV=(propOp(pf.pm,pf.el,r.atm.rho,u0+dv,pf.cruise.tau).T-propOp(pf.pm,pf.el,r.atm.rho,u0-dv,pf.cruise.tau).T)/(2*dv);}
+  der('∂T/∂V','Thrust change with airspeed (N per m/s)',dTdV,pf&&pf.ok&&pf.cruise?'Propulsion model at fixed throttle':'Set to zero: level flight is beyond full throttle','fair');
+  var Cmde=der('Cmδe','Elevator pitch power',r.cmde,'Thin-airfoil flap effectiveness × control factor','fair');
+  var CLde=der('CLδe','Elevator lift',r.clde,'','fair');
+  /* ----- lateral coefficients ----- */
+  var lamT=t.tipChord/t.rootChord,sBar=t.slant*(1+2*lamT)/(3*(1+lamT)),lvb=r.lv/b,zcg=mp.cg.z;
+  var St=tg.S,eta=t.eta,aN=tg.aN,aV,Svv=tg.Sv,rho2,sideArm,yc,zc;
+  var S0=cfg.fus.width*cfg.fus.height/1e6;
+  var CYbT,ClpT,CnpT,CYdr,Cldr;
+  if(isV){
+    aV=aN;yc=(t.yRoot+sBar*cosG)/1000;zc=(t.z+sBar*sinG-zcg)/1000;
+    var rhoA=yc*cosG+zc*sinG;                       /* arm of the panel-normal velocity due to roll rate */
+    CYbT=-eta*aN*(St/S)*sinG*sinG;
+    ClpT=-2*eta*aN*(St/S)*(rhoA/b)*(rhoA/b);
+    CnpT=2*eta*aN*(St/S)*rhoA*sinG*r.lv/(b*b);
+    CYdr=-eta*aN*tau*(St/S)*sinG;                   /* positive rudder turns the nose right */
+    Cldr=CYdr*zc/b-eta*aN*tau*(St/S)*cosG*yc/b;
+  }else{
+    var hf=t.finHeight/1000,zf=(t.z+0.42*t.finHeight-zcg)/1000,yh=t.slant/1000/Math.sqrt(3);
+    aV=helmbold(2*hf*hf/Svv,t.a0,0);
+    CYbT=-eta*aV*Svv/S;
+    ClpT=-2*eta*aN*(St/S)*(yh/b)*(yh/b)-2*eta*aV*(Svv/S)*(zf/b)*(zf/b);
+    CnpT=2*eta*aV*(Svv/S)*(zf/b)*lvb;
+    CYdr=-eta*aV*tau*Svv/S;
+    Cldr=CYdr*zf/b;
+  }
+  var lam=wg.lam;
+  var CYb=der('CYβ','Side force due to sideslip',CYbT-2*r.fus.k21*S0/S,'Tail projected area plus slender-body fuselage','fair');
+  var Clb=der('Clβ','Dihedral effect',r.Clb,'Wing dihedral and tail; wing height not included','fair');
+  var Cnb=der('Cnβ','Weathercock stability',r.Cnb,'Tail volume less the fuselage term','fair');
+  var Clp=der('Clp','Roll damping',-(r.aw/12)*(1+3*lam)/(1+lam)+ClpT,'Wing strip theory plus tail','good');
+  var Cnp=der('Cnp','Yaw due to roll rate',-CL/8+CnpT,'Wing −CL/8 plus tail','low');
+  var Clr=der('Clr','Roll due to yaw rate',CL/4-2*lvb*r.clbT,'Wing CL/4 plus tail','low');
+  var Cnr=der('Cnr','Yaw damping',-2*r.cnbT*lvb-r.cd0/4,'Tail: −2 Cnβ,tail lᵥ/b, plus wing drag term','fair');
+  var CYr=der('CYr','Side force due to yaw rate',-2*CYbT*lvb,'Tail','fair');
+  var Clda=der('Clδa','Aileron roll power',r.Clda,'Strip theory','fair');
+  var Cnda=der('Cnδa','Adverse yaw',-0.3*CL*r.Clda,'Empirical: −0.3 CL Clδa','low');
+  der('CYδr','Rudder side force',CYdr,isV?'Differential ruddervator, sin of the panel angle':'Fin','fair');
+  der('Clδr','Roll due to rudder',Cldr,isV?'V-tail rolls against the turn':'Fin height','low');
+  var Cndr=der('Cnδr','Rudder yaw power',-CYdr*lvb,'Side force × tail arm','fair');
+  /* ----- dimensional derivatives ----- */
+  var QS=Q*S,zT=(cfg.prop.z-zcg)/1000;
+  var Xu=(dTdV-2*CD*QS/u0)/m,Xw=-(CDa-CL)*QS/(m*u0);
+  var Zu=-2*CL*QS/(m*u0),Zw=-(CLa+CD)*QS/(m*u0),Zq=-CLq*(c/(2*u0))*QS/m,Zwd=-CLad*(c/(2*u0))*QS/(m*u0);
+  var Mu=-dTdV*zT/Iy,Mw=Cma*QS*c/(u0*Iy),Mq=Cmq*(c/(2*u0))*QS*c/Iy,Mwd=Cmad*(c/(2*u0))*QS*c/(u0*Iy);
+  var Zde=-CLde*QS/m,Mde=Cmde*QS*c/Iy,k=1/(1-Zwd);
+  var wr=[Zu*k,Zw*k,(u0+Zq)*k,0],wb=Zde*k;
+  var Alon=[[Xu,Xw,0,-g],wr,[Mu+Mwd*wr[0],Mw+Mwd*wr[1],Mq+Mwd*wr[2],0],[0,0,1,0]];
+  var Blon=[0,wb,Mde+Mwd*wb,0];
+  var Yv=CYb*QS/(m*u0),Yr=CYr*QS*b/(2*m*u0);
+  var Lv=Clb*QS*b/(Ix*u0),Lp=Clp*QS*b*b/(2*Ix*u0),Lr=Clr*QS*b*b/(2*Ix*u0);
+  var Nv=Cnb*QS*b/(Iz*u0),Np=Cnp*QS*b*b/(2*Iz*u0),Nr=Cnr*QS*b*b/(2*Iz*u0);
+  var i1=Ixz/Ix,i2=Ixz/Iz,dd=1-i1*i2;
+  function couple(L,N){return [(L+i1*N)/dd,(N+i2*L)/dd];}
+  var cv=couple(Lv,Nv),cp=couple(Lp,Np),cr=couple(Lr,Nr);
+  var Alat=[[Yv,0,Yr-u0,g],[cv[0],cp[0],cr[0],0],[cv[1],cp[1],cr[1],0],[0,1,0,0]];
+  var ca=couple(Clda*QS*b/Ix,Cnda*QS*b/Iz),cd=couple(Cldr*QS*b/Ix,Cndr*QS*b/Iz);
+  var Ba=[0,ca[0],ca[1],0],Br=[CYdr*QS/m,cd[0],cd[1],0];
+  /* ----- modes ----- */
+  var eLon=eigenvalues(Alon),eLat=eigenvalues(Alat),ml=modesOf(eLon),mt=modesOf(eLat),modes=[],out={ok:true,derivs:D,Alon:Alon,Alat:Alat,eLon:eLon,eLat:eLat};
+  function add(name,axis,md){md.name=name;md.axis=axis;modes.push(md);return md;}
+  function lonReal(md,base){return add(md.stable?base+', real root':'Pitch divergence','lon',md);}
+  if(ml.osc.length===2){out.sp=add('Short period','lon',ml.osc[0]);out.ph=add('Phugoid','lon',ml.osc[1]);}
+  else if(ml.osc.length===1&&ml.real.length===2){
+    if(ml.osc[0].wn>Math.sqrt(Math.abs(ml.real[0].re*ml.real[1].re))){out.sp=add('Short period','lon',ml.osc[0]);ml.real.forEach(function(x){lonReal(x,'Phugoid');});}
+    else{ml.real.forEach(function(x){lonReal(x,'Short period');});out.ph=add('Phugoid','lon',ml.osc[0]);}
+  }else ml.real.forEach(function(x,i){lonReal(x,i<2?'Short period':'Phugoid');});
+  if(mt.osc.length===1&&mt.real.length===2){out.dr=add('Dutch roll','lat',mt.osc[0]);out.roll=add('Roll subsidence','lat',mt.real[0]);out.spiral=add('Spiral','lat',mt.real[1]);}
+  else if(mt.osc.length===2){out.dr=add('Dutch roll','lat',mt.osc[0]);add('Coupled roll and spiral','lat',mt.osc[1]);}
+  else if(mt.real.length===4){out.roll=add('Roll subsidence','lat',mt.real[0]);add('Dutch roll, real root','lat',mt.real[1]);add('Dutch roll, real root','lat',mt.real[2]);out.spiral=add('Spiral','lat',mt.real[3]);}
+  else{mt.osc.forEach(function(x){add('Lateral oscillation','lat',x);});mt.real.forEach(function(x){add('Lateral real root','lat',x);});}
+  out.modes=modes;
+  out.lonStable=eLon.every(function(e){return e.re<0;});
+  /* short-period approximation, for cross-checking the full solution */
+  var wsp2=Zw*Mq-u0*Mw;out.spApprox=wsp2>0?{wn:Math.sqrt(wsp2),zeta:-(Mq+Zw+u0*Mwd)/(2*Math.sqrt(wsp2))}:null;
+  out.phApproxPeriod=PI*Math.SQRT2*u0/g;
+  /* rudder authority: steady sideslip held by full rudder, as an equivalent crosswind */
+  var dr=rad(t.rudDefl);
+  out.betaRud=Cnb>1e-6?Math.abs(Cndr*dr/Cnb):NaN;
+  out.xwind=isFinite(out.betaRud)?u0*Math.tan(Math.min(out.betaRud,1.2)):NaN;
+  out.rollRate=Math.abs(Clp)>1e-9?-Clda/Clp*rad(w.ailMaxDefl)*2*u0/b:NaN;   /* steady roll rate at full aileron */
+  if(lite)return out;
+  /* responses to a one-degree step, held */
+  var d1=rad(1),C={},Tsp=out.sp?out.sp.period:(2*PI/Math.max(0.5,Math.sqrt(Math.abs(wsp2)))),Tph=out.ph?out.ph.period:out.phApproxPeriod;
+  var T1=Math.max(1.5,Math.min(6,4*Tsp)),T2=Math.max(10,Math.min(90,3*Tph));
+  function scl(B){return B.map(function(v){return v*d1;});}
+  /* a diverging trace stops where the small-perturbation model no longer applies */
+  var limL=[0.5*u0,0.3*u0,10,1.2],limT=[0.4*u0,20,10,1.5];
+  var s1=linSim(Alon,scl(Blon),T1,240,limL),s2=linSim(Alon,scl(Blon),T2,900,limL);
+  C.pitch={T:T1,alpha:s1.map(function(p){return [p[0],deg(p[2]/u0)];}),theta:s1.map(function(p){return [p[0],deg(p[4])];}),cut:s1.length<241};
+  C.speed={T:T2,u:s2.map(function(p){return [p[0],p[1]];}),cut:s2.length<901};
+  var T3=Math.max(1.5,Math.min(5,out.roll?6/Math.abs(out.roll.re):3)),s3=linSim(Alat,scl(Ba),T3,240,limT);
+  C.roll={T:T3,p:s3.map(function(q){return [q[0],deg(q[2])];}),r:s3.map(function(q){return [q[0],deg(q[3])];})};
+  var T4=Math.max(3,Math.min(12,out.dr?4*out.dr.period:6)),s4=linSim(Alat,scl(Br),T4,360,limT);
+  C.yaw={T:T4,beta:s4.map(function(q){return [q[0],deg(q[1]/u0)];}),phi:s4.map(function(q){return [q[0],deg(q[4])];})};
+  out.curves=C;
+  return out;
 }
 /*CORE-END*/
 
@@ -1002,7 +1536,7 @@ var UNIT={
   mm:{imp:'in',k:1/25.4},g:{imp:'oz',k:0.0352739619},'m/s':{imp:'kt',k:1.9438445},m:{imp:'ft',k:3.2808399},
   m2:{imp:'ft²',k:10.7639104,label:'m²'},cm2:{imp:'in²',k:0.15500031,label:'cm²'},dC:{imp:'°F',k:1.8,label:'°C'},
   'kg/m2':{imp:'oz/ft²',k:3.27706,label:'kg/m²'},kgm2:{imp:'slug·ft²',k:0.737562,label:'kg·m²'},
-  N:{imp:'lbf',k:0.2248089},deg:{label:'°'}
+  N:{imp:'lbf',k:0.2248089},deg:{label:'°'},roc:{imp:'ft/min',k:196.850394,label:'m/s'},km:{imp:'mi',k:0.621371},ohm:{label:'Ω'},mohm:{label:'mΩ'}
 };
 var COL={ink:'#1c1917',mut:'#6b6159',maroon:'#7a1b2c',slate:'#2f5d73',gold:'#b08a4e',tan:'#c9b08a',sand:'#f6f0e6',line:'#ddd0bd',grid:'#efe7da'};
 var PAL=[COL.maroon,COL.slate,COL.gold],DASH=['','7 4','2 3'];
@@ -1013,6 +1547,9 @@ var MODS=[
  ['geometry','Geometry and balance','Drawn from the inputs. Drag the CG symbol or any part along the body.'],
  ['aero','Aerodynamics','Lifting-line wing, component drag buildup, drag polar.'],
  ['stab','Stability and trim','Stick-fixed stability, elevator to trim, CG limits.'],
+ ['prop','Propulsion','Motor and propeller model calibrated on the manufacturer\u2019s bench table.'],
+ ['perf','Performance','Speeds, climb, endurance, launch and manoeuvre limits at the current mass.'],
+ ['dyn','Dynamics','Natural modes and control responses, linearised about level flight at the design speed.'],
  ['data','Derived values','Every computed quantity with its basis.'],
  ['compare','Compare configurations','Results and differing inputs for up to three configurations.'],
  ['verify','Verification','Checks of the code against exact solutions, hand calculations and its own consistency.'],
@@ -1201,7 +1738,12 @@ function renderShell(){
     h('li',null,h('b',{text:'Stability and trim. '}),'Etkin and Reid stick-fixed equations; downwash 2a/(πAR) from Nelson; Munk slender-body fuselage term; thin-airfoil flap effectiveness times an empirical factor. Trim includes the thrust-line moment with thrust equal to drag. Neutral point is good to about ±3% of chord.'),
     h('li',null,h('b',{text:'Lateral slopes. '}),'Strip theory for wing dihedral and aileron power; tail terms from the projected areas. The wing-height contribution to roll due to sideslip and sidewash at the tail are not included.'),
     h('li',null,h('b',{text:'Geometry and mass are separate. '}),'Parts set to move with the wing, tail or prop follow those positions; resizing a surface does not change its mass.'),
-    h('li',null,h('b',{text:'Not yet modelled. '}),'Thrust against airspeed, climb, endurance, dynamic modes and the flight simulation.')));
+    h('li',null,h('b',{text:'Propulsion. '}),'An ideal PWM stage feeding a DC motor through one series resistance, with back-EMF rpm/Kv and a constant no-load current. Static thrust and power coefficients and the series resistance are fitted to the manufacturer\u2019s bench table. In flight, thrust falls as 1 \u2212 (J/J0)^1.5 and power as 1 \u2212 0.65 (J/J0)\u00b3, with J0 = 1.2 \u00d7 pitch/diameter by default. These shapes are assumptions, not measurements: expect \u00b125% on in-flight thrust until flight logs calibrate them.'),
+    h('li',null,h('b',{text:'Battery. '}),'Fixed open-circuit voltage with a series resistance; endurance is usable capacity over pack current. Voltage decay through the discharge is not modelled.'),
+    h('li',null,h('b',{text:'Performance. '}),'Steady point-mass relations. Climb uses sin \u03b3 = (T \u2212 D)/W with level-flight drag. Glide figures omit the drag of a stopped prop. The hand launch holds maximum lift from a level release. The flight envelope takes negative maximum lift as half the positive value and the dive speed as 1.25 \u00d7 maximum level speed; the load-factor limits are inputs, not a structural analysis.'),
+    h('li',null,h('b',{text:'Dynamics. '}),'Small-perturbation equations about level flight at the design speed, four longitudinal and four lateral states (Nelson; Etkin and Reid). Stability derivatives come from the geometry; each is graded good, fair or low in the Dynamics module. Roots are found from the characteristic polynomial. The roll-yaw cross derivatives are the least certain, so treat Dutch roll damping and the spiral root as indicative until flight data refines them. Unsteady aerodynamics, structural flexibility and servo lag are not included.'),
+    h('li',null,h('b',{text:'Handling criteria. '}),'The default damping and time-constant criteria are Level 1 values for piloted aircraft from MIL-F-8785C, quoted from memory. They are inputs: an autopilot-flown aircraft can accept less.'),
+    h('li',null,h('b',{text:'Not yet modelled. '}),'The nonlinear flight simulation, thrust-line angles, wind and gusts.')));
   attachDrag();
 }
 function updateBar(){
@@ -1369,7 +1911,7 @@ function renderInputs(){
 /* ---------- live update ---------- */
 function live(now){
   last=compute(cur());
-  renderCards(last);drawSide(last);drawTop(last);renderBalance(last);renderAero(last);renderStab(last);renderResults(last);renderCompare();
+  renderCards(last);drawSide(last);drawTop(last);renderBalance(last);renderAero(last);renderStab(last);renderProp(last);renderPerf(last);renderDyn(last);renderResults(last);renderCompare();
   clearTimeout(ckTimer);
   if(now)renderChecks();else ckTimer=setTimeout(renderChecks,160);
 }
@@ -1392,6 +1934,20 @@ function renderCards(r){
   els.cards.appendChild(cell('Zero-lift drag coefficient',fx(r.cd0,4),'','Oswald efficiency '+fx(r.e,2)));
   els.cards.appendChild(cell('Elevator to trim',hasM?fx(deg(r.cruise.de),1):'–','°','At design speed; trailing edge down positive',hasM&&Math.abs(deg(r.cruise.de))>c.tail.maxDefl?'fail':null));
   els.cards.appendChild(cell('Directional stability',fx(r.Cnb,3),'/rad','Criterion '+c.flt.cnbMin+' or more',r.Cnb<=0?'fail':r.Cnb<c.flt.cnbMin?'caution':'pass'));
+  var pf=r.perf;
+  if(hasM&&pf&&pf.ok){
+    els.cards.appendChild(cell('Cruise power from the pack',pf.cruise?fx(pf.cruise.Pe,0):'\u2013','W',pf.cruise?Math.round(pf.cruise.tau*100)+'% throttle, '+fx(pf.cruise.Ib,1)+' A':'Beyond full throttle',pf.cruise?null:'fail'));
+    els.cards.appendChild(cell('Endurance at design speed',pf.cruise?fx(pf.endMin,0):'\u2013','min',pf.cruise?'Range '+d(pf.rangeKm,'km',1)+' '+ulabel('km')+' on '+c.batt.usable+'% of the pack':''));
+    els.cards.appendChild(cell('Best rate of climb',d(pf.rocMax,'roc',isImp()?0:1),ulabel('roc'),'At '+d(pf.Vy,'m/s',1)+' '+ulabel('m/s'),pf.rocMax<=0?'fail':pf.rocMax<c.flt.rocMin?'caution':'pass'));
+    els.cards.appendChild(cell('Maximum level speed',pf.Vmax?d(pf.Vmax,'m/s',1):'\u2013',ulabel('m/s'),'Full throttle, within current limits'));
+    els.cards.appendChild(cell('Static thrust to weight',fx(pf.TW,2),'','At '+c.batt.vCell+' V per cell, in the airframe wake'));
+  }
+  var dy=r.dyn;
+  if(hasM&&dy&&dy.ok){
+    if(dy.sp)els.cards.appendChild(cell('Short period',fx(dy.sp.wn/(2*Math.PI),2),'Hz','Damping ratio '+fx(dy.sp.zeta,2),dy.sp.zeta<0?'fail':dy.sp.zeta<c.crit.spZeta?'caution':'pass'));
+    else els.cards.appendChild(cell('Pitch motion',dy.lonStable?'Damped':'Diverges','',dy.lonStable?'No short-period oscillation':'A longitudinal root is unstable',dy.lonStable?'pass':'fail'));
+    if(dy.dr)els.cards.appendChild(cell('Dutch roll',fx(dy.dr.period,2),'s','Damping ratio '+fx(dy.dr.zeta,2),dy.dr.zeta<0?'fail':dy.dr.zeta<c.crit.drZeta?'caution':'pass'));
+  }
   /* static margin scale: -10% to +30% */
   if(!hasM)return;
   var W=760,x0=10,x1=750,svg=sv('svg',{viewBox:'0 0 '+W+' 58',role:'img','aria-label':'Static margin scale'});
@@ -1440,11 +1996,11 @@ function tickFmt(v,step){var dp=Math.max(0,-Math.floor(Math.log(step)/Math.LN10+
 function lineChart(host,o){
   var W=520,H=300,L=58,R=16,T=12,B=42,id='acsc'+(++chartSeq);
   var box=h('div',{class:'chart'},h('h3',{text:o.title}),o.cap?h('div',{class:'cap',text:o.cap}):null);
-  var series=o.series.map(function(s,i){return {name:s.name,color:PAL[i%3],dash:DASH[i%3],pts:s.pts.filter(function(p){return isFinite(p[0])&&isFinite(p[1]);})};}).filter(function(s){return s.pts.length>1;});
+  var series=o.series.map(function(s,i){return {name:s.name,dots:!!s.dots,color:PAL[i%3],dash:DASH[i%3],pts:s.pts.filter(function(p){return isFinite(p[0])&&isFinite(p[1]);})};}).filter(function(s){return s.pts.length>(s.dots?0:1);});
   if(!series.length){box.appendChild(h('p',{class:'hint',text:'Not available for this configuration.'}));host.appendChild(box);return;}
   if(series.length>1){
     var lg=h('div',{class:'lg'});
-    series.forEach(function(s){var sw=sv('svg',{width:26,height:8,viewBox:'0 0 26 8',style:'width:26px;margin:0'});sw.appendChild(sv('line',{x1:0,y1:4,x2:26,y2:4,stroke:s.color,'stroke-width':2,'stroke-dasharray':s.dash||null}));lg.appendChild(h('span',null,sw,s.name));});
+    series.forEach(function(s){var sw=sv('svg',{width:26,height:8,viewBox:'0 0 26 8',style:'width:26px;margin:0'});if(s.dots)sw.appendChild(sv('circle',{cx:13,cy:4,r:3,fill:'#fff',stroke:s.color,'stroke-width':2}));else sw.appendChild(sv('line',{x1:0,y1:4,x2:26,y2:4,stroke:s.color,'stroke-width':2,'stroke-dasharray':s.dash||null}));lg.appendChild(h('span',null,sw,s.name));});
     box.appendChild(lg);
   }
   var xs=[],ys=[];
@@ -1473,7 +2029,7 @@ function lineChart(host,o){
   (o.v||[]).forEach(function(l,i){if(!isFinite(l.x)||l.x<tx.lo||l.x>tx.hi)return;svg.appendChild(sv('line',{x1:X(l.x),y1:T,x2:X(l.x),y2:H-B,stroke:COL.mut,'stroke-dasharray':'3 3'}));
     var right=X(l.x)<W-R-110;svg.appendChild(sv('text',{x:X(l.x)+(right?5:-5),y:T+13+i*14,'text-anchor':right?'start':'end',text:l.label}));});
   var g=sv('g',{'clip-path':'url(#'+id+')'});
-  series.forEach(function(s){g.appendChild(sv('polyline',{points:s.pts.map(function(p){return X(p[0]).toFixed(1)+','+Y(p[1]).toFixed(1);}).join(' '),fill:'none',stroke:s.color,'stroke-width':2,'stroke-linejoin':'round','stroke-dasharray':s.dash||null}));});
+  series.forEach(function(s){if(s.dots){s.pts.forEach(function(p){g.appendChild(sv('circle',{cx:X(p[0]),cy:Y(p[1]),r:4,fill:'#fff',stroke:s.color,'stroke-width':2}));});return;}g.appendChild(sv('polyline',{points:s.pts.map(function(p){return X(p[0]).toFixed(1)+','+Y(p[1]).toFixed(1);}).join(' '),fill:'none',stroke:s.color,'stroke-width':2,'stroke-linejoin':'round','stroke-dasharray':s.dash||null}));});
   svg.appendChild(g);
   (o.marks||[]).forEach(function(m){if(!isFinite(m.x)||!isFinite(m.y))return;
     svg.appendChild(sv('circle',{cx:X(m.x),cy:Y(m.y),r:4.5,fill:COL.ink,stroke:'#fff','stroke-width':2}));
@@ -1489,7 +2045,7 @@ function lineChart(host,o){
     if(p.x<L||p.x>W-R){hv.style.display='none';return;}
     var x=tx.lo+(p.x-L)/(W-L-R)*(tx.hi-tx.lo),lines=[o.xs+' '+x.toFixed(o.xd==null?1:o.xd)+(o.xu?' '+o.xu:'')];
     clear(dots);clear(rt);
-    series.forEach(function(s){var y=yAt(s,x);if(!isFinite(y))return;
+    series.forEach(function(s){if(s.dots)return;var y=yAt(s,x);if(!isFinite(y))return;
       dots.appendChild(sv('circle',{cx:p.x,cy:Y(y),r:4,fill:s.color,stroke:'#fff','stroke-width':2}));
       lines.push((series.length>1?s.name:o.ys)+' '+y.toFixed(o.yd==null?2:o.yd)+(o.yu?' '+o.yu:''));});
     hl.setAttribute('x1',p.x);hl.setAttribute('x2',p.x);
@@ -1608,9 +2164,10 @@ function renderResults(r){
   sec('Flight condition');
   row('Air density',r.atm.rho,'kg/m³',4,'ISA with the temperature offset');row('Stall speed',r.Vs,'m/s',2,'√(2W / (ρ S CLmax))');
   row('Cruise lift coefficient',r.CLcr,'',3,'W / (q S)');row('Design speed / stall speed',r.Vratio,'',2,'');
-  sec('Propulsion (static data only until Stage 3)');
-  row('Pack voltage, full',r.packV,'V',1,'');row('Battery current limit',r.battI,'A',0,'C rating × capacity');
-  row('No-load pitch speed',r.pitchSpeed,'m/s',1,'Upper bound: Kv × voltage × pitch');row('Static thrust / weight',r.TW,'',2,'Full throttle, standing still');
+  sec('Battery');
+  row('Pack voltage, full',r.packV,'V',1,'');row('Pack voltage used for performance',c.batt.cells*c.batt.vCell,'V',1,'Open circuit');
+  row('Pack resistance',c.batt.cells*c.batt.rCell,'mohm',0,'Cells in series');row('Battery current limit',r.battI,'A',0,'C rating × capacity');
+  row('Usable energy',c.batt.mAh/1000*c.batt.usable/100*c.batt.cells*3.7,'Wh',1,'At 3.7 V per cell nominal');
   els.data.appendChild(h('details',null,h('summary',{text:'Show all derived values'}),tbl(rows)));
 }
 function flatCfg(cfg){
@@ -1662,6 +2219,17 @@ function renderCompare(){
   out('Lift to drag at design speed',function(r){return r.mass.M>0?fx(r.cruise.LD,1):'–';});
   out('Elevator at design speed (°)',function(r){return r.mass.M>0?fx(deg(r.cruise.de),1):'–';});
   out('Yawing moment slope (1/rad)',function(r){return fx(r.Cnb,3);});
+  function pv(r,fn){return (r.perf&&r.perf.ok)?fn(r.perf):'\u2013';}
+  out('Cruise power from the pack (W)',function(r){return pv(r,function(p){return p.cruise?fx(p.cruise.Pe,0):'\u2013';});});
+  out('Endurance at design speed (min)',function(r){return pv(r,function(p){return p.cruise?fx(p.endMin,0):'\u2013';});});
+  out('Best rate of climb ('+ulabel('roc')+')',function(r){return pv(r,function(p){return fx(toDisp(p.rocMax,'roc'),isImp()?0:1);});});
+  out('Maximum level speed ('+ulabel('m/s')+')',function(r){return pv(r,function(p){return p.Vmax?fx(toDisp(p.Vmax,'m/s'),1):'\u2013';});});
+  out('Static thrust to weight',function(r){return pv(r,function(p){return fx(p.TW,2);});});
+  function dv(r,k,fn){return (r.dyn&&r.dyn.ok&&r.dyn[k])?fn(r.dyn[k]):'\u2013';}
+  out('Short-period damping ratio',function(r){return dv(r,'sp',function(m){return fx(m.zeta,2);});});
+  out('Phugoid period (s)',function(r){return dv(r,'ph',function(m){return fx(m.period,1);});});
+  out('Dutch roll damping ratio',function(r){return dv(r,'dr',function(m){return fx(m.zeta,2);});});
+  out('Spiral root (1/s)',function(r){return dv(r,'spiral',function(m){return fx(m.re,3);});});
   out('Pitch inertia ('+ulabel('kgm2')+')',function(r){return fx(toDisp(r.mass.I.yy,'kgm2'),4);});
   var flats=sel.map(function(c){return flatCfg(c.cfg);}),keys=[];
   flats.forEach(function(f){Object.keys(f).forEach(function(k){if(keys.indexOf(k)<0)keys.push(k);});});
@@ -1681,6 +2249,131 @@ function renderTests(){
       h('td',{class:'n',text:typeof t.got==='number'?trimNum(t.got,5):String(t.got)}),h('td',{class:'note',text:t.note})));
   });
   els.verify.appendChild(h('details',{open:fails?true:null},h('summary',{text:'Show the test list'}),tbl(rows)));
+}
+
+/* ---------- propulsion and performance ---------- */
+function kvRow(l,v,u,dp,n){return h('tr',null,h('td',{text:l}),h('td',{class:'n',text:(v==null||!isFinite(v))?'\u2013':fx(UNIT[u]?toDisp(v,u):v,dp)}),h('td',{text:UNIT[u]?ulabel(u):u}),h('td',{class:'note',text:n||''}));}
+function renderProp(r){
+  var host=els.prop;clear(host);
+  var pf=r.perf;
+  if(!pf){host.appendChild(h('p',{class:'hint',text:'Enter component masses to compute propulsion.'}));return;}
+  if(!pf.ok||!pf.curves){host.appendChild(h('p',{class:'hint',text:'The motor and propeller inputs do not give a valid model. Check Kv, the static thrust and current, and the resistance.'}));return;}
+  var C=pf.curves,c=cur(),pm=pf.pm,g=h('div',{class:'g2'}),vu=ulabel('m/s'),gu=ulabel('g'),nu=ulabel('N');
+  host.appendChild(g);
+  function V(v){return toDisp(v,'m/s');}
+  var lvl=C.rows.filter(function(q){return q.lv;});
+  lineChart(g,{title:'Bench thrust against current',cap:'Model at the bench condition (25.2 V, no airframe) against the manufacturer\u2019s table. Largest error '+fx(pf.benchWorst,0)+'%.',xl:'Current (A)',yl:'Thrust ('+gu+')',xs:'Current',xu:'A',ys:'Thrust',yu:gu,yd:0,y0:true,
+    series:[{name:'Model',pts:C.bench.map(function(p){return [p[0],toDisp(p[1],'g')];})},{name:'Manufacturer',dots:true,pts:pm.data.map(function(d){return [d.I,toDisp(d.T,'g')];})}]});
+  lineChart(g,{title:'Thrust and drag against airspeed',cap:'Full throttle within the current limits, at '+c.batt.vCell+' V per cell. Level flight is possible where thrust exceeds drag.',xl:'Airspeed ('+vu+')',yl:'Force ('+nu+')',xs:'Airspeed',xu:vu,ys:'Force',yu:nu,yd:2,y0:true,
+    series:[{name:'Thrust available',pts:C.rows.map(function(q){return [V(q.V),toDisp(q.T,'N')];})},{name:'Drag',pts:C.rows.map(function(q){return [V(q.V),toDisp(q.D,'N')];})}],
+    v:[{x:V(r.V),label:'Design'}].concat(pf.Vmax?[{x:V(pf.Vmax),label:'Maximum'}]:[])});
+  lineChart(g,{title:'Efficiency in level flight',cap:'Thrust power over shaft power, and over power drawn from the pack.',xl:'Airspeed ('+vu+')',yl:'Efficiency (%)',xs:'Airspeed',xu:vu,yu:'%',yd:0,y0:true,
+    series:[{name:'Propeller',pts:lvl.map(function(q){return [V(q.V),q.lv.etaP*100];})},{name:'Pack to thrust',pts:lvl.map(function(q){return [V(q.V),q.lv.etaTot*100];})}],v:[{x:V(r.V),label:'Design'}]});
+  lineChart(g,{title:'Pack current in level flight',cap:'Includes '+c.batt.auxA+' A for avionics and servos.',xl:'Airspeed ('+vu+')',yl:'Current (A)',xs:'Airspeed',xu:vu,ys:'Current',yu:'A',yd:1,y0:true,
+    series:[{name:'Current',pts:lvl.map(function(q){return [V(q.V),q.lv.Ib];})}],
+    v:[{x:V(r.V),label:'Design'}].concat(pf.Vend?[{x:V(pf.Vend),label:'Best endurance'}]:[]).concat(pf.Vrng?[{x:V(pf.Vrng),label:'Best range'}]:[])});
+  var rows=[h('tr',null,h('th',{class:'n',text:'Current (A)'}),h('th',{class:'n',text:'Speed (rpm)'}),h('th',{class:'n',text:'Bench thrust ('+gu+')'}),h('th',{class:'n',text:'Model thrust ('+gu+')'}),h('th',{class:'n',text:'Error'}))];
+  pm.data.forEach(function(d){rows.push(h('tr',null,h('td',{class:'n',text:String(d.I)}),h('td',{class:'n',text:d.rpm?String(d.rpm):'not given'}),h('td',{class:'n',text:fx(toDisp(d.T,'g'),isImp()?1:0)}),
+    h('td',{class:'n',text:fx(toDisp(d.Tm,'g'),isImp()?1:0)}),h('td',{class:'n',text:isFinite(d.err)?(d.err>=0?'+':'')+fx(d.err,1)+'%':'\u2013'})));});
+  host.appendChild(h('div',{class:'sub'},h('h3',{text:'Bench table against the model'}),tbl(rows),
+    pm.fromData?null:h('p',{class:'hint',text:'A custom propeller has only the full-throttle point, so the model passes through it by construction and part-throttle accuracy is unknown.'})));
+  var cr=pf.cruise,t=[
+    kvRow('Static thrust coefficient',pm.CT0,'',4,pm.fromData?'Median of the part-throttle bench points':'From the full-throttle point and an assumed resistance'),
+    kvRow('Static power coefficient, part throttle',pm.cpPart,'',4,'Shaft power from the motor model'),
+    kvRow('Static power coefficient, full throttle',pm.cpFull,'',4,''),
+    kvRow('System resistance',pm.Reff,'ohm',3,c.motor.rSys!=null?'Override in use; the bench point gives '+fx(pm.Rderived,3):'Motor, ESC and leads, from the full-throttle bench point'),
+    kvRow('Full-throttle bench speed',pm.nMax*60,'rpm',0,'Inferred from thrust; the table does not give it'),
+    kvRow('Advance ratio at zero thrust',pm.J0,'',3,'Assumed: '+c.prop.j0k+' × pitch / diameter'),
+    kvRow('Airspeed at zero thrust',pf.Vzero,'m/s',1,'No-load speed × J0 × diameter'),
+    kvRow('Static thrust in the airframe',pf.stat.T/G0*1000,'g',isImp()?1:0,'At '+c.batt.vCell+' V per cell, with wake factor '+c.prop.wakeEff+(pf.stat.limited?', throttle held back by a current limit':'')),
+    kvRow('Static thrust at full charge',pf.statFull.T/G0*1000,'g',isImp()?1:0,'Motor current '+fx(pf.statFull.Im,1)+' A'),
+    kvRow('Static thrust to weight',pf.TW,'',2,'')];
+  if(cr)t.push(kvRow('Cruise throttle',cr.tau*100,'%',0,'At the design speed'),kvRow('Cruise prop speed',cr.rpm,'rpm',0,'Advance ratio '+fx(cr.J,2)),kvRow('Cruise pack current',cr.Ib,'A',2,''),
+    kvRow('Cruise pack power',cr.Pe,'W',0,'Shaft power '+fx(cr.Psh,0)+' W, thrust power '+fx(cr.T*r.V,0)+' W'),kvRow('Cruise propeller efficiency',cr.etaP*100,'%',0,''),kvRow('Cruise pack-to-thrust efficiency',cr.etaTot*100,'%',0,''));
+  host.appendChild(h('div',{class:'sub'},h('h3',{text:'Propulsion model'}),tbl(t)));
+}
+function renderPerf(r){
+  var host=els.perf;clear(host);
+  var pf=r.perf;
+  if(!pf||!pf.ok||!pf.curves){host.appendChild(h('p',{class:'hint',text:'Performance needs component masses and a valid propulsion model.'}));return;}
+  var C=pf.curves,c=cur(),g=h('div',{class:'g2'}),vu=ulabel('m/s'),ru=ulabel('roc'),tn=pf.turn,rdp=isImp()?0:1;
+  host.appendChild(g);
+  function V(v){return toDisp(v,'m/s');}
+  lineChart(g,{title:'Power required and available',cap:'Thrust power at full throttle against drag power in level flight.',xl:'Airspeed ('+vu+')',yl:'Power (W)',xs:'Airspeed',xu:vu,yu:'W',yd:0,y0:true,
+    series:[{name:'Available',pts:C.rows.map(function(q){return [V(q.V),q.Pav];})},{name:'Required',pts:C.rows.map(function(q){return [V(q.V),q.Preq];})}],v:[{x:V(r.V),label:'Design'}]});
+  lineChart(g,{title:'Rate of climb',cap:'Full throttle, steady climb at each airspeed.',xl:'Airspeed ('+vu+')',yl:'Rate of climb ('+ru+')',xs:'Airspeed',xu:vu,ys:'Climb',yu:ru,yd:rdp,y0:true,
+    series:[{name:'Rate of climb',pts:C.rows.map(function(q){return [V(q.V),toDisp(q.roc,'roc')];})}],v:[{x:V(pf.Vy),label:'Best rate'}],h:[{y:toDisp(c.flt.rocMin,'roc'),label:'Criterion'}]});
+  lineChart(g,{title:'Flight envelope',cap:'Load factor against airspeed: stall boundaries and the limit load factors entered under Flight condition.',xl:'Airspeed ('+vu+')',yl:'Load factor',xs:'Airspeed',xu:vu,yd:2,
+    series:[{name:'Positive limit',pts:C.vnPos.map(function(p){return [V(p[0]),p[1]];})},{name:'Negative limit',pts:C.vnNeg.map(function(p){return [V(p[0]),p[1]];})}],
+    v:[{x:V(pf.Va),label:'Manoeuvre speed'},{x:V(r.V),label:'Design'}],h:[{y:1,label:'Level flight'}]});
+  lineChart(g,{title:'Turn radius against bank angle',cap:'Level turn at the design speed. The tightest sustained turn is set by '+(tn.limit==='stall'?'the stall':tn.limit==='thrust'?'available thrust':'the structural limit')+'.',xl:'Bank angle (°)',yl:'Radius ('+ulabel('m')+')',xs:'Bank',xu:'°',xd:0,ys:'Radius',yu:ulabel('m'),yd:1,y0:true,
+    series:[{name:'Radius',pts:C.turn.map(function(p){return [p[0],toDisp(p[1],'m')];})}],
+    v:[{x:deg(tn.bankStall),label:'Stall'},{x:deg(tn.bankStruct),label:'Structure'}].concat(tn.nSus>1?[{x:deg(tn.bankSus),label:'Thrust'}]:[])});
+  var L=pf.launch,t=[
+    h('tr',{class:'sec'},h('th',{colspan:'4',text:'Speeds'})),
+    kvRow('Stall speed',r.Vs,'m/s',1,r.sm>0?'Trimmed, power off':'Wing alone'),
+    kvRow('Design speed',r.V,'m/s',1,fx(r.Vratio,2)+' × stall'),
+    kvRow('Manoeuvre speed',pf.Va,'m/s',1,'Stall speed × √(limit load factor)'),
+    kvRow('Maximum level speed',pf.Vmax,'m/s',1,'Thrust equals drag at full throttle'),
+    h('tr',{class:'sec'},h('th',{colspan:'4',text:'Climb and glide'})),
+    kvRow('Best rate of climb',pf.rocMax,'roc',rdp,'At '+fx(V(pf.Vy),1)+' '+vu),
+    kvRow('Steepest climb angle',deg(pf.gammaMax),'deg',0,deg(pf.gammaMax)>89.5?'Thrust exceeds weight plus drag near the stall speed':'At '+fx(V(pf.Vx),1)+' '+vu),
+    kvRow('Best glide ratio',r.LDmax,'',1,'At '+fx(V(r.Vbg),1)+' '+vu+', power off'),
+    kvRow('Minimum sink rate',pf.sinkMin,'roc',isImp()?0:2,'At '+fx(V(pf.Vms),1)+' '+vu+', power off'),
+    h('tr',{class:'sec'},h('th',{colspan:'4',text:'Endurance and range on '+c.batt.usable+'% of '+c.batt.mAh+' mAh'})),
+    kvRow('Endurance at the design speed',pf.endMin,'min',0,pf.cruise?fx(pf.cruise.Ib,2)+' A from the pack':'Beyond full throttle'),
+    kvRow('Range at the design speed',pf.rangeKm,'km',1,'Still air'),
+    kvRow('Best endurance',pf.endBest,'min',0,pf.Vend?'At '+fx(V(pf.Vend),1)+' '+vu+', no slower than 1.15 × stall':''),
+    kvRow('Best range',pf.rangeBest,'km',1,pf.Vrng?'At '+fx(V(pf.Vrng),1)+' '+vu:''),
+    h('tr',{class:'sec'},h('th',{colspan:'4',text:'Launch and turning'})),
+    kvRow('Height lost on hand launch',L.flies?L.drop:NaN,'m',2,L.flies?'Released level at '+fx(V(c.flt.launchV),1)+' '+vu+', full throttle':'Does not reach flying speed from '+fx(V(c.flt.launchV),1)+' '+vu),
+    kvRow('Steepest sustained bank at the design speed',deg(tn.bank),'deg',0,'Load factor '+fx(tn.n,2)+', limited by '+(tn.limit==='stall'?'the stall':tn.limit==='thrust'?'thrust':'structure')),
+    kvRow('Tightest sustained turn radius',tn.radius,'m',1,''),
+    kvRow('Fastest sustained turn rate',deg(tn.rate),'°/s',0,'')];
+  host.appendChild(h('div',{class:'sub'},h('h3',{text:'Performance results'}),tbl(t)));
+}
+
+/* ---------- dynamics ---------- */
+function renderDyn(r){
+  var host=els.dyn;clear(host);
+  var d=r.dyn;
+  if(!d||!d.ok||!d.curves){host.appendChild(h('p',{class:'hint',text:'Dynamics needs component masses with dimensions, so the inertias are non-zero.'}));return;}
+  var C=d.curves,c=cur(),g=h('div',{class:'g2'});
+  host.appendChild(g);
+  function poles(axis,eigs,title){
+    var marks=d.modes.filter(function(m){return m.axis===axis;}).map(function(m){return {x:m.re,y:m.im,label:m.name};});
+    lineChart(g,{title:title,cap:'Roots of the system matrix. Left of zero decays; right of zero grows. Each oscillatory mode also has a mirror root below the axis.',xl:'Real part (1/s)',yl:'Imaginary part (rad/s)',xs:'Real',ys:'Imaginary',y0:true,
+      series:[{name:'Roots',dots:true,pts:eigs.map(function(e){return [e.re,e.im];})}],marks:marks,v:[{x:0,label:''}]});
+  }
+  poles('lon',d.eLon,'Longitudinal roots');
+  poles('lat',d.eLat,'Lateral roots');
+  lineChart(g,{title:'Pitch response to a 1° elevator step',cap:'Trailing edge down, held. Change from trim'+(C.pitch.cut?'. The motion diverges; the trace stops where the linear model no longer applies.':' over the first '+fx(C.pitch.T,1)+' s.'),xl:'Time (s)',yl:'Angle (°)',xs:'Time',xu:'s',xd:2,yu:'°',yd:2,y0:true,
+    series:[{name:'Angle of attack',pts:C.pitch.alpha},{name:'Pitch angle',pts:C.pitch.theta}]});
+  lineChart(g,{title:'Airspeed after the same elevator step',cap:'The slow exchange of speed and height (phugoid)'+(C.speed.cut?'. The motion diverges; the trace stops where the linear model no longer applies.':'.'),xl:'Time (s)',yl:'Airspeed change ('+ulabel('m/s')+')',xs:'Time',xu:'s',xd:1,ys:'Change',yu:ulabel('m/s'),yd:2,y0:true,
+    series:[{name:'Airspeed change',pts:C.speed.u.map(function(p){return [p[0],toDisp(p[1],'m/s')];})}]});
+  lineChart(g,{title:'Roll response to a 1° aileron step',cap:'Roll rate builds to a steady value; yaw rate shows the adverse yaw.',xl:'Time (s)',yl:'Rate (°/s)',xs:'Time',xu:'s',xd:2,yu:'°/s',yd:2,y0:true,
+    series:[{name:'Roll rate',pts:C.roll.p},{name:'Yaw rate',pts:C.roll.r}]});
+  lineChart(g,{title:'Yaw response to a 1° rudder step',cap:'Nose-right rudder, held. Sideslip oscillates at the Dutch roll frequency.',xl:'Time (s)',yl:'Angle (°)',xs:'Time',xu:'s',xd:2,yu:'°',yd:2,y0:true,
+    series:[{name:'Sideslip',pts:C.yaw.beta},{name:'Bank angle',pts:C.yaw.phi}]});
+  var rows=[h('tr',null,h('th',{text:'Mode'}),h('th',{class:'n',text:'Root (1/s)'}),h('th',{class:'n',text:'Frequency (Hz)'}),h('th',{class:'n',text:'Damping ratio'}),h('th',{class:'n',text:'Period (s)'}),h('th',{class:'n',text:'Time to half or double (s)'}),h('th',{text:'Status'}))];
+  d.modes.forEach(function(m,i){
+    if(i>0&&d.modes[i-1].axis!==m.axis)rows.push(h('tr',{class:'sec'},h('th',{colspan:'7',text:'Lateral'})));
+    if(i===0)rows.push(h('tr',{class:'sec'},h('th',{colspan:'7',text:'Longitudinal'})));
+    var osc=m.kind==='osc',lvl=m.stable?'pass':(m===d.spiral&&m.t2>=c.crit.spiralT2?'note':'fail');
+    rows.push(h('tr',null,h('td',{text:m.name}),h('td',{class:'n',text:fx(m.re,3)+(osc?' ± '+fx(m.im,3)+'i':'')}),h('td',{class:'n',text:osc?fx(m.wn/(2*Math.PI),2):'–'}),
+      h('td',{class:'n',text:osc?fx(m.zeta,3):'–'}),h('td',{class:'n',text:osc?fx(m.period,2):'–'}),h('td',{class:'n',text:fx(m.t2,2)+(m.stable?' to half':' to double')}),h('td',null,stTag(lvl))));
+  });
+  host.appendChild(h('div',{class:'sub'},h('h3',{text:'Natural modes at '+fx(toDisp(r.V,'m/s'),1)+' '+ulabel('m/s')}),tbl(rows)));
+  var t=[];
+  if(d.spApprox&&d.sp)t.push(kvRow('Short-period frequency, two-state approximation',d.spApprox.wn/(2*Math.PI),'Hz',2,'Full solution '+fx(d.sp.wn/(2*Math.PI),2)+' Hz'));
+  if(d.ph)t.push(kvRow('Phugoid period, Lanchester approximation',d.phApproxPeriod,'s',1,'Full solution '+fx(d.ph.period,1)+' s'));
+  t.push(kvRow('Steady roll rate at full aileron',deg(d.rollRate),'°/s',0,c.wing.ailMaxDefl+'° of aileron'),
+    kvRow('Sideslip held by full rudder',deg(d.betaRud),'deg',1,c.tail.rudDefl+'° of rudder command'),
+    kvRow('Equivalent crosswind',d.xwind,'m/s',1,'At the design speed'));
+  host.appendChild(h('div',{class:'sub'},h('h3',{text:'Cross-checks and control authority'}),tbl(t)));
+  var dr=[h('tr',null,h('th',{text:'Symbol'}),h('th',{text:'Derivative'}),h('th',{class:'n',text:'Value'}),h('th',{text:'Confidence'}),h('th',{text:'Basis'}))];
+  d.derivs.forEach(function(x){dr.push(h('tr',null,h('td',{text:x.sym}),h('td',{text:x.name}),h('td',{class:'n',text:fx(x.val,4)}),h('td',{text:x.conf}),h('td',{class:'note',text:x.basis})));});
+  host.appendChild(h('div',{class:'sub'},h('details',null,h('summary',{text:'Show the stability and control derivatives'}),tbl(dr))));
 }
 
 /* ---------- drawings ---------- */
