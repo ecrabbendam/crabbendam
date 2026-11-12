@@ -127,7 +127,7 @@
   #acsim .hdr,#acsim .bar{padding-left:14px;padding-right:14px}
 }
 @media (max-width:700px){#acsim .bar{position:static}#acsim .fgrid{grid-template-columns:minmax(0,1fr)}#acsim .fld{grid-template-columns:minmax(0,1fr) 88px 36px 84px}#acsim .ck{grid-template-columns:minmax(0,1fr)}#acsim h1{font-size:21px}}
-@media print{#acsim .bar,#acsim nav.toc{display:none}#acsim .layout{display:block}}
+@media print{#acsim .bar,#acsim nav.toc,#acsim .simbar,#acsim .simsticks,#acsim .tabs,#acsim .btn,#acsim details>summary{display:none!important}#acsim .layout{display:block;padding:0}#acsim .chart,#acsim .ck,#acsim tr,#acsim .kv>div{break-inside:avoid}#acsim .hdr{-webkit-print-color-adjust:exact;print-color-adjust:exact}#acsim .fig svg.side{min-width:0}}
 #acsim .simbar{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;font-size:13px;color:var(--mut)}
 #acsim .simbar select{padding:3px 6px;font-size:13px}
 #acsim .simview{position:relative;width:100%;aspect-ratio:16/9;max-height:680px;min-height:300px;background:#16263c;border-top:4px solid var(--maroon);border-bottom:4px solid var(--tan);overflow:hidden;touch-action:none}
@@ -1078,11 +1078,14 @@ function validity(cfg,r,opt){
 }
 
 /* ---------- Self-tests ---------- */
+/* Tests that do not depend on the configuration on screen run once and are reused. */
+var SELF_CACHE=null;
 function selfTests(cur){
-  var T=[];
+  var T=SELF_CACHE?SELF_CACHE.slice():[];
   function near(name,got,exp,tol,note){T.push({name:name,got:got,exp:exp,tol:tol,pass:isFinite(got)&&Math.abs(got-exp)<=tol,note:note||''});}
   function range(name,got,lo,hi,note){T.push({name:name,got:got,exp:lo+' to '+hi,tol:null,pass:isFinite(got)&&got>=lo&&got<=hi,note:note||''});}
   function truth(name,ok,note){T.push({name:name,got:ok?'yes':'no',exp:'yes',tol:null,pass:!!ok,note:note||''});}
+  if(!SELF_CACHE){
   near('ISA density at sea level (kg/m3)',isa(0,0).rho,1.2250,0.0005,'Standard value');
   near('ISA density at 1000 m (kg/m3)',isa(1000,0).rho,1.1117,0.0010,'Standard value');
   var mp=massProps([C('a',100,0,0,0,'point',0,0,0,'measured',0),C('b',300,400,0,0,'point',0,0,0,'measured',0)]);
@@ -1181,8 +1184,27 @@ function selfTests(cur){
     var q6=quatFromEuler(0.3,-0.2,1.1),e6=eulerFromQuat(q6);
     near('Quaternion and Euler angles round trip (rad, summed error)',Math.abs(e6.phi-0.3)+Math.abs(e6.theta+0.2)+Math.abs(e6.psi-1.1),0,1e-12,'Consistency');
   }
+  /* Uncertainty and calibration tools */
+  var rg=rngSeed(7),gs=[],gi;for(gi=0;gi<6000;gi++)gs.push(gaussian(rg));
+  var gm=mean(gs),gv=mean(gs.map(function(v){return (v-gm)*(v-gm);}));
+  near('Random normal draws: mean of 6000',gm,0,0.05,'Expect 0');
+  near('Random normal draws: standard deviation of 6000',Math.sqrt(gv),1,0.04,'Expect 1');
+  near('Percentile: median of 1 to 9',percentile([1,2,3,4,5,6,7,8,9],0.5),5,1e-12,'Hand calculation');
+  near('Correlation of a line with itself',pearson([1,2,3,4],[2,4,6,8]),1,1e-12,'Exact');
+  var Wg=rs.W,gp=[9,12,16].map(function(v){var q=0.5*rs.atm.rho*v*v,CL=Wg/(q*rs.wing.S),CD=0.04+0.05*CL*CL;return {V:v,sink:v*CD/Math.sqrt(CL*CL+CD*CD)};});
+  var fp=fitPolar(gp,Wg,rs.atm.rho,rs.wing.S,rs.K,rs.wing.AR);
+  near('Glide-test fit recovers a known zero-lift drag (0.04)',fp?fp.cd0:NaN,0.04,0.0006,'Synthetic glide points');
+  near('Glide-test fit recovers a known induced-drag factor (0.05)',fp?fp.K:NaN,0.05,0.001,'Synthetic glide points');
+  var lg='time,airspeed,altitude,throttle,current\n',tt=0,sp;
+  [10,13,17].forEach(function(v){sp=rs.perf.levelAt(v);for(var q9=0;q9<40;q9++){lg+=tt.toFixed(1)+','+v+',60,'+sp.tau.toFixed(3)+','+sp.Ib.toFixed(4)+'\n';tt+=0.2;}});
+  var ml=mapLog(parseCSV(lg)),stp=ml.data?steadyPoints(ml.data,3):[];
+  truth('Flight-log reader finds the steady level segments in a synthetic log',stp.length>=5,'Three speeds, eight seconds each: at least five 3 s windows');
+  var fl2=stp.length?fitLog(cs,rs.cd0,stp):null;
+  near('Flight-log fit returns the drag the synthetic log was made with',fl2?fl2.cd0:NaN,rs.cd0,0.04*rs.cd0,'Round trip; the fit uses one drag value, the model varies it slightly with speed');
+  SELF_CACHE=T.slice();
+  }
   /* Consistency of the configuration on screen */
-  var cc=cur||d0,r=compute(cc,true);
+  var cc=cur||defaultsConfig(),r=compute(cc,true);
   if(r.mass.M>0){
     var tr=tmSolve(r.tm,r.CLcr,r.hcg,0);
     near('Current config: trim solution returns the required lift',tmCL(r.tm,tr.alpha,tr.de),r.CLcr,1e-9,'Consistency');
@@ -1328,7 +1350,7 @@ function performance(cfg,e,lite){
   P.rocMax=best.roc;P.Vy=best.Vy;P.gammaMax=Math.asin(best.sin);P.Vx=best.Vx;
   P.Vmin=rows[0].T>=rows[0].D?rows[0].V:null;
   /* design-speed cruise, endurance and range */
-  P.cruise=level(e.V);P.cruiseDrag=drag(e.V);
+  P.cruise=level(e.V);P.cruiseDrag=drag(e.V);P.levelAt=level;
   if(P.cruise){P.endMin=usableAh/P.cruise.Ib*60;P.rangeKm=P.endMin*60*e.V/1000;}
   if(best.Vend!=null){P.Vend=best.Vend;P.endBest=usableAh/best.ib*60;}
   if(best.Vrng!=null){P.Vrng=best.Vrng;P.rangeBest=usableAh*best.rng*3600/1000;}
@@ -1686,6 +1708,169 @@ function simPreset(id,cfg,r,sm){
     return {thr:stick.thr,de:tr.de-stick.pitch*sm.lim.de,da:stick.roll*sm.lim.da,dr:stick.yaw*sm.lim.dr};
   };
   return base;
+}
+/* ---------- Sweeps, uncertainty and calibration ---------- */
+var FOLLOW_CORE={'wing.xLE':['wing','x'],'tail.xLE':['tail','x'],'prop.x':['prop','x'],'wing.z':['wing','z'],'tail.z':['tail','z'],'prop.z':['prop','z']};
+function setField(cfg,path,val){ /* set an input, moving the parts attached to it */
+  var fo=FOLLOW_CORE[path],old=getPath(cfg,path);
+  setPath(cfg,path,val);
+  if(fo&&old!=null&&val!=null)shiftGroup(cfg,fo[0],fo[1]==='x'?val-old:0,fo[1]==='z'?val-old:0);
+}
+function pf(r,fn){return (r.perf&&r.perf.ok)?fn(r.perf):NaN;}
+function dm(r,k,fn){return (r.dyn&&r.dyn.ok&&r.dyn[k])?fn(r.dyn[k]):NaN;}
+/* results that sweeps, uncertainty runs and exports can report: [id, label, unit, decimals, function of the result] */
+var METRICS=[
+ ['sm','Static margin','%',1,function(r){return r.sm*100;}],
+ ['xcg','CG from nose','mm',0,function(r){return r.xcg;}],
+ ['xnp','Neutral point from nose','mm',0,function(r){return r.xnp;}],
+ ['mass','Mass','g',0,function(r){return r.mass.M*1000;}],
+ ['vs','Stall speed','m/s',2,function(r){return r.Vs;}],
+ ['clmax','Aircraft maximum lift coefficient','',3,function(r){return r.CLmax;}],
+ ['cd0','Zero-lift drag coefficient','',4,function(r){return r.cd0;}],
+ ['ldmax','Maximum lift to drag','',1,function(r){return r.LDmax;}],
+ ['de','Elevator to trim at design speed','deg',1,function(r){return r.mass.M>0?deg(r.cruise.de):NaN;}],
+ ['pcr','Cruise power from the pack','W',0,function(r){return pf(r,function(p){return p.cruise?p.cruise.Pe:NaN;});}],
+ ['end','Endurance at design speed','min',0,function(r){return pf(r,function(p){return p.cruise?p.endMin:NaN;});}],
+ ['rng','Range at design speed','km',1,function(r){return pf(r,function(p){return p.cruise?p.rangeKm:NaN;});}],
+ ['roc','Best rate of climb','roc',1,function(r){return pf(r,function(p){return p.rocMax;});}],
+ ['vmax','Maximum level speed','m/s',1,function(r){return pf(r,function(p){return p.Vmax==null?NaN:p.Vmax;});}],
+ ['tw','Static thrust to weight','',2,function(r){return pf(r,function(p){return p.TW;});}],
+ ['cnb','Directional stability, Cnβ','1/rad',3,function(r){return r.Cnb;}],
+ ['spz','Short-period damping ratio','',2,function(r){return dm(r,'sp',function(m){return m.zeta;});}],
+ ['phT','Phugoid period','s',1,function(r){return dm(r,'ph',function(m){return m.period;});}],
+ ['drz','Dutch roll damping ratio','',3,function(r){return dm(r,'dr',function(m){return m.zeta;});}],
+ ['spi','Spiral root','1/s',3,function(r){return dm(r,'spiral',function(m){return m.re;});}]
+];
+function metricById(id){for(var i=0;i<METRICS.length;i++){if(METRICS[i][0]===id)return METRICS[i];}return METRICS[0];}
+function sweepable(){return FIELDS.filter(function(f){return !f.type;});}
+function sweep(cfg,path,lo,hi,n,metric){
+  var out=[],i;
+  for(i=0;i<n;i++){
+    var v=lo+(hi-lo)*i/(n-1),c=clone(cfg);
+    if(FIELD_BY_PATH[path].int)v=Math.round(v);
+    setField(c,path,v);c=normalizeConfig(c);
+    out.push([v,metric[4](compute(c,true))]);
+  }
+  return out;
+}
+/* seeded random numbers, so an uncertainty run can be repeated exactly */
+function rngSeed(seed){var a=seed>>>0;return function(){a=(a+0x6D2B79F5)>>>0;var t=Math.imul(a^(a>>>15),1|a);t=(t+Math.imul(t^(t>>>7),61|t))^t;return ((t^(t>>>14))>>>0)/4294967296;};}
+function gaussian(rng){var u=0,v=0;while(u<1e-12)u=rng();v=rng();return Math.sqrt(-2*Math.log(u))*Math.cos(2*PI*v);}
+/* One random aircraft. Each tolerance is read as a 95% bound, so the standard deviation is half of it. */
+function sampleConfig(cfg,rng){
+  var c=clone(cfg),draws={};
+  FIELDS.forEach(function(f){
+    if(f.type||f.int)return;
+    var v=getPath(cfg,f.path);if(v==null)return;
+    var p=getProv(cfg,f.path),sd=(f.abs?p.tol:Math.abs(v)*p.tol/100)/2;if(!(sd>0))return;
+    var nv=Math.min(f.max,Math.max(f.min,v+sd*gaussian(rng)));
+    setField(c,f.path,nv);draws[f.label]=nv;
+  });
+  cfg.components.forEach(function(k,i){
+    if(!(k.tol>0)||!(k.mass>0))return;
+    var nm=Math.max(0,k.mass*(1+k.tol/200*gaussian(rng)));
+    c.components[i].mass=nm;draws['Mass of '+k.name+(draws['Mass of '+k.name]!=null?' #'+i:'')]=nm;
+  });
+  return {cfg:normalizeConfig(c),draws:draws};
+}
+function mean(a){var s=0;a.forEach(function(v){s+=v;});return a.length?s/a.length:NaN;}
+function percentile(sorted,p){if(!sorted.length)return NaN;var x=(sorted.length-1)*p,i=Math.floor(x),f=x-i;return i+1<sorted.length?sorted[i]+(sorted[i+1]-sorted[i])*f:sorted[i];}
+function pearson(a,b){
+  var n=Math.min(a.length,b.length),ma=0,mb=0,i,sab=0,saa=0,sbb=0;if(n<3)return 0;
+  for(i=0;i<n;i++){ma+=a[i];mb+=b[i];}ma/=n;mb/=n;
+  for(i=0;i<n;i++){sab+=(a[i]-ma)*(b[i]-mb);saa+=(a[i]-ma)*(a[i]-ma);sbb+=(b[i]-mb)*(b[i]-mb);}
+  return (saa>0&&sbb>0)?sab/Math.sqrt(saa*sbb):0;
+}
+function histogram(vals,nb){
+  var lo=Math.min.apply(null,vals),hi=Math.max.apply(null,vals),bins=[],i;
+  if(!(hi>lo)){hi=lo+1;lo=lo-1;}
+  for(i=0;i<nb;i++)bins.push({x0:lo+(hi-lo)*i/nb,x1:lo+(hi-lo)*(i+1)/nb,n:0});
+  vals.forEach(function(v){bins[Math.min(nb-1,Math.floor((v-lo)/(hi-lo)*nb))].n++;});
+  return bins;
+}
+/* ---------- Calibration ---------- */
+/* Glide test: each point gives one (CL, CD) pair. Two or more well-separated points fit CD = CD0 + K CL^2;
+   otherwise K is kept from the model and only CD0 is fitted. */
+function fitPolar(points,W,rho,S,Kmodel,AR){
+  var pts=points.filter(function(p){return p.V>0&&p.sink>0&&p.sink<p.V;}).map(function(p){
+    var g=Math.asin(p.sink/p.V),q=0.5*rho*p.V*p.V;return {V:p.V,sink:p.sink,CL:W*Math.cos(g)/(q*S),CD:W*Math.sin(g)/(q*S)};});
+  if(!pts.length)return null;
+  var xs=pts.map(function(p){return p.CL*p.CL;}),ys=pts.map(function(p){return p.CD;}),mx=mean(xs),my=mean(ys),sxx=0,sxy=0,out={pts:pts};
+  xs.forEach(function(x,i){sxx+=(x-mx)*(x-mx);sxy+=(x-mx)*(ys[i]-my);});
+  var spread=(Math.max.apply(null,xs)-Math.min.apply(null,xs))/Math.max(mx,1e-9),K=sxx>0?sxy/sxx:NaN;
+  if(pts.length>=2&&spread>0.3&&K>0&&my-K*mx>0){out.mode='both';out.K=K;out.cd0=my-K*mx;}
+  else{out.mode='cd0';out.K=Kmodel;out.cd0=my-Kmodel*mx;}
+  out.e=1/(PI*AR*out.K);
+  var ss=0;pts.forEach(function(p){var d=p.CD-(out.cd0+out.K*p.CL*p.CL);ss+=d*d;});out.rms=Math.sqrt(ss/pts.length);
+  return out;
+}
+function parseCSV(text){
+  var lines=String(text).split(/\r?\n/).filter(function(l){return l.trim()!==''&&l.charAt(0)!=='#';});
+  if(lines.length<2)return null;
+  var sep=lines[0].indexOf(';')>=0&&lines[0].indexOf(',')<0?';':(lines[0].indexOf('\t')>=0&&lines[0].indexOf(',')<0?'\t':',');
+  var head=lines[0].split(sep).map(function(s){return s.trim().replace(/^"|"$/g,'');}),rows=[],i;
+  for(i=1;i<lines.length&&rows.length<200000;i++){var c=lines[i].split(sep).map(function(s){return parseFloat(s);});if(c.length>=head.length-1)rows.push(c);}
+  return {head:head,rows:rows};
+}
+var LOG_COLS=[['t','Time',/^(t|time|timestamp|time_s|elapsed)/i],['V','Airspeed',/(air.?speed|tas|ias|^v$|^v_)/i],['h','Altitude',/(alt|height|^h$)/i],['thr','Throttle',/(thr|throttle)/i],['I','Current',/(curr|amps|^i$|^i_)/i]];
+function mapLog(csv){
+  var map={},missing=[];
+  LOG_COLS.forEach(function(c){var idx=-1;csv.head.forEach(function(hd,i){if(idx<0&&c[2].test(hd))idx=i;});map[c[0]]=idx;if(idx<0&&c[0]!=='thr')missing.push(c[1]);});
+  if(missing.length)return {missing:missing};
+  var rows=csv.rows.filter(function(r){return isFinite(r[map.t])&&isFinite(r[map.V])&&isFinite(r[map.h])&&isFinite(r[map.I]);});
+  if(rows.length<10)return {missing:['at least ten complete rows']};
+  var t0=rows[0][map.t],span=rows[rows.length-1][map.t]-t0,dtm=span/(rows.length-1),ts=dtm>5000?1e-6:(dtm>5?1e-3:1),thrMax=0;
+  if(map.thr>=0)rows.forEach(function(r){if(isFinite(r[map.thr]))thrMax=Math.max(thrMax,r[map.thr]);});
+  var data=rows.map(function(r){var th=map.thr>=0?r[map.thr]:NaN;if(thrMax>900)th=(th-1000)/1000;else if(thrMax>1.5)th=th/100;
+    return {t:(r[map.t]-t0)*ts,V:r[map.V],h:r[map.h],thr:th,I:r[map.I]};});
+  return {data:data,timeScale:ts,thrScale:thrMax>900?'PWM microseconds':(thrMax>1.5?'percent':'fraction'),cols:LOG_COLS.map(function(c){return [c[1],map[c[0]]>=0?csv.head[map[c[0]]]:'not found'];})};
+}
+/* Steady level flight: consecutive 3 s windows in which height and airspeed barely change. */
+function steadyPoints(data,win){
+  var out=[],i=0,w=win||3;
+  function slope(a,key){var n=a.length,mt=0,mv=0,stt=0,stv=0;a.forEach(function(p){mt+=p.t;mv+=p[key];});mt/=n;mv/=n;a.forEach(function(p){stt+=(p.t-mt)*(p.t-mt);stv+=(p.t-mt)*(p[key]-mv);});return {m:mv,s:stt>0?stv/stt:0};}
+  while(i<data.length){
+    var j=i;while(j<data.length&&data[j].t-data[i].t<w)j++;
+    if(j>=data.length)break;
+    var seg=data.slice(i,j);
+    if(seg.length>=5){var sh=slope(seg,'h'),sV=slope(seg,'V'),sI=slope(seg,'I');
+      if(Math.abs(sh.s)<0.3&&Math.abs(sV.s)<0.2&&sV.m>1)out.push({t:seg[0].t,V:sV.m,I:sI.m,h:sh.m,thr:mean(seg.map(function(p){return p.thr;}))});}
+    i=j;
+  }
+  return out;
+}
+/* Fit the zero-lift drag coefficient so the model's level-flight pack current matches the log. */
+function logResidual(cfg,cd0,pts){
+  var c=clone(cfg);c.aero.cd0Override=cd0;
+  var r=compute(normalizeConfig(c),true),ss=0,n=0,pred=[];
+  pts.forEach(function(p){var o=(r.perf&&r.perf.ok)?r.perf.levelAt(p.V):null;if(o){ss+=(o.Ib-p.I)*(o.Ib-p.I);n++;pred.push([p.V,o.Ib]);}});
+  return {rms:n?Math.sqrt(ss/n):Infinity,n:n,pred:pred};
+}
+function fitLog(cfg,cd0Now,pts){
+  var lo=0.3*cd0Now,hi=3*cd0Now,g=(Math.sqrt(5)-1)/2,a=hi-g*(hi-lo),b=lo+g*(hi-lo),fa=logResidual(cfg,a,pts).rms,fb=logResidual(cfg,b,pts).rms,i;
+  for(i=0;i<16;i++){
+    if(fa<fb){hi=b;b=a;fb=fa;a=hi-g*(hi-lo);fa=logResidual(cfg,a,pts).rms;}
+    else{lo=a;a=b;fa=fb;b=lo+g*(hi-lo);fb=logResidual(cfg,b,pts).rms;}
+  }
+  var cd0=(lo+hi)/2,after=logResidual(cfg,cd0,pts),before=logResidual(cfg,cd0Now,pts);
+  return {cd0:cd0,rms:after.rms,rmsBefore:before.rms,n:after.n,pred:after.pred,predBefore:before.pred,atLimit:cd0<0.32*cd0Now||cd0>2.9*cd0Now};
+}
+/* flat list of results for export: [section, name, value, unit] */
+function exportRows(cfg,r){
+  var rows=[];
+  METRICS.forEach(function(m){rows.push(['Results',m[1],m[4](r),m[2]==='roc'?'m/s':m[2]]);});
+  var I=r.mass.I;[['Ixx',I.xx],['Iyy',I.yy],['Izz',I.zz],['Ixz',I.xz]].forEach(function(q){rows.push(['Inertia about the CG',q[0],q[1],'kg m2']);});
+  if(r.dyn&&r.dyn.ok){
+    r.dyn.modes.forEach(function(m){rows.push(['Modes',m.name+', real part',m.re,'1/s']);if(m.kind==='osc'){rows.push(['Modes',m.name+', imaginary part',m.im,'rad/s']);rows.push(['Modes',m.name+', damping ratio',m.zeta,'']);}});
+    r.dyn.derivs.forEach(function(d){rows.push(['Derivatives',d.sym+' '+d.name,d.val,'']);});
+  }
+  FIELDS.forEach(function(f){var v=getPath(cfg,f.path);rows.push(['Inputs',f.label,v==null?'':v,f.unit==='dC'?'C':f.unit]);});
+  cfg.components.forEach(function(k){rows.push(['Components',k.name+' mass',k.mass,'g']);rows.push(['Components',k.name+' x',k.x,'mm']);});
+  return rows;
+}
+function toCSV(rows){
+  function q(v){v=(typeof v==='number')?(isFinite(v)?String(parseFloat(v.toPrecision(7))):''):String(v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;}
+  return 'Section,Name,Value,Unit\n'+rows.map(function(r){return r.map(q).join(',');}).join('\n')+'\n';
 }
 /*CORE-END*/
 
@@ -2127,6 +2312,206 @@ function renderSim(r){
   simResize();simReset();
 }
 /* =====================================================================
+   Sweep, uncertainty, calibration and export views. Physics stays in the core.
+   ===================================================================== */
+var TOOLS={sw:{path:'wing.xLE',metric:'sm',lo:null,hi:null,timer:0},mc:{n:400,seed:1,res:null,busy:false,hash:''},glide:[{V:null,sink:null},{V:null,sink:null}],log:null,logFit:null,logName:''};
+function mUnit(m){return m[2]==='roc'?ulabel('roc'):(UNIT[m[2]]?ulabel(m[2]):m[2]);}
+function mDisp(m,v){return UNIT[m[2]]?toDisp(v,m[2]):v;}
+function fieldGroupLabel(f){var g='';GROUPS.forEach(function(x){if(x[0]===f.group)g=x[1];});return g;}
+
+/* ---------- parameter sweep ---------- */
+function sweepDefaults(){
+  var s=TOOLS.sw,f=FIELD_BY_PATH[s.path],v=getPath(cur(),s.path);
+  if(v==null)v=(f.min+f.max)/2;
+  var d=Math.abs(v)*0.3;if(f.abs)d=Math.max(d,10);if(!(d>0))d=(f.max-f.min)*0.05;
+  s.lo=Math.max(f.min,v-d);s.hi=Math.min(f.max,v+d);
+}
+function renderSweep(){
+  var host=els.sweep;if(!host)return;clear(host);
+  var s=TOOLS.sw,f=FIELD_BY_PATH[s.path];
+  if(s.lo==null||s.hi==null)sweepDefaults();
+  var sel=h('select',{'aria-label':'Input to vary'});
+  GROUPS.forEach(function(g){var og=h('optgroup',{label:g[1]});sweepable().forEach(function(x){if(x.group===g[0])og.appendChild(h('option',{value:x.path,text:x.label}));});if(og.childNodes.length)sel.appendChild(og);});
+  sel.value=s.path;sel.addEventListener('change',function(){s.path=sel.value;s.lo=null;renderSweep();});
+  var ms=h('select',{'aria-label':'Result to plot'});METRICS.forEach(function(m){ms.appendChild(h('option',{value:m[0],text:m[1]}));});
+  ms.value=s.metric;ms.addEventListener('change',function(){s.metric=ms.value;renderSweep();});
+  function num(key){var i=h('input',{type:'number',step:'any',style:'width:96px','aria-label':key==='lo'?'From':'To'});i.value=trimNum(toDisp(s[key],f.unit),3);
+    i.addEventListener('change',function(){var v=fromDisp(parseFloat(i.value),f.unit);if(isFinite(v)){s[key]=Math.min(f.max,Math.max(f.min,v));setTimeout(renderSweep,0);}});return i;}
+  host.appendChild(h('div',{class:'simbar'},h('label',null,'Vary ',sel),h('label',null,'from ',num('lo')),h('label',null,'to ',num('hi'),' '+ulabel(f.unit)),h('label',null,'Plot ',ms)));
+  if(!(s.hi>s.lo)){host.appendChild(h('p',{class:'hint',text:'Set a range with the upper value above the lower value.'}));return;}
+  var m=metricById(s.metric),raw=sweep(cur(),s.path,s.lo,s.hi,21,m),pts=raw.filter(function(p){return isFinite(p[1]);});
+  var now=getPath(cur(),s.path),yNow=last?m[4](last):NaN,xu=ulabel(f.unit),yu=mUnit(m),g=h('div',{class:'sub'});
+  host.appendChild(g);
+  if(pts.length<2){g.appendChild(h('p',{class:'hint',text:'This result is not defined over this range for the current configuration.'}));return;}
+  var ys=pts.map(function(p){return p[1];}),lo=Math.min.apply(null,ys),hi=Math.max.apply(null,ys);
+  var cap=pts.length+' points, all other inputs held'+(FOLLOW_CORE[s.path]?' and attached parts moved with it':'')+'. The result runs from '+fx(mDisp(m,lo),m[3])+' to '+fx(mDisp(m,hi),m[3])+(yu?' '+yu:'')+'.'
+    +(now!=null&&isFinite(yNow)?' At the current value, '+trimNum(toDisp(now,f.unit),3)+(xu?' '+xu:'')+', it is '+fx(mDisp(m,yNow),m[3])+(yu?' '+yu:'')+'.':'')
+    +(pts.length<raw.length?' It is undefined at '+(raw.length-pts.length)+' of the '+raw.length+' points.':'');
+  lineChart(g,{title:m[1]+' against '+f.label.toLowerCase(),cap:cap,xl:f.label+(xu?' ('+xu+')':''),yl:m[1]+(yu?' ('+yu+')':''),xs:f.label,xu:xu,xd:2,ys:m[1],yu:yu,yd:m[3],
+    series:[{name:m[1],pts:pts.map(function(p){return [toDisp(p[0],f.unit),mDisp(m,p[1])];})}],
+    marks:(now!=null&&isFinite(yNow)&&now>=s.lo&&now<=s.hi)?[{x:toDisp(now,f.unit),y:mDisp(m,yNow),label:'Current'}]:[]});
+}
+function sweepSoon(){clearTimeout(TOOLS.sw.timer);TOOLS.sw.timer=setTimeout(renderSweep,350);}
+
+/* ---------- uncertainty ---------- */
+function barChart(host,o){
+  var W=520,H=250,L=46,R=14,T=10,B=40,box=h('div',{class:'chart'},h('h3',{text:o.title}),h('div',{class:'cap',text:o.cap}));
+  var nmax=0;o.bins.forEach(function(b){nmax=Math.max(nmax,b.n);});
+  var tx=niceTicks(o.bins[0].x0,o.bins[o.bins.length-1].x1,6),ty=niceTicks(0,nmax,4);
+  function X(v){return L+(v-tx.lo)/(tx.hi-tx.lo)*(W-L-R);}
+  function Y(v){return H-B-(v-ty.lo)/(ty.hi-ty.lo)*(H-T-B);}
+  var svg=sv('svg',{viewBox:'0 0 '+W+' '+H,role:'img','aria-label':o.title+'. '+o.cap});
+  ty.t.forEach(function(v){svg.appendChild(sv('line',{x1:L,y1:Y(v),x2:W-R,y2:Y(v),stroke:COL.grid}));svg.appendChild(sv('text',{x:L-7,y:Y(v)+4,'text-anchor':'end',text:tickFmt(v,ty.step)}));});
+  tx.t.forEach(function(v){svg.appendChild(sv('text',{x:X(v),y:H-B+15,'text-anchor':'middle',text:tickFmt(v,tx.step)}));});
+  o.bins.forEach(function(b){if(!b.n)return;var x0=X(b.x0)+1,x1=X(b.x1)-1,r=sv('rect',{x:x0,y:Y(b.n),width:Math.max(1,x1-x0),height:Y(0)-Y(b.n),fill:COL.maroon});
+    r.appendChild(sv('title',{text:b.n+' samples between '+b.x0.toFixed(o.dp)+' and '+b.x1.toFixed(o.dp)}));svg.appendChild(r);});
+  svg.appendChild(sv('line',{x1:L,y1:Y(0),x2:W-R,y2:Y(0),stroke:COL.tan}));
+  (o.v||[]).forEach(function(l,i){if(!isFinite(l.x)||l.x<tx.lo||l.x>tx.hi)return;svg.appendChild(sv('line',{x1:X(l.x),y1:T,x2:X(l.x),y2:H-B,stroke:COL.ink,'stroke-dasharray':'3 3'}));
+    var right=X(l.x)<W-R-110;svg.appendChild(sv('text',{x:X(l.x)+(right?5:-5),y:T+12+i*14,'text-anchor':right?'start':'end',style:'fill:'+COL.ink,text:l.label}));});
+  svg.appendChild(sv('text',{x:(L+W-R)/2,y:H-7,'text-anchor':'middle',text:o.xl}));
+  svg.appendChild(sv('text',{x:13,y:(T+H-B)/2,'text-anchor':'middle',transform:'rotate(-90 13 '+(T+H-B)/2+')',text:'Samples'}));
+  box.appendChild(svg);host.appendChild(box);
+}
+function mcRun(){
+  var mc=TOOLS.mc;if(mc.busy||!last||!(last.mass.M>0))return;
+  var cfg=clone(cur()),rng=rngSeed(mc.seed),N=mc.n,vals={},draws={},i=0;
+  METRICS.forEach(function(m){vals[m[0]]=[];});
+  mc.busy=true;mc.res=null;mc.prog=0;renderUnc();
+  function chunk(){
+    var end=Math.min(N,i+20);
+    for(;i<end;i++){var s=sampleConfig(cfg,rng),r=compute(s.cfg,true);
+      METRICS.forEach(function(m){vals[m[0]].push(m[4](r));});
+      Object.keys(s.draws).forEach(function(k){(draws[k]||(draws[k]=[])).push(s.draws[k]);});}
+    mc.prog=i;
+    if(i<N){if(els.uncProg)els.uncProg.textContent='Computing sample '+i+' of '+N+'…';setTimeout(chunk,0);}
+    else{mc.busy=false;mc.res={n:N,seed:mc.seed,vals:vals,draws:draws};mc.hash=JSON.stringify(cfg);renderUnc();}
+  }
+  setTimeout(chunk,0);
+}
+function renderUnc(){
+  var host=els.unc;if(!host)return;clear(host);
+  var mc=TOOLS.mc,c=cur();
+  var ns=h('select',{'aria-label':'Number of samples'});[200,400,1000].forEach(function(n){ns.appendChild(h('option',{value:String(n),text:String(n)}));});ns.value=String(mc.n);
+  ns.addEventListener('change',function(){mc.n=parseInt(ns.value,10);});
+  var sd=h('input',{type:'number',min:'1',step:'1',style:'width:80px','aria-label':'Random seed'});sd.value=mc.seed;sd.addEventListener('change',function(){var v=parseInt(sd.value,10);mc.seed=isFinite(v)&&v>0?v:1;sd.value=mc.seed;});
+  var run=h('button',{class:'btn pri',text:mc.busy?'Running':'Run',disabled:mc.busy||!(last&&last.mass.M>0),onclick:mcRun});
+  els.uncProg=h('span',{text:mc.busy?'Computing sample '+(mc.prog||0)+' of '+mc.n+'…':''});
+  host.appendChild(h('div',{class:'simbar'},h('label',null,'Samples ',ns),h('label',null,'Seed ',sd),run,els.uncProg));
+  host.appendChild(h('p',{class:'hint',text:'Each sample redraws every input that has a tolerance, and every component mass, from a normal distribution whose standard deviation is half the tolerance, then recomputes the whole model. Tolerances are set in the Configuration module.'}));
+  var R=mc.res;if(!R)return;
+  if(mc.hash!==JSON.stringify(c))host.appendChild(h('p',{class:'simend',text:'The configuration has changed since this run. The results below describe the earlier state; run again to update them.'}));
+  var rows=[h('tr',null,h('th',{text:'Result'}),h('th',{class:'n',text:'Nominal'}),h('th',{class:'n',text:'Mean'}),h('th',{class:'n',text:'5th percentile'}),h('th',{class:'n',text:'Median'}),h('th',{class:'n',text:'95th percentile'}),h('th',{class:'n',text:'Defined in'}),h('th',{text:'Unit'}))],st={};
+  METRICS.forEach(function(m){
+    var a=R.vals[m[0]].filter(isFinite).sort(function(p,q){return p-q;});st[m[0]]=a;
+    function f(v){return fx(mDisp(m,v),m[3]);}
+    rows.push(h('tr',null,h('td',{text:m[1]}),h('td',{class:'n',text:last?f(m[4](last)):'–'}),h('td',{class:'n',text:f(mean(a))}),h('td',{class:'n',text:f(percentile(a,0.05))}),h('td',{class:'n',text:f(percentile(a,0.5))}),h('td',{class:'n',text:f(percentile(a,0.95))}),
+      h('td',{class:'n',text:Math.round(a.length/R.n*100)+'%'}),h('td',{text:mUnit(m)})));
+  });
+  var sm=R.vals.sm.filter(isFinite),neg=sm.filter(function(v){return v<0;}).length,low=sm.filter(function(v){return v<c.flt.smMin;}).length;
+  host.appendChild(h('h3',{text:R.n+' samples, seed '+R.seed,style:'margin-top:14px'}));
+  host.appendChild(h('p',{class:'cksum',text:'Static margin is negative in '+neg+' of '+sm.length+' samples ('+(sm.length?(neg/sm.length*100).toFixed(1):'0')+'%) and below the '+c.flt.smMin+'% minimum in '+low+' ('+(sm.length?(low/sm.length*100).toFixed(1):'0')+'%).'}));
+  host.appendChild(tbl(rows));
+  var g=h('div',{class:'g2 sub'});host.appendChild(g);
+  [['sm',[{x:0,label:'Zero'},{x:c.flt.smMin,label:'Minimum'}]],['vs',[]],['end',[]],['roc',[{x:toDisp(c.flt.rocMin,'roc'),label:'Criterion'}]]].forEach(function(q){
+    var m=metricById(q[0]),a=st[q[0]].map(function(v){return mDisp(m,v);});if(a.length<10)return;
+    barChart(g,{title:m[1],cap:a.length+' samples. 5th to 95th percentile: '+fx(percentile(a,0.05),m[3])+' to '+fx(percentile(a,0.95),m[3])+(mUnit(m)?' '+mUnit(m):'')+'.',xl:m[1]+(mUnit(m)?' ('+mUnit(m)+')':''),bins:histogram(a,18),dp:m[3],v:q[1]});
+  });
+  /* which inputs the spread comes from: squared correlation between each drawn input and the result */
+  var cr=[h('tr',null,h('th',{text:'Result'}),h('th',{text:'Largest contributor'}),h('th',{text:'Second'}),h('th',{text:'Third'}))];
+  ['sm','vs','end','roc'].forEach(function(id){
+    var m=metricById(id),y=R.vals[id],list=[];
+    Object.keys(R.draws).forEach(function(k){var x=R.draws[k],xa=[],ya=[],i;for(i=0;i<x.length;i++){if(isFinite(y[i])){xa.push(x[i]);ya.push(y[i]);}}var r=pearson(xa,ya);list.push({k:k,r2:r*r,sg:r});});
+    list.sort(function(p,q){return q.r2-p.r2;});
+    cr.push(h('tr',null,h('td',{text:m[1]}),[0,1,2].map(function(i){var e=list[i];return h('td',{text:e?e.k+': '+Math.round(e.r2*100)+'% of the variance, '+(e.sg>0?'rises':'falls')+' with it':'–'});})));
+  });
+  host.appendChild(h('div',{class:'sub'},h('h3',{text:'Where the spread comes from'}),tbl(cr),h('p',{class:'hint',text:'Squared linear correlation between each drawn input and the result across the samples. Shares need not sum to 100% when inputs interact.'})));
+}
+
+/* ---------- calibration ---------- */
+function renderCal(){
+  var host=els.cal;if(!host)return;clear(host);
+  var r=last,c=cur();
+  if(!r||!(r.mass.M>0)){host.appendChild(h('p',{class:'hint',text:'Calibration needs component masses.'}));return;}
+  var vu=ulabel('m/s'),ru=ulabel('roc');
+  /* glide test */
+  var tb=h('tbody');
+  TOOLS.glide.forEach(function(p,i){
+    function cell(key,unit){var inp=h('input',{type:'number',step:'any',min:'0','aria-label':(key==='V'?'Airspeed':'Sink rate')+' for glide '+(i+1)});inp.value=p[key]==null?'':trimNum(toDisp(p[key],unit),3);
+      inp.addEventListener('change',function(){var v=fromDisp(parseFloat(inp.value),unit);p[key]=isFinite(v)&&v>0?v:null;setTimeout(renderCal,0);});return h('td',null,inp);}
+    tb.appendChild(h('tr',null,h('td',{text:'Glide '+(i+1)}),cell('V','m/s'),cell('sink','roc'),h('td',null,h('button',{class:'btn sm',text:'×','aria-label':'Remove glide '+(i+1),onclick:function(){TOOLS.glide.splice(i,1);if(!TOOLS.glide.length)TOOLS.glide.push({V:null,sink:null});renderCal();}}))));
+  });
+  host.appendChild(h('h3',{text:'Glide test'}));
+  host.appendChild(h('p',{class:'hint',style:'margin:2px 0 8px',text:'Enter the steady airspeed and sink rate from power-off glides in calm air, at the mass in the component table ('+fx(toDisp(r.mass.M*1000,'g'),isImp()?1:0)+' '+ulabel('g')+').'}));
+  host.appendChild(h('table',{class:'comp',style:'width:auto'},h('thead',null,h('tr',null,h('th'),h('th',{text:'Airspeed ('+vu+')'}),h('th',{text:'Sink rate ('+ru+')'}),h('th'))),tb));
+  host.appendChild(h('div',{style:'margin-top:8px'},h('button',{class:'btn',text:'Add a glide',onclick:function(){TOOLS.glide.push({V:null,sink:null});renderCal();}})));
+  var pts=TOOLS.glide.filter(function(p){return p.V>0&&p.sink>0;}),fit=pts.length?fitPolar(pts,r.W,r.atm.rho,r.wing.S,r.K,r.wing.AR):null;
+  if(fit){
+    var both=fit.mode==='both',clHi=Math.max(r.CLmax,Math.max.apply(null,fit.pts.map(function(p){return p.CL;}))*1.1),lm=[],lf=[],i;
+    for(i=0;i<=30;i++){var cl=clHi*i/30;lm.push([cl,r.cd0+r.K*cl*cl]);lf.push([cl,fit.cd0+fit.K*cl*cl]);}
+    var g=h('div',{class:'g2 sub'});host.appendChild(g);
+    lineChart(g,{title:'Drag polar: model, glide points and fit',cap:fit.pts.length+' glide point'+(fit.pts.length===1?'':'s')+'. '+(both?'Zero-lift drag and induced drag both fitted.':'Only zero-lift drag fitted; the induced-drag factor is kept from the model'+(fit.pts.length>1?' because the points are too close in lift coefficient':'')+'.')+(both&&fit.pts.length===2?' Two points fix the two fitted values exactly, so there is no fit error to report.':(fit.pts.length>1?' Fit error '+fx(fit.rms,4)+' in drag coefficient (root mean square).':'')),
+      xl:'Lift coefficient',yl:'Drag coefficient',xs:'CL',xd:2,yd:4,y0:true,series:[{name:'Model',pts:lm},{name:'Fitted',pts:lf},{name:'Glide points',dots:true,pts:fit.pts.map(function(p){return [p.CL,p.CD];})}]});
+    var box=h('div');g.appendChild(box);
+    box.appendChild(tbl([h('tr',null,h('th',{text:'Quantity'}),h('th',{class:'n',text:'Model'}),h('th',{class:'n',text:'Fitted'})),
+      h('tr',null,h('td',{text:'Zero-lift drag coefficient'}),h('td',{class:'n',text:fx(r.cd0,4)}),h('td',{class:'n',text:fx(fit.cd0,4)})),
+      h('tr',null,h('td',{text:'Oswald efficiency'}),h('td',{class:'n',text:fx(r.e,3)}),h('td',{class:'n',text:both?fx(fit.e,3):'not fitted'})),
+      h('tr',null,h('td',{text:'Maximum lift to drag'}),h('td',{class:'n',text:fx(r.LDmax,1)}),h('td',{class:'n',text:fx(1/(2*Math.sqrt(fit.cd0*fit.K)),1)}))]));
+    var okFit=fit.cd0>=0.005&&fit.cd0<=0.3&&(!both||(fit.e>=0.3&&fit.e<=1));
+    box.appendChild(h('div',{style:'margin-top:10px'},h('button',{class:'btn',text:'Apply the fitted values to this configuration',disabled:!okFit,onclick:function(){
+      var k=cur();k.aero.cd0Override=parseFloat(fit.cd0.toFixed(5));if(both)k.aero.eOverride=parseFloat(fit.e.toFixed(4));renderInputs();live(true);commit();}})));
+    if(!okFit)box.appendChild(h('p',{class:'hint',text:'The fitted values fall outside the range the model accepts (drag 0.005 to 0.3, efficiency 0.3 to 1), so they cannot be applied. Check the glide entries.'}));
+  }
+  /* flight log */
+  host.appendChild(h('h3',{text:'Flight log',style:'margin-top:26px'}));
+  host.appendChild(h('p',{class:'hint',style:'margin:2px 0 8px',text:'Load a CSV with columns for time (s), airspeed (m/s), altitude (m) and pack current (A); throttle is optional. Steady level segments are found automatically and compared with the model. PX4 logs need exporting to CSV first.'}));
+  var fi=h('input',{type:'file',accept:'.csv,text/csv,text/plain','aria-label':'Flight log CSV'});
+  fi.addEventListener('change',function(){var f=fi.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){
+    var csv=parseCSV(rd.result),m=csv?mapLog(csv):{missing:['a header row and data rows']};TOOLS.logName=f.name;
+    if(m.missing){TOOLS.log={err:'The file is missing: '+m.missing.join(', ')+'.'};TOOLS.logFit=null;}
+    else{m.pts=steadyPoints(m.data,3);TOOLS.log=m;TOOLS.logFit=null;}
+    renderCal();};rd.readAsText(f);});
+  host.appendChild(h('div',{class:'simbar'},fi,h('button',{class:'btn',text:'Download a blank template',onclick:function(){download('flight_log_template.csv','# time in seconds, airspeed in m/s, altitude in m, throttle 0 to 1, current in A\ntime,airspeed,altitude,throttle,current\n');}})));
+  var L=TOOLS.log;
+  if(!L)return;
+  if(L.err){host.appendChild(h('p',{class:'simend',text:L.err}));return;}
+  var d=L.data,dur=d[d.length-1].t;
+  host.appendChild(h('p',{class:'cksum',style:'margin-top:10px',text:TOOLS.logName+': '+d.length+' rows over '+fx(dur,1)+' s. Columns used: '+L.cols.map(function(q){return q[0]+' = '+q[1];}).join(', ')+'. Time read as '+(L.timeScale===1?'seconds':(L.timeScale===1e-3?'milliseconds':'microseconds'))+'. '+L.pts.length+' steady level segment'+(L.pts.length===1?'':'s')+' of 3 s found.'}));
+  if(L.pts.length<2||!r.perf||!r.perf.ok){host.appendChild(h('p',{class:'hint',text:'At least two steady level segments are needed for a comparison.'}));return;}
+  if(!TOOLS.logFit||TOOLS.logFit.hash!==JSON.stringify(c)){TOOLS.logFit=fitLog(c,r.cd0,L.pts);TOOLS.logFit.hash=JSON.stringify(c);}
+  var F=TOOLS.logFit,g2=h('div',{class:'g2 sub'});host.appendChild(g2);
+  function srt(a){return a.slice().sort(function(p,q){return p[0]-q[0];}).map(function(p){return [toDisp(p[0],'m/s'),p[1]];});}
+  lineChart(g2,{title:'Pack current in level flight: model against log',cap:F.n+' of '+L.pts.length+' logged segments lie where the model can hold level flight. Error before the fit '+fx(F.rmsBefore,2)+' A, after '+fx(F.rms,2)+' A (root mean square).',
+    xl:'Airspeed ('+vu+')',yl:'Current (A)',xs:'Airspeed',xu:vu,yu:'A',yd:2,y0:true,
+    series:[{name:'Model now',pts:srt(F.predBefore)},{name:'Model with fitted drag',pts:srt(F.pred)},{name:'Log, steady segments',dots:true,pts:L.pts.map(function(p){return [toDisp(p.V,'m/s'),p.I];})}]});
+  var bx=h('div');g2.appendChild(bx);
+  bx.appendChild(tbl([h('tr',null,h('th',{text:'Quantity'}),h('th',{class:'n',text:'Now'}),h('th',{class:'n',text:'Fitted'})),
+    h('tr',null,h('td',{text:'Zero-lift drag coefficient'}),h('td',{class:'n',text:fx(r.cd0,4)}),h('td',{class:'n',text:fx(F.cd0,4)})),
+    h('tr',null,h('td',{text:'Current error, root mean square (A)'}),h('td',{class:'n',text:fx(F.rmsBefore,2)}),h('td',{class:'n',text:fx(F.rms,2)}))]));
+  if(F.atLimit)bx.appendChild(h('p',{class:'simend',text:'The fit stopped at the edge of its search range (0.3 to 3 times the current drag). Drag alone does not explain this log; check the propulsion inputs.'}));
+  bx.appendChild(h('div',{style:'margin-top:10px'},h('button',{class:'btn',text:'Apply the fitted drag to this configuration',disabled:F.atLimit||!(F.cd0>=0.005&&F.cd0<=0.3),onclick:function(){cur().aero.cd0Override=parseFloat(F.cd0.toFixed(5));renderInputs();live(true);commit();}})));
+  bx.appendChild(h('p',{class:'hint',text:'This fit assigns the whole difference to airframe drag. An error in propeller or motor efficiency would look the same, so use a glide test to separate them.'}));
+}
+
+/* ---------- export and print ---------- */
+function renderExport(host){
+  host.appendChild(h('div',{class:'simbar',style:'margin-bottom:10px'},
+    h('button',{class:'btn',text:'Download results (CSV)',onclick:function(){if(last)download(act().name.replace(/[^\w-]+/g,'_')+'_results.csv',toCSV(exportRows(cur(),last)));}}),
+    h('button',{class:'btn',text:'Download results and configuration (JSON)',onclick:function(){if(!last)return;var o={};exportRows(cur(),last).forEach(function(q){if(q[0]==='Inputs'||q[0]==='Components')return;(o[q[0]]||(o[q[0]]={}))[q[1]]={value:(typeof q[2]==='number'&&!isFinite(q[2]))?null:q[2],unit:q[3]};});
+      download(act().name.replace(/[^\w-]+/g,'_')+'_results.json',JSON.stringify({name:act().name,results:o,checks:validity(cur(),last,{noFix:true}).map(function(v){return {check:v.title,level:v.level,detail:v.detail};}),configuration:cur()},null,1));}}),
+    h('button',{class:'btn',text:'Print this report',onclick:function(){window.print();}})));
+}
+function applyAllFixes(){
+  var c=clone(cur()),n=0,i;
+  for(i=0;i<14;i++){
+    var r=compute(c,true),list=validity(c,r),done=false,j;
+    for(j=0;j<list.length&&!done;j++){var it=list[j];if(it.level!=='fail'&&it.level!=='caution')continue;
+      var f=it.fixes.filter(function(q){return q.apply;})[0];if(f){f.apply(c);c=normalizeConfig(c);n++;done=true;}}
+    if(!done)break;
+  }
+  if(n)addConfig(uniqueName(act().name+', fixes applied'),c);
+  return n;
+}
+/* =====================================================================
    UI. Reads results from the core; holds no physics.
    ===================================================================== */
 var root=document.getElementById('acsim');
@@ -2151,7 +2536,10 @@ var MODS=[
  ['perf','Performance','Speeds, climb, endurance, launch and manoeuvre limits at the current mass.'],
  ['dyn','Dynamics','Natural modes and control responses, linearised about level flight at the design speed.'],
  ['sim','Flight simulation','Six-degree-of-freedom model flown in real time. Scripted runs apply fixed, stated inputs; free flight is yours.'],
- ['data','Derived values','Every computed quantity with its basis.'],
+ ['sweep','Parameter sweep','One input varied over a range, everything else held, and one result plotted.'],
+ ['unc','Uncertainty','Monte Carlo propagation of the input tolerances through the whole model.'],
+ ['cal','Calibration','Fit the drag model to a glide test or a flight log, then apply the fitted values.'],
+ ['data','Derived values and export','Every computed quantity with its basis, and downloads of the results.'],
  ['compare','Compare configurations','Results and differing inputs for up to three configurations.'],
  ['verify','Verification','Checks of the code against exact solutions, hand calculations and its own consistency.'],
  ['methods','Methods and limits','What is modelled, the source of each method, and what is not modelled yet.']
@@ -2190,7 +2578,7 @@ function sv(tag,attrs){
   for(var i=2;i<arguments.length;i++){if(arguments[i])e.appendChild(arguments[i]);}
   return e;
 }
-function clear(e){while(e.firstChild)e.removeChild(e.firstChild);}
+function clear(e){e.textContent='';}
 var ST_LABEL={fail:'■ Fail',caution:'▲ Caution',note:'● Note',pass:'✓ Pass'};
 function stTag(level){return h('span',{class:'st '+level,text:ST_LABEL[level]||''});}
 
@@ -2263,7 +2651,7 @@ function uniqueName(base){
   return n;
 }
 function download(name,text){
-  var u=URL.createObjectURL(new Blob([text],{type:'application/json'}));
+  var u=URL.createObjectURL(new Blob([text],{type:/\.csv$/.test(name)?'text/csv':'application/json'}));
   var a=h('a',{href:u,download:name});root.appendChild(a);a.click();
   setTimeout(function(){URL.revokeObjectURL(u);if(a.parentNode)a.parentNode.removeChild(a);},800);
 }
@@ -2347,7 +2735,9 @@ function renderShell(){
     h('li',null,h('b',{text:'Flight simulation. '}),'Rigid-body six-degree-of-freedom equations on a flat Earth with quaternion attitude, integrated by fourth-order Runge-Kutta at 200 Hz (Stevens and Lewis; Beard and McLain). Aerodynamic coefficients are the same derivatives the linear model uses, evaluated at the instantaneous airspeed, angle of attack and sideslip. Beyond the stall angle, lift and drag blend to a flat-plate model; pitching moment and the lateral derivatives stay linear, so behaviour after the stall is qualitative only: wing drop and spins are not reproduced. Thrust comes from the propulsion model at the current airspeed. Steady wind is included; gusts, ground effect, landing gear and servo lag are not. A run ends when the altitude reaches zero.'),
     h('li',null,h('b',{text:'Attitude hold. '}),'Proportional, integral and rate feedback on pitch and proportional and rate feedback on roll, with gains set from the control power at the design speed. It is a stand-in for a pilot or autopilot, not a model of PX4.'),
     h('li',null,h('b',{text:'Captions. '}),'Chart captions state what is plotted and values read from the plotted data for the current configuration. They contain no general commentary.'),
-    h('li',null,h('b',{text:'Not yet modelled. '}),'Thrust-line angles, gusts, uncertainty propagation and calibration against flight logs.')));
+    h('li',null,h('b',{text:'Uncertainty. '}),'Monte Carlo sampling with a seeded generator, so a run can be repeated. Each tolerance is read as a 95% bound on a normal distribution; draws are clipped to each input\u2019s allowed range and treated as independent. Component positions and dimensions are not varied, and the flight simulation is not sampled. The contributor table uses squared linear correlation, which misses interactions.'),
+    h('li',null,h('b',{text:'Calibration. '}),'A glide point gives one lift and drag coefficient pair from the measured airspeed and sink rate; two or more well-separated points fit both zero-lift drag and induced drag by least squares. The flight-log fit finds steady level segments (3 s windows with height changing under 0.3 m/s and airspeed under 0.2 m/s\u00b2) and adjusts zero-lift drag until the model\u2019s pack current matches. It cannot tell airframe drag from propulsion efficiency. Glide entries and loaded logs are not saved with the configuration.'),
+    h('li',null,h('b',{text:'Not modelled. '}),'Thrust-line angles, gusts, servo lag, ground effect, landing gear, structural loads and flexibility, and battery voltage decay through a flight.')));
   attachDrag();
 }
 function updateBar(){
@@ -2516,8 +2906,9 @@ function renderInputs(){
 function live(now){
   last=compute(cur());
   renderCards(last);drawSide(last);drawTop(last);renderBalance(last);renderAero(last);renderStab(last);renderProp(last);renderPerf(last);renderDyn(last);renderSim(last);renderResults(last);renderCompare();
-  clearTimeout(ckTimer);
-  if(now)renderChecks();else ckTimer=setTimeout(renderChecks,160);
+  clearTimeout(ckTimer);clearTimeout(TOOLS.sw.timer);
+  if(now){renderChecks();renderSweep();renderUnc();renderCal();}
+  else{ckTimer=setTimeout(renderChecks,160);TOOLS.sw.timer=setTimeout(function(){renderSweep();renderUnc();renderCal();},420);}
 }
 function cell(label,val,unit,sub,level){
   return h('div',null,h('div',{class:'l'},h('span',{text:label}),level?stTag(level):null),h('div',{class:'v'},val,unit?h('small',{text:unit}):null),h('div',{class:'s',text:sub||''}));
@@ -2572,7 +2963,8 @@ function renderChecks(){
   clear(els.checks);
   var list=validity(cur(),last),n={fail:0,caution:0,note:0,pass:0};
   list.forEach(function(v){n[v.level]++;});
-  els.checks.appendChild(h('p',{class:'cksum'},h('b',{text:(n.fail+n.caution)?(n.fail+' failing, '+n.caution+' caution'):'No failing checks'}),', '+n.note+' notes, '+n.pass+' passing.'));
+  els.checks.appendChild(h('p',{class:'cksum'},h('b',{text:(n.fail+n.caution)?(n.fail+' failing, '+n.caution+' caution'):'No failing checks'}),', '+n.note+' notes, '+n.pass+' passing.',
+    ((n.fail+n.caution)&&list.some(function(v){return (v.level==='fail'||v.level==='caution')&&v.fixes.some(function(f){return f.apply;});}))?h('button',{class:'btn sm',style:'margin-left:12px',text:'Apply the first recommendation of each to a copy',title:'Creates a new configuration; this one is left unchanged.',onclick:applyAllFixes}):null));
   list.forEach(function(v){
     var ul=null;
     if(v.fixes.length){
@@ -2740,7 +3132,7 @@ function renderBalance(r){
     row('Neutral point',r.xnp,'Stick fixed'))));
 }
 function renderResults(r){
-  clear(els.data);
+  clear(els.data);renderExport(els.data);
   var rows=[],imp=isImp();
   function sec(t){rows.push(h('tr',{class:'sec'},h('th',{colspan:'4',text:t})));}
   function row(label,v,unit,dp,note){rows.push(h('tr',null,h('td',{text:label}),h('td',{class:'n',text:fx(UNIT[unit]?toDisp(v,unit):v,dp)}),h('td',{text:UNIT[unit]?ulabel(unit):unit}),h('td',{class:'note',text:note||''})));}
@@ -3121,6 +3513,7 @@ function attachDrag(){
 
 /* ---------- boot ---------- */
 load();renderShell();updateBar();renderInputs();live(true);renderTests();
+window.addEventListener('beforeprint',function(){var d=root.querySelectorAll('details'),i;for(i=0;i<d.length;i++)d[i].open=true;});
 root.__acsim={state:state,compute:compute,validity:validity,cur:cur};
 })();
 </script>
