@@ -1,62 +1,1215 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Deployment Test</title>
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-      background-color: #f4f4f9;
-      color: #333;
-    }
-    .card {
-      background: white;
-      padding: 2rem;
-      border-radius: 10px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      text-align: center;
-    }
-    button {
-      margin-top: 1rem;
-      padding: 0.6rem 1.2rem;
-      font-size: 1rem;
-      cursor: pointer;
-      background-color: #2ea44f;
-      color: white;
-      border: none;
-      border-radius: 6px;
-    }
-    button:hover {
-      background-color: #2c974b;
-    }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UAS Flight Simulator</title>
+<!-- Standalone-page reset only. If you embed #acsim in an existing page, drop this block. -->
+<style>html,body{margin:0;background:#0a0e14}</style>
+<style>
+#acsim{--bg:#0a0e14;--panel:#101722;--panel2:#0c121b;--line:#1f2b3b;--tx:#d9e2ec;--mut:#8493a8;--acc:#f5a524;--cy:#56c7f2;--ok:#3ddc97;--warn:#f5a524;--bad:#ff6b6b;--info:#7aa2f7;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  background:var(--bg);color:var(--tx);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;min-height:100vh;position:relative}
+#acsim *{box-sizing:border-box}
+#acsim .wrap{max-width:1280px;margin:0 auto;padding:0 16px 60px}
+#acsim header.top{padding:22px 0 10px;display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;justify-content:space-between}
+#acsim h1{font:650 22px/1.3 system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;margin:0;letter-spacing:.02em;color:var(--tx)}
+#acsim h1 span{color:var(--acc)}
+#acsim .tag{font:11px var(--mono);color:var(--mut);letter-spacing:.14em;text-transform:uppercase}
+#acsim h2{font:600 12px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--cy);margin:0 0 12px;display:flex;align-items:center;gap:10px}
+#acsim h2:after{content:"";flex:1;height:1px;background:var(--line)}
+#acsim h3{margin:0 0 8px;font:600 15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--tx)}
+#acsim p{color:inherit;font:inherit}
+#acsim label{color:inherit;font-weight:400}
+#acsim section{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;margin-top:16px}
+#acsim nav.bar{position:sticky;top:0;z-index:20;background:rgba(10,14,20,.94);border-bottom:1px solid var(--line);padding:8px 0;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+#acsim nav.bar .sp{flex:1}
+#acsim .btn,#acsim select,#acsim input{font:inherit;color:var(--tx);background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:5px 9px}
+#acsim .btn{cursor:pointer;white-space:nowrap}
+#acsim .btn:hover{border-color:var(--cy)}
+#acsim .btn:disabled{opacity:.4;cursor:default;border-color:var(--line)}
+#acsim .btn.pri{background:var(--acc);color:#151004;border-color:var(--acc);font-weight:600}
+#acsim .btn.on{border-color:var(--acc);color:var(--acc)}
+#acsim .btn.sm{padding:2px 7px;font-size:12px}
+#acsim input:focus,#acsim select:focus,#acsim .btn:focus-visible{outline:2px solid var(--cy);outline-offset:1px}
+#acsim input.badv{border-color:var(--bad);background:#2a1418}
+#acsim .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
+#acsim .card{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;border-left:3px solid var(--line)}
+#acsim .card.ok{border-left-color:var(--ok)}#acsim .card.warn{border-left-color:var(--warn)}#acsim .card.bad{border-left-color:var(--bad)}
+#acsim .card .l{font:11px var(--mono);color:var(--mut);letter-spacing:.1em;text-transform:uppercase}
+#acsim .card .v{font:600 22px var(--mono);margin-top:2px}
+#acsim .card .v small{font-size:12px;color:var(--mut);font-weight:400;margin-left:4px}
+#acsim .card .s{font-size:12px;color:var(--mut)}
+#acsim .gauge{margin-top:14px}
+#acsim .gauge .track{position:relative;height:14px;border-radius:7px;background:linear-gradient(90deg,var(--bad) 0 25%,var(--warn) 25% 37.5%,var(--ok) 37.5% 75%,var(--info) 75% 100%);opacity:.85}
+#acsim .gauge .pin{position:absolute;top:-5px;width:3px;height:24px;background:#fff;border-radius:2px;transform:translateX(-1px);box-shadow:0 0 0 2px var(--bg)}
+#acsim .gauge .scale{display:flex;justify-content:space-between;font:11px var(--mono);color:var(--mut);margin-top:4px}
+#acsim .grid2{display:grid;grid-template-columns:1.25fr 1fr;gap:16px}
+#acsim .svgbox{background:var(--panel2);border:1px solid var(--line);border-radius:8px;overflow-x:auto}
+#acsim svg{display:block;width:100%;min-width:680px;height:auto;touch-action:none}
+#acsim svg.topv{min-width:0;max-height:560px}
+#acsim svg text{font:13px var(--mono);fill:var(--mut)}
+#acsim svg .fus{fill:#18222f;stroke:#4a5b70;stroke-width:1.5}
+#acsim svg .wing{fill:#223247;stroke:var(--cy);stroke-width:1.5}
+#acsim svg .tailp{fill:#223247;stroke:var(--cy);stroke-width:1.5;fill-opacity:.85}
+#acsim svg .surf{fill:var(--cy);fill-opacity:.28;stroke:none}
+#acsim svg .prop{stroke:#c9d4e0;stroke-width:3;stroke-linecap:round}
+#acsim svg .gnd{stroke:#6b5a3a;stroke-width:2;stroke-dasharray:10 6}
+#acsim svg .comp{fill:#f5a524;fill-opacity:.16;stroke:#f5a524;stroke-width:1;cursor:ew-resize}
+#acsim svg .comp.meas{fill:#3ddc97;fill-opacity:.16;stroke:#3ddc97}
+#acsim svg .comp.mov{stroke-width:2.2}
+#acsim svg .cg{cursor:ew-resize}
+#acsim .hint{font-size:12px;color:var(--mut);margin-top:8px}
+#acsim .chk{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}
+#acsim .chk:last-child{border-bottom:0}
+#acsim .dot{flex:none;width:10px;height:10px;border-radius:50%;margin-top:5px;background:var(--mut)}
+#acsim .dot.ok{background:var(--ok)}#acsim .dot.warn{background:var(--warn)}#acsim .dot.bad{background:var(--bad)}#acsim .dot.info{background:var(--info)}
+#acsim .chk b{display:block}
+#acsim .chk .d{color:var(--mut);font-size:13px}
+#acsim .chk .f{font-size:13px;margin-top:2px}
+#acsim .tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+#acsim .fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:6px 22px}
+#acsim .fld{display:grid;grid-template-columns:1fr 104px 44px 88px;gap:6px;align-items:center;padding:3px 0}
+#acsim .fld label{font-size:13px}
+#acsim .fld input.num,#acsim .fld select.val,#acsim .fld input.txt{width:100%;font-family:var(--mono);text-align:right}
+#acsim .fld select.val{text-align:left;grid-column:2 / span 2}
+#acsim .fld .u{font:12px var(--mono);color:var(--mut)}
+#acsim .src{font:11px var(--mono);padding:3px 4px;width:100%;border-radius:10px}
+#acsim .src.measured{color:var(--ok);border-color:var(--ok)}#acsim .src.cad{color:var(--cy);border-color:var(--cy)}#acsim .src.spec{color:var(--info);border-color:var(--info)}#acsim .src.estimate{color:var(--warn);border-color:var(--warn)}#acsim .src.guess{color:var(--bad);border-color:var(--bad)}
+#acsim .tol{display:none}
+#acsim.showtol .tol{display:flex}
+#acsim.showtol .fld{grid-template-columns:1fr 104px 44px 88px 84px}
+#acsim .tol{align-items:center;gap:3px;font:12px var(--mono);color:var(--mut)}
+#acsim .tol input{width:52px;padding:3px 5px;font:12px var(--mono);text-align:right}
+#acsim .tscroll{overflow-x:auto}
+#acsim table{border-collapse:collapse;width:100%;font-size:13px;border:0;background:none;margin:0}
+#acsim th{font:11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--mut);text-align:left;padding:5px 6px;border-bottom:1px solid var(--line);white-space:nowrap}
+#acsim td{padding:4px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
+#acsim td.n{font-family:var(--mono);text-align:right;white-space:nowrap}
+#acsim td.note{color:var(--mut);font-size:12px}
+#acsim table.comp input{width:68px;font:12px var(--mono);text-align:right;padding:3px 5px}
+#acsim table.comp input.nm{width:170px;text-align:left;font-family:inherit;font-size:13px}
+#acsim table.comp select{font-size:12px;padding:3px 4px}
+#acsim table.comp td{padding:3px 4px}
+#acsim table.comp .acts{white-space:nowrap}
+#acsim .diff{color:var(--acc)}
+#acsim .pass{color:var(--ok)}#acsim .fail{color:var(--bad);font-weight:700}
+#acsim .ov{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}
+#acsim .modal{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;max-width:520px;width:100%}
+#acsim .modal p{color:var(--mut);margin:0 0 10px}
+#acsim .modal .minp{width:100%;font-family:var(--mono)}
+#acsim .mrow{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
+#acsim ul.plain{margin:0;padding-left:18px;color:var(--mut)}
+#acsim ul.plain li{margin:3px 0}
+#acsim ul.plain b{color:var(--tx);font-weight:600}
+#acsim .hide{display:none!important}
+@media (max-width:900px){#acsim .grid2{grid-template-columns:1fr}}
+@media (max-width:700px){#acsim nav.bar{position:static}}
+@media (max-width:520px){#acsim .fgrid{grid-template-columns:1fr}#acsim .fld{grid-template-columns:1fr 92px 34px 80px}#acsim .wrap{padding:0 10px 40px}}
+@media (prefers-reduced-motion:no-preference){#acsim .gauge .pin{transition:left .25s}}
+</style>
 </head>
 <body>
+<div id="acsim"></div>
+<script>
+(function(){
+'use strict';
+/*CORE-START*/
+/* =====================================================================
+   CORE: configuration schema, physics and tests. No DOM access in here.
+   Every physics function is a pure function of the configuration object.
+   Frame: origin at nose tip, x aft, y right, z up. Config lengths in mm,
+   masses in g, angles in degrees. Physics converts to SI internally.
+   ===================================================================== */
+var G0=9.80665, R_AIR=287.05287, PI=Math.PI;
+function rad(d){return d*PI/180;}
+function deg(r){return r*180/PI;}
+function clone(o){return JSON.parse(JSON.stringify(o));}
+function badKey(k){return k==='__proto__'||k==='constructor'||k==='prototype';}
+function getPath(o,p){var a=p.split('.');for(var i=0;i<a.length;i++){if(o==null||badKey(a[i]))return undefined;o=o[a[i]];}return o;}
+function setPath(o,p,v){var a=p.split('.');for(var i=0;i<a.length-1;i++){if(badKey(a[i]))return;if(o[a[i]]==null||typeof o[a[i]]!=='object')o[a[i]]={};o=o[a[i]];}if(!badKey(a[a.length-1]))o[a[a.length-1]]=v;}
 
-  <div class="card">
-    <h1>Success!</h1>
-    <p id="status">Loading script check...</p>
-    <button onclick="testClick()">Test Button</button>
-  </div>
+var SRC=['measured','cad','spec','estimate','guess'];
+var SHAPES=['box','cyl','point'];
 
-  <script>
-    // Runs automatically when the page loads
-    const now = new Date().toLocaleTimeString();
-    document.getElementById("status").textContent = 
-      "Your new page and JavaScript are live! Loaded at: " + now;
+/* Static test data from the EMAX ECO II 2807 1300KV manual, 25.2 V: [A, g, rpm] */
+var PROPS={
+ 'HQ 7x4x3':{diam:177.8,pitch:101.6,blades:3,pts:[[2.2,300,6550],[4.2,500,9600],[6.5,700,11100],[9.4,900,12500],[13.4,1100,13900]],max:[51.2,2640]},
+ 'Gemfan 7042 (2-blade)':{diam:177.8,pitch:106.7,blades:2,pts:[[2.2,300,8440],[4,500,10550],[5.4,700,12370],[9.3,900,13960],[12.4,1100,15360]],max:[47.9,2190]},
+ 'HQ 7x3.5x3':{diam:177.8,pitch:88.9,blades:3,pts:[[2.1,300,7990],[4,500,10100],[6.4,700,11700],[9.2,900,13200],[12.4,1100,14600]],max:[47.1,2580]},
+ 'Gemfan 7040 (3-blade)':{diam:177.8,pitch:101.6,blades:3,pts:[[2.3,300,8920],[4.1,500,11000],[6.4,700,12800],[9.3,900,14400],[12.5,1100,15700]],max:[45.2,2490]}
+};
 
-    // Runs when you click the button
-    function testClick() {
-      alert("Everything is working properly!");
+var GROUPS=[['wing','Wing'],['tail','Tail'],['fus','Fuselage'],['prop','Propulsion'],['flight','Flight and environment']];
+var FIELDS=[], FIELD_BY_PATH={};
+function F(group,path,label,unit,def,src,tol,min,max,tip,opt){
+  var f={group:group,path:path,label:label,unit:unit,def:def,src:src,tol:tol,min:min,max:max,tip:tip||''};
+  if(opt){for(var k in opt)f[k]=opt[k];}
+  FIELDS.push(f);FIELD_BY_PATH[path]=f;
+}
+/* Wing */
+F('wing','wing.span','Span','mm',1520,'cad',1,100,8000,'Tip to tip.');
+F('wing','wing.rootChord','Root chord','mm',267.4,'cad',1,20,3000);
+F('wing','wing.tipChord','Tip chord','mm',267.4,'cad',1,10,3000,'Equal to the root chord for a rectangular wing.');
+F('wing','wing.areaOverride','Area override','m2',null,'guess',0,0.005,20,'Leave blank to use span x mean chord.',{nullable:true});
+F('wing','wing.xLE','Root leading edge x','mm',218,'cad',20,-500,6000,'Distance aft of the nose tip.',{abs:true});
+F('wing','wing.z','Root chord height z','mm',50,'estimate',10,-600,600,'Above the fuselage centreline.',{abs:true});
+F('wing','wing.incidence','Incidence','deg',2,'estimate',1,-10,15,'',{abs:true});
+F('wing','wing.dihedral','Dihedral per side','deg',3,'estimate',1,-15,25,'',{abs:true});
+F('wing','wing.sweepLE','Leading-edge sweep','deg',0,'cad',0.5,-30,55,'',{abs:true});
+F('wing','wing.naca','NACA 4-digit airfoil','',"2412",'cad',0,0,0,'Four digits, for example 2412 or 0012.',{type:'text'});
+F('wing','wing.a0','Section lift-curve slope','1/rad',5.73,'estimate',8,3,7,'6.28 in theory; about 5.7 at model Reynolds numbers.');
+F('wing','wing.clMax','Maximum lift coefficient','',1.2,'estimate',10,0.3,3,'Whole aircraft. Rough foamboard skin: about 1.1 to 1.3.');
+F('wing','wing.ailSpanFrac','Aileron span fraction','',0.5,'estimate',10,0,1,'Fraction of each half span, measured in from the tip.');
+F('wing','wing.ailChordFrac','Aileron chord fraction','',0.26,'estimate',10,0,0.6);
+/* Tail */
+F('tail','tail.type','Tail type','','vtail','cad',0,0,0,'',{type:'select',options:[['vtail','V-tail'],['conventional','Conventional']]});
+F('tail','tail.rootChord','Panel root chord','mm',160,'cad',2,10,2000);
+F('tail','tail.tipChord','Panel tip chord','mm',160,'cad',2,5,2000);
+F('tail','tail.slant','Panel length','mm',365,'cad',2,20,3000,'V-tail: length of one panel along the slant. Conventional: horizontal tail half span.');
+F('tail','tail.dihedral','Panel angle from horizontal','deg',35,'cad',3,-80,80,'Negative values give an inverted V.',{abs:true,only:'vtail'});
+F('tail','tail.incidence','Incidence','deg',0,'estimate',1,-10,10,'',{abs:true});
+F('tail','tail.sweepLE','Leading-edge sweep','deg',0,'cad',0.5,-30,55,'',{abs:true});
+F('tail','tail.xLE','Root leading edge x','mm',845,'cad',20,0,8000,'',{abs:true});
+F('tail','tail.yRoot','Root offset from centreline','mm',20,'cad',5,0,600,'',{abs:true});
+F('tail','tail.z','Root height z','mm',35,'cad',10,-600,600,'',{abs:true});
+F('tail','tail.a0','Section lift-curve slope','1/rad',5.73,'estimate',10,3,7,'Flat plate: 6.28 in theory, lower in practice.');
+F('tail','tail.eta','Tail efficiency','',0.9,'estimate',10,0.5,1.2,'Dynamic pressure at the tail divided by free stream.');
+F('tail','tail.surfChordFrac','Control surface chord fraction','',0.35,'cad',10,0,0.8);
+F('tail','tail.finHeight','Fin height','mm',180,'guess',10,10,2000,'',{only:'conventional'});
+F('tail','tail.finRootChord','Fin root chord','mm',160,'guess',10,10,2000,'',{only:'conventional'});
+F('tail','tail.finTipChord','Fin tip chord','mm',110,'guess',10,5,2000,'',{only:'conventional'});
+/* Fuselage */
+F('fus','fus.noseLen','Nose section length','mm',88,'cad',5,0,2000);
+F('fus','fus.boomLen','Main body length','mm',755,'cad',1,50,6000);
+F('fus','fus.tailLen','Rear section length','mm',168,'cad',5,0,2000);
+F('fus','fus.width','Body width','mm',70,'estimate',10,5,1000);
+F('fus','fus.height','Body height','mm',70,'estimate',10,5,1000);
+F('fus','fus.skid','Skid or gear height','mm',0,'cad',5,0,600,'How far the skid or wheels hold the belly off the ground.',{abs:true});
+/* Propulsion */
+F('prop','prop.id','Propeller','','HQ 7x4x3','spec',0,0,0,'Picking a listed prop fills in its data. Choose Custom to type your own.',{type:'select',options:Object.keys(PROPS).map(function(k){return [k,k];}).concat([['custom','Custom']])});
+F('prop','prop.diam','Prop diameter','mm',177.8,'spec',1,20,1000);
+F('prop','prop.pitch','Prop pitch','mm',101.6,'spec',2,10,800);
+F('prop','prop.blades','Blade count','',3,'spec',0,1,8,'',{int:true});
+F('prop','prop.staticThrust','Static thrust at full throttle','g',2640,'spec',8,0,50000);
+F('prop','prop.staticCurrent','Current at full throttle','A',51.2,'spec',8,0,500);
+F('prop','prop.x','Prop plane x','mm',1041,'estimate',15,0,8000,'',{abs:true});
+F('prop','prop.z','Thrust line height z','mm',20,'estimate',10,-600,600,'',{abs:true});
+F('prop','motor.kv','Motor Kv','rpm/V',1300,'spec',3,50,10000);
+F('prop','motor.iMax','Motor peak current','A',52,'spec',0,1,500);
+F('prop','esc.limit','ESC current rating','A',60,'guess',0,1,500);
+F('prop','batt.cells','Battery cells in series','',6,'spec',0,1,14,'',{int:true});
+F('prop','batt.mAh','Battery capacity','mAh',2200,'guess',0,100,50000);
+F('prop','batt.C','Battery C rating','',60,'guess',0,1,200);
+F('prop','batt.vFull','Full voltage per cell','V',4.2,'spec',0,3,4.5);
+/* Flight and environment */
+F('flight','flt.V','Design airspeed','m/s',13,'guess',0,2,120);
+F('flight','flt.massTarget','Target mass','g',1500,'guess',0,50,100000);
+F('flight','flt.smMin','Static margin target, minimum','%',8,'guess',0,0,40,'Aft CG limit is set by this.');
+F('flight','flt.smMax','Static margin target, maximum','%',18,'guess',0,1,60,'Forward CG guide. The true forward limit is elevator authority (Stage 2).');
+F('flight','env.alt','Field altitude','m',30,'estimate',0,-400,6000);
+F('flight','env.dT','Temperature offset from ISA','dC',12,'estimate',0,-50,50,'+12 is about 27 C at sea level.');
+F('flight','aero.downwash','Downwash gradient override','',null,'guess',0,0,0.9,'Leave blank to compute it from the wing.',{nullable:true});
+
+function C(name,mass,x,y,z,shape,lx,ly,lz,src,tol,mov,axis){
+  return {name:name,mass:mass,x:x,y:y,z:z,shape:shape,lx:lx,ly:ly,lz:lz,axis:axis||'x',src:src,tol:tol,mov:!!mov};
+}
+/* Placeholder mass budget. Everything tagged "estimate" must be weighed. */
+function defaultComponents(){return [
+ C('Battery 6S 2200 mAh',360,150,0,0,'box',105,35,40,'estimate',30,true),
+ C('Nose cone (printed)',30,55,0,0,'box',70,60,60,'estimate',30),
+ C('GPS and compass',20,200,0,40,'box',40,40,12,'estimate',30),
+ C('ESC',45,230,0,-10,'box',60,30,12,'estimate',30),
+ C('Companion computer',35,260,0,10,'box',65,30,10,'estimate',30),
+ C('Flight controller',35,300,0,0,'box',45,40,15,'estimate',30),
+ C('Receiver',10,330,0,15,'box',25,15,8,'estimate',30),
+ C('Spar clamp and wing mount',90,300,0,40,'box',120,90,30,'estimate',30),
+ C('Wing half, left',200,330,-380,52,'box',267,760,32,'estimate',25),
+ C('Wing half, right',200,330,380,52,'box',267,760,32,'estimate',25),
+ C('Aileron servo, left',12,400,-400,50,'box',23,12,25,'spec',10),
+ C('Aileron servo, right',12,400,400,50,'box',23,12,25,'spec',10),
+ C('Wiring and connectors',40,400,0,0,'box',400,20,10,'estimate',40),
+ C('Foam body',110,465,0,0,'box',755,70,70,'estimate',25),
+ C('Fasteners and hardware',50,500,0,0,'point',0,0,0,'estimate',40),
+ C('Tail servo, left',12,830,-15,20,'box',23,12,25,'spec',10),
+ C('Tail servo, right',12,830,15,20,'box',23,12,25,'spec',10),
+ C('Rear section and motor mount',110,910,0,5,'box',168,70,70,'estimate',30),
+ C('Tail panel, left',22,925,-170,140,'box',160,299,209,'estimate',25),
+ C('Tail panel, right',22,925,170,140,'box',160,299,209,'estimate',25),
+ C('Motor and leads',55,1005,0,20,'cyl',34,34,0,'spec',10),
+ C('Propeller and nut',12,1041,0,20,'cyl',8,178,0,'estimate',20),
+ C('Nose ballast',0,45,0,0,'point',0,0,0,'guess',0,true)
+];}
+
+function defaultsConfig(){
+  var cfg={schema:1,prov:{},components:defaultComponents()};
+  FIELDS.forEach(function(f){setPath(cfg,f.path,f.def);});
+  return cfg;
+}
+function getProv(cfg,path){
+  var f=FIELD_BY_PATH[path], p=cfg.prov&&Object.prototype.hasOwnProperty.call(cfg.prov,path)?cfg.prov[path]:null;
+  return {src:p&&p.src?p.src:f.src, tol:p&&typeof p.tol==='number'?p.tol:f.tol};
+}
+function coerceField(f,v){
+  if(f.type==='select'){for(var i=0;i<f.options.length;i++){if(f.options[i][0]===v)return v;}return undefined;}
+  if(f.type==='text'){v=String(v);return /^\d{4}$/.test(v)?v:undefined;}
+  if(v===null||v===''){return f.nullable?null:undefined;}
+  v=Number(v);if(!isFinite(v))return undefined;
+  if(f.int)v=Math.round(v);
+  return Math.min(f.max,Math.max(f.min,v));
+}
+function numOr(v,d,min){v=Number(v);if(!isFinite(v))return d;return (min!=null&&v<min)?min:v;}
+function normComponent(c){
+  if(!c||typeof c!=='object')return null;
+  return {name:String(c.name==null?'Part':c.name).slice(0,60),mass:numOr(c.mass,0,0),x:numOr(c.x,0),y:numOr(c.y,0),z:numOr(c.z,0),
+    shape:SHAPES.indexOf(c.shape)>=0?c.shape:'point',lx:numOr(c.lx,0,0),ly:numOr(c.ly,0,0),lz:numOr(c.lz,0,0),
+    axis:(c.axis==='y'||c.axis==='z')?c.axis:'x',src:SRC.indexOf(c.src)>=0?c.src:'guess',tol:numOr(c.tol,0,0),mov:!!c.mov};
+}
+/* Accepts anything (old file, shared link, hand-edited JSON) and returns a valid config. */
+function normalizeConfig(raw){
+  var cfg=defaultsConfig();
+  if(!raw||typeof raw!=='object')return cfg;
+  FIELDS.forEach(function(f){var v=getPath(raw,f.path);if(v===undefined)return;var c=coerceField(f,v);if(c!==undefined)setPath(cfg,f.path,c);});
+  if(Array.isArray(raw.components))cfg.components=raw.components.slice(0,300).map(normComponent).filter(Boolean);
+  if(raw.prov&&typeof raw.prov==='object'){FIELDS.forEach(function(f){
+    if(!Object.prototype.hasOwnProperty.call(raw.prov,f.path))return;var p=raw.prov[f.path];if(!p||typeof p!=='object')return;
+    cfg.prov[f.path]={src:SRC.indexOf(p.src)>=0?p.src:f.src,tol:numOr(p.tol,f.tol,0)};});}
+  return cfg;
+}
+/* Differences from the defaults, used for short share links. */
+function diffConfig(cfg){
+  var base=defaultsConfig(), d={f:{}};
+  FIELDS.forEach(function(f){var v=getPath(cfg,f.path);if(v!==getPath(base,f.path))d.f[f.path]=v;});
+  if(JSON.stringify(cfg.components)!==JSON.stringify(base.components))d.c=cfg.components;
+  if(cfg.prov&&Object.keys(cfg.prov).length)d.p=cfg.prov;
+  return d;
+}
+function applyDiff(d){
+  var raw=defaultsConfig();
+  if(d&&typeof d==='object'){
+    if(d.f&&typeof d.f==='object'){Object.keys(d.f).forEach(function(k){if(FIELD_BY_PATH[k])setPath(raw,k,d.f[k]);});}
+    if(Array.isArray(d.c))raw.components=d.c;
+    if(d.p&&typeof d.p==='object')raw.prov=d.p;
+  }
+  return normalizeConfig(raw);
+}
+function b64encode(s){return btoa(unescape(encodeURIComponent(s))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
+function b64decode(s){s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';return decodeURIComponent(escape(atob(s)));}
+function encodeShare(name,cfg){return b64encode(JSON.stringify({n:name,d:diffConfig(cfg)}));}
+function decodeShare(str){var o=JSON.parse(b64decode(str));return {name:String(o.n||'Shared').slice(0,60),cfg:applyDiff(o.d)};}
+
+/* ---------- Atmosphere: ISA troposphere with a temperature offset ---------- */
+function isa(alt,dT){
+  var T0=288.15,L=0.0065,p0=101325;
+  var Tstd=T0-L*alt, p=p0*Math.pow(Tstd/T0,G0/(L*R_AIR)), T=Tstd+(dT||0);
+  return {T:T,p:p,rho:p/(R_AIR*T),mu:1.458e-6*Math.pow(T,1.5)/(T+110.4)};
+}
+
+/* ---------- Mass, CG and inertia (parallel-axis theorem) ---------- */
+function ownInertia(c){
+  var m=c.mass/1000,lx=c.lx/1000,ly=c.ly/1000,lz=c.lz/1000;
+  if(c.shape==='point')return [0,0,0];
+  if(c.shape==='cyl'){ /* lx = length along the axis, ly = diameter */
+    var r=ly/2,Ia=0.5*m*r*r,It=m*(3*r*r+lx*lx)/12;
+    if(c.axis==='y')return [It,Ia,It];
+    if(c.axis==='z')return [It,It,Ia];
+    return [Ia,It,It];
+  }
+  return [m*(ly*ly+lz*lz)/12,m*(lx*lx+lz*lz)/12,m*(lx*lx+ly*ly)/12];
+}
+function massProps(comps){
+  var M=0,sx=0,sy=0,sz=0,i,c,m;
+  for(i=0;i<comps.length;i++){c=comps[i];m=c.mass/1000;M+=m;sx+=m*c.x;sy+=m*c.y;sz+=m*c.z;}
+  var cg=M>0?{x:sx/M,y:sy/M,z:sz/M}:{x:0,y:0,z:0};
+  var I={xx:0,yy:0,zz:0,xz:0,xy:0,yz:0},est=0,mov=0;
+  for(i=0;i<comps.length;i++){
+    c=comps[i];m=c.mass/1000;var o=ownInertia(c);
+    var dx=(c.x-cg.x)/1000,dy=(c.y-cg.y)/1000,dz=(c.z-cg.z)/1000;
+    I.xx+=o[0]+m*(dy*dy+dz*dz);I.yy+=o[1]+m*(dx*dx+dz*dz);I.zz+=o[2]+m*(dx*dx+dy*dy);
+    I.xz+=m*dx*dz;I.xy+=m*dx*dy;I.yz+=m*dy*dz;
+    if(c.src==='estimate'||c.src==='guess')est+=m;
+    if(c.mov)mov+=m;
+  }
+  return {M:M,cg:cg,I:I,estFrac:M>0?est/M:0,mMov:mov};
+}
+
+/* ---------- Geometry ---------- */
+function trapezoid(span,cr,ct,sweepDeg){ /* one trapezoidal panel pair; span = full span (m) */
+  var lam=ct/cr,S=span*(cr+ct)/2;
+  var mac=(2/3)*cr*(1+lam+lam*lam)/(1+lam), ymac=(span/6)*(1+2*lam)/(1+lam);
+  var tanLE=Math.tan(rad(sweepDeg));
+  return {S:S,lam:lam,mac:mac,ymac:ymac,xmacOff:ymac*tanLE,tanHalf:tanLE-(cr-ct)/span};
+}
+function wingGeom(w){
+  var b=w.span/1000,g=trapezoid(b,w.rootChord/1000,w.tipChord/1000,w.sweepLE);
+  var S=(w.areaOverride!=null&&w.areaOverride>0)?w.areaOverride:g.S;
+  return {b:b,S:S,Sgeo:g.S,AR:b*b/S,lam:g.lam,mac:g.mac,ymac:g.ymac,xLEmac:w.xLE/1000+g.xmacOff,tanHalf:g.tanHalf};
+}
+/* Finite-wing lift-curve slope, Helmbold form as used in USAF DATCOM and Raymer (M = 0). */
+function helmbold(AR,a0,tanHalf){
+  var k=a0/(2*PI);
+  return 2*PI*AR/(2+Math.sqrt(4+(AR/k)*(AR/k)*(1+tanHalf*tanHalf)));
+}
+/* V-tail by the projected-area theory of NACA Report 823 (Purser and Campbell):
+   pitch uses S*cos^2(angle), yaw uses S*sin^2(angle), with the lift slope taken normal to the panel. */
+function tailGeom(t){
+  var s=t.slant/1000,g=trapezoid(2*s,t.rootChord/1000,t.tipChord/1000,t.sweepLE);
+  var x0=t.xLE/1000,out={S:g.S,AR:(2*s)*(2*s)/g.S,mac:g.mac};
+  out.aN=helmbold(out.AR,t.a0,g.tanHalf);
+  out.xac=x0+g.xmacOff+0.25*g.mac;
+  if(t.type==='vtail'){
+    var gam=rad(t.dihedral),c2=Math.cos(gam)*Math.cos(gam);
+    out.Sh=g.S*c2;out.Sv=g.S*(1-c2);out.xacV=out.xac;
+    out.tipZ=t.z+t.slant*Math.sin(gam);out.tipY=t.yRoot+t.slant*Math.cos(gam);
+  }else{
+    var fr=t.finRootChord/1000,ft=t.finTipChord/1000,fl=ft/fr;
+    out.Sh=g.S;out.Sv=(t.finHeight/1000)*(fr+ft)/2;
+    out.xacV=x0+0.25*(2/3)*fr*(1+fl+fl*fl)/(1+fl);
+    out.tipZ=t.z+t.finHeight;out.tipY=t.yRoot+t.slant;
+  }
+  return out;
+}
+/* Apparent-mass factor (k2 - k1) for an ellipsoid of revolution, from Lamb's coefficients. */
+var MUNK_K=[[1,0],[2,0.493],[3,0.681],[4,0.778],[5,0.836],[6,0.873],[8,0.916],[10,0.939],[20,0.98],[50,1]];
+function interp(tab,x){
+  if(x<=tab[0][0])return tab[0][1];
+  for(var i=1;i<tab.length;i++){if(x<=tab[i][0]){var a=tab[i-1],b=tab[i];return a[1]+(b[1]-a[1])*(x-a[0])/(b[0]-a[0]);}}
+  return tab[tab.length-1][1];
+}
+function fusGeom(fu){
+  var w=fu.width/1000,h=fu.height/1000,L=(fu.noseLen+fu.boomLen+fu.tailLen)/1000;
+  var vol=w*h*(fu.noseLen/3+fu.boomLen+fu.tailLen*0.5)/1000;
+  var deq=Math.sqrt(4*w*h/PI),fr=L/deq;
+  return {L:L,vol:vol,deq:deq,fineness:fr,k21:interp(MUNK_K,fr)};
+}
+/* Thin-airfoil theory for a NACA 4-digit camber line (Anderson, Fundamentals of Aerodynamics). */
+function thinAirfoil(code){
+  var s=String(code);if(!/^\d{4}$/.test(s))s='0012';
+  var m=+s.charAt(0)/100,p=+s.charAt(1)/10,t=+s.slice(2)/100;
+  if(m===0||p===0)return {m:0,p:0,t:t,alphaL0:0,cm:0};
+  var N=4000,I0=0,I1=0,I2=0,dth=PI/N;
+  for(var i=0;i<N;i++){
+    var th=(i+0.5)*dth,x=(1-Math.cos(th))/2;
+    var dz=x<p?2*m/(p*p)*(p-x):2*m/((1-p)*(1-p))*(p-x);
+    I0+=dz*(Math.cos(th)-1)*dth;I1+=dz*Math.cos(th)*dth;I2+=dz*Math.cos(2*th)*dth;
+  }
+  return {m:m,p:p,t:t,alphaL0:-I0/PI,cm:(PI/4)*((2/PI)*I2-(2/PI)*I1)};
+}
+function nacaOutline(code,n){ /* unit-chord outline, upper surface then lower, for drawing */
+  var a=thinAirfoil(code),up=[],lo=[];n=n||30;
+  for(var i=0;i<=n;i++){
+    var x=(1-Math.cos(PI*i/n))/2;
+    var yt=5*a.t*(0.2969*Math.sqrt(x)-0.1260*x-0.3516*x*x+0.2843*x*x*x-0.1015*x*x*x*x);
+    var yc=0;
+    if(a.m>0&&a.p>0)yc=x<a.p?a.m/(a.p*a.p)*(2*a.p*x-x*x):a.m/((1-a.p)*(1-a.p))*((1-2*a.p)+2*a.p*x-x*x);
+    up.push([x,yc+yt]);lo.push([x,yc-yt]);
+  }
+  return up.concat(lo.reverse());
+}
+function stallSpeed(W,rho,S,clMax){return (W>0&&S>0&&clMax>0)?Math.sqrt(2*W/(rho*S*clMax)):0;}
+function staticMargin(xcg,xnp,mac){return (xnp-xcg)/mac;}
+
+/* ---------- Everything derived from one configuration ---------- */
+function compute(cfg){
+  var w=cfg.wing,t=cfg.tail,fu=cfg.fus,pr=cfg.prop;
+  var atm=isa(cfg.env.alt,cfg.env.dT);
+  var mp=massProps(cfg.components),W=mp.M*G0;
+  var wg=wingGeom(w),tg=tailGeom(t),fg=fusGeom(fu),af=thinAirfoil(w.naca);
+  /* Lift slopes and downwash (Nelson: d(eps)/d(alpha) = 2 a_w / (pi AR)) */
+  var aw=helmbold(wg.AR,w.a0,wg.tanHalf);
+  var epsAuto=Math.min(0.9,2*aw/(PI*wg.AR));
+  var epsA=(cfg.aero.downwash==null)?epsAuto:cfg.aero.downwash;
+  /* Fuselage pitching moment, Munk slender body: Cm_alpha = 2 (k2-k1) Vol / (S c) */
+  var cmaF=2*fg.k21*fg.vol/(wg.S*wg.mac);
+  var hacwb=0.25-cmaF/aw;
+  /* Neutral point, Etkin and Reid: h_n = h_nwb + (a_t/a) Vbar_H (1 - eps_alpha) */
+  var at=t.eta*tg.aN;
+  var a=aw+at*(tg.Sh/wg.S)*(1-epsA);
+  var xacwb=wg.xLEmac+hacwb*wg.mac;
+  var lbar=tg.xac-xacwb;
+  var VHbar=lbar*tg.Sh/(wg.S*wg.mac);
+  var hn=hacwb+(at/a)*VHbar*(1-epsA);
+  var xnp=(wg.xLEmac+hn*wg.mac)*1000;
+  var xcg=mp.cg.x;
+  var hcg=(xcg/1000-wg.xLEmac)/wg.mac;
+  var sm=mp.M>0?staticMargin(xcg,xnp,wg.mac*1000):NaN;
+  /* Tail volume coefficients about the CG */
+  var lt=tg.xac-xcg/1000,lv=tg.xacV-xcg/1000;
+  var Vh=tg.Sh*lt/(wg.S*wg.mac),Vv=tg.Sv*lv/(wg.S*wg.b);
+  /* Speeds and coefficients */
+  var V=cfg.flt.V,q=0.5*atm.rho*V*V;
+  var Vs=stallSpeed(W,atm.rho,wg.S,w.clMax);
+  var CLcr=W/(q*wg.S);
+  /* CG range for the target static margin, and what it takes to get there */
+  var xAft=(wg.xLEmac+(hn-cfg.flt.smMin/100)*wg.mac)*1000;
+  var xFwd=(wg.xLEmac+(hn-cfg.flt.smMax/100)*wg.mac)*1000;
+  var xT=(xAft+xFwd)/2,Mg=mp.M*1000,mMov=mp.mMov*1000,Lmm=fg.L*1000;
+  var bal={xT:xT,mMov:mMov,dx:null,feasible:false,minX:0,maxX:0,ballast:0,xBallast:Math.max(10,fu.noseLen/2)};
+  if(mMov>0&&Mg>0){
+    bal.dx=(xT-xcg)*Mg/mMov;bal.minX=Infinity;bal.maxX=-Infinity;
+    cfg.components.forEach(function(c){if(!c.mov||c.mass<=0)return;var half=c.shape==='point'?0:c.lx/2;
+      bal.minX=Math.min(bal.minX,c.x+bal.dx-half);bal.maxX=Math.max(bal.maxX,c.x+bal.dx+half);});
+    bal.feasible=bal.minX>=0&&bal.maxX<=Lmm;
+  }
+  if(xcg>xT&&xT>bal.xBallast)bal.ballast=Mg*(xcg-xT)/(xT-bal.xBallast);
+  var packV=cfg.batt.cells*cfg.batt.vFull;
+  return {
+    atm:atm,mass:mp,W:W,wing:wg,tail:tg,fus:fg,airfoil:af,
+    aw:aw,at:at,a:a,epsA:epsA,epsAuto:epsAuto,cmaF:cmaF,hacwb:hacwb,xacwb:xacwb*1000,
+    hn:hn,xnp:xnp,xcg:xcg,hcg:hcg,sm:sm,lt:lt,lv:lv,lbar:lbar,Vh:Vh,Vv:Vv,VHbar:VHbar,
+    V:V,q:q,Vs:Vs,CLcr:CLcr,Vratio:Vs>0?V/Vs:0,Re:atm.rho*V*wg.mac/atm.mu,
+    wingLoading:mp.M/wg.S,TW:Mg>0?pr.staticThrust/Mg:0,
+    xAft:xAft,xFwd:xFwd,balance:bal,
+    packV:packV,battI:cfg.batt.C*cfg.batt.mAh/1000,
+    pitchSpeed:cfg.motor.kv*packV*(pr.pitch/1000)/60,
+    ground:-fu.height/2-fu.skid
+  };
+}
+
+/* ---------- Validity panel ---------- */
+function balanceText(r){
+  var b=r.balance;
+  if(!(b.mMov>0))return 'Tick "movable" on the battery or ballast in the component table to get a balance suggestion.';
+  var dir=b.dx<0?'forward':'aft';
+  if(b.feasible)return 'Slide the movable parts '+Math.abs(Math.round(b.dx))+' mm '+dir+' to put the CG at '+Math.round(b.xT)+' mm, or drag the CG marker on the schematic.';
+  if(b.dx<0){
+    var s='Sliding the movable parts alone cannot fix this: they would have to sit '+Math.round(-b.minX)+' mm ahead of the nose tip. Move the wing aft, lighten the tail end';
+    if(b.ballast>0)s+=', or add about '+Math.round(b.ballast)+' g of ballast at x = '+Math.round(b.xBallast)+' mm';
+    return s+'.';
+  }
+  return 'Sliding the movable parts alone cannot fix this: they would extend past the tail. Move the wing forward or add weight aft.';
+}
+function validity(cfg,r){
+  var out=[],t=cfg.tail,pr=cfg.prop;
+  function add(level,title,detail,fix){out.push({level:level,title:title,detail:detail,fix:fix||''});}
+  function mm(v){return Math.round(v)+' mm';}
+  if(!(r.mass.M>0)){add('bad','No mass entered','The component table has no mass, so CG and speeds cannot be computed.','Add components and their weights.');return out;}
+  var sm=r.sm*100;
+  if(sm<0)add('bad','Statically unstable','The CG is '+mm(r.xcg-r.xnp)+' behind the neutral point (static margin '+sm.toFixed(1)+'%).',balanceText(r));
+  else if(sm<cfg.flt.smMin)add('warn','Static margin below target','Static margin is '+sm.toFixed(1)+'%, target minimum is '+cfg.flt.smMin+'%. The aircraft will be pitch-sensitive.',balanceText(r));
+  else if(sm>cfg.flt.smMax)add('warn','Static margin above target','Static margin is '+sm.toFixed(1)+'%, target maximum is '+cfg.flt.smMax+'%. Nose-heavy: more up-elevator and trim drag.',balanceText(r));
+  else add('ok','Static margin in range','Static margin is '+sm.toFixed(1)+'% (target '+cfg.flt.smMin+' to '+cfg.flt.smMax+'%).');
+  if(Math.abs(r.mass.cg.y)>2)add('warn','Lateral CG offset','The CG sits '+Math.abs(r.mass.cg.y).toFixed(1)+' mm '+(r.mass.cg.y>0?'right':'left')+' of the centreline.','Mirror the side-mounted parts or shift the battery sideways.');
+  if(r.mass.estFrac>0.2)add('info','Mass is mostly unweighed',Math.round(r.mass.estFrac*100)+'% of the mass is tagged estimate or guess. Balance and speeds are provisional.','Weigh each part and change its source to measured.');
+  var dm=(r.mass.M*1000-cfg.flt.massTarget)/cfg.flt.massTarget*100;
+  if(Math.abs(dm)>10)add('info','Mass differs from target','Total is '+Math.round(r.mass.M*1000)+' g, '+(dm>0?'+':'')+dm.toFixed(0)+'% against the '+cfg.flt.massTarget+' g target.');
+  /* Speeds */
+  if(r.Vratio<1.1)add('bad','Design airspeed is at the stall','Design speed is '+r.Vratio.toFixed(2)+' x stall speed ('+r.Vs.toFixed(1)+' m/s).','Raise the design airspeed, cut weight, or add wing area.');
+  else if(r.Vratio<1.3)add('warn','Thin stall margin','Design speed is only '+r.Vratio.toFixed(2)+' x stall speed ('+r.Vs.toFixed(1)+' m/s). 1.3 or more is usual.','Raise the design airspeed or reduce wing loading.');
+  else add('ok','Stall margin','Design speed is '+r.Vratio.toFixed(2)+' x stall speed ('+r.Vs.toFixed(1)+' m/s).');
+  /* Tail volume */
+  if(r.Vh<0.25)add('bad','Horizontal tail volume very low','Coefficient is '+r.Vh.toFixed(2)+'. Typical range is 0.35 to 0.6.','Enlarge the tail, flatten the V angle, or lengthen the tail arm.');
+  else if(r.Vh<0.35)add('warn','Horizontal tail volume low','Coefficient is '+r.Vh.toFixed(2)+'. Typical range is 0.35 to 0.6.','Enlarge the tail, flatten the V angle, or lengthen the tail arm.');
+  if(r.Vv<0.02)add('bad','Vertical tail volume very low','Coefficient is '+r.Vv.toFixed(3)+'. Typical range is 0.025 to 0.05.','Enlarge the tail or steepen the V angle.');
+  else if(r.Vv<0.025)add('warn','Vertical tail volume low','Coefficient is '+r.Vv.toFixed(3)+'. Typical range is 0.025 to 0.05.','Enlarge the tail or steepen the V angle.');
+  if(r.Vh>=0.35&&r.Vv>=0.025)add('ok','Tail volume','Horizontal '+r.Vh.toFixed(2)+', vertical '+r.Vv.toFixed(3)+'.');
+  /* Prop against tail */
+  var R=pr.diam/2;
+  var teMax=Math.max(t.xLE+t.rootChord,t.xLE+t.slant*Math.tan(rad(t.sweepLE))+t.tipChord);
+  var gap=pr.x-teMax,rootR=Math.sqrt(t.yRoot*t.yRoot+(t.z-pr.z)*(t.z-pr.z));
+  if(gap<0&&rootR<R)add('bad','Tail passes through the prop disc','The tail trailing edge is '+mm(-gap)+' behind the prop plane and inside the disc radius.','Move the prop plane aft or the tail forward until there is at least 20 mm of gap.');
+  else if(gap>=0&&gap<20)add('warn','Tight prop to tail clearance','Only '+mm(gap)+' between the tail trailing edge and the prop plane. 20 to 30 mm is the target.','Move the prop plane aft or trim the control surface.');
+  else if(gap>=20)add('ok','Prop to tail clearance',mm(gap)+' between the tail trailing edge and the prop plane.');
+  /* Prop against ground */
+  var clr=(pr.z-R)-r.ground;
+  if(clr<0)add('bad','Prop strikes the ground','The prop tips hang '+mm(-clr)+' below the belly line.','Use a folding prop, raise the thrust line by '+mm(-clr)+' or more, or fit a skid at least '+mm(-clr+15)+' tall.');
+  else if(clr<15)add('warn','Low prop ground clearance','Only '+mm(clr)+' between the prop tips and the ground.','Raise the thrust line or add a taller skid.');
+  else add('ok','Prop ground clearance',mm(clr)+' between the prop tips and the ground.');
+  var lowTail=Math.min(t.z,r.tail.tipZ);
+  if(lowTail<r.ground)add('bad','Tail below the ground line','The lowest tail point is '+mm(r.ground-lowTail)+' below the belly line.','Raise the tail root or reduce the downward angle.');
+  /* Electrical */
+  if(pr.staticCurrent>cfg.esc.limit)add('bad','Full throttle exceeds the ESC rating','This prop draws '+pr.staticCurrent+' A at full throttle; the ESC is rated '+cfg.esc.limit+' A.','Use a higher-rated ESC or a smaller prop.');
+  else if(cfg.esc.limit<cfg.motor.iMax)add('warn','ESC rated below the motor peak','ESC '+cfg.esc.limit+' A, motor peak '+cfg.motor.iMax+' A.','Choose an ESC with headroom above the motor peak.');
+  if(pr.staticCurrent>cfg.motor.iMax)add('warn','Full throttle exceeds the motor peak current','This prop draws '+pr.staticCurrent+' A; the motor peak is '+cfg.motor.iMax+' A.','Limit throttle or use a smaller prop.');
+  if(r.battI<pr.staticCurrent)add('warn','Battery cannot supply full-throttle current','Battery limit is '+Math.round(r.battI)+' A (C rating x capacity); full throttle draws '+pr.staticCurrent+' A.','Use a higher C rating or more capacity.');
+  if(r.TW<0.5)add('warn','Low static thrust','Static thrust to weight is '+r.TW.toFixed(2)+'. Hand launches need about 0.5 or more.');
+  if(cfg.wing.areaOverride!=null){var da=(cfg.wing.areaOverride-r.wing.Sgeo)/r.wing.Sgeo*100;
+    if(Math.abs(da)>3)add('info','Wing area override differs from geometry','Override is '+(da>0?'+':'')+da.toFixed(1)+'% against span x mean chord ('+r.wing.Sgeo.toFixed(3)+' m2).','Clear the override or correct span and chord.');}
+  var rank={bad:0,warn:1,info:2,ok:3};
+  out.sort(function(p,q2){return rank[p.level]-rank[q2.level];});
+  return out;
+}
+
+/* ---------- Self-tests ---------- */
+function selfTests(cur){
+  var T=[];
+  function near(name,got,exp,tol,note){T.push({name:name,got:got,exp:exp,tol:tol,pass:isFinite(got)&&Math.abs(got-exp)<=tol,note:note||''});}
+  function range(name,got,lo,hi,note){T.push({name:name,got:got,exp:lo+' to '+hi,tol:null,pass:isFinite(got)&&got>=lo&&got<=hi,note:note||''});}
+  function truth(name,ok,note){T.push({name:name,got:ok?'yes':'no',exp:'yes',tol:null,pass:!!ok,note:note||''});}
+  near('ISA density at sea level (kg/m3)',isa(0,0).rho,1.2250,0.0005,'Standard value');
+  near('ISA density at 1000 m (kg/m3)',isa(1000,0).rho,1.1117,0.0010,'Standard value');
+  var mp=massProps([C('a',100,0,0,0,'point',0,0,0,'measured',0),C('b',300,400,0,0,'point',0,0,0,'measured',0)]);
+  near('CG of 100 g at 0 and 300 g at 400 mm (mm)',mp.cg.x,300,1e-9,'Hand calculation');
+  var box=massProps([C('box',1000,0,0,0,'box',100,200,300,'measured',0)]);
+  near('Box inertia Ixx, 1 kg 0.1 x 0.2 x 0.3 m (kg m2)',box.I.xx,0.0108333,1e-6,'m(b2+c2)/12');
+  near('Box inertia Izz (kg m2)',box.I.zz,0.0041667,1e-6,'m(a2+b2)/12');
+  var two=massProps([C('a',500,0,0,0,'point',0,0,0,'measured',0),C('b',500,1000,0,0,'point',0,0,0,'measured',0)]);
+  near('Parallel axis: two 0.5 kg points 1 m apart, Iyy (kg m2)',two.I.yy,0.25,1e-9,'2 x 0.5 x 0.5^2');
+  var cyl=massProps([C('cyl',2000,0,0,0,'cyl',500,100,0,'measured',0)]);
+  near('Cylinder inertia about its axis, 2 kg r = 0.05 m (kg m2)',cyl.I.xx,0.0025,1e-9,'m r2 / 2');
+  near('Cylinder transverse inertia (kg m2)',cyl.I.yy,0.0429167,1e-6,'m(3r2+L2)/12');
+  near('Mean aerodynamic chord, 300 to 150 mm taper (mm)',trapezoid(1,0.3,0.15,0).mac*1000,233.333,0.01,'Hand calculation');
+  near('Stall speed, 1.5 kg, 0.4 m2, CLmax 1.2, sea level (m/s)',stallSpeed(1.5*G0,1.225,0.4,1.2),7.0735,0.002,'Hand calculation');
+  near('Static margin, CG 290, NP 330, chord 267 mm (%)',staticMargin(290,330,267)*100,14.981,0.01,'Hand calculation');
+  var ta=thinAirfoil('2412');
+  near('NACA 2412 zero-lift angle (deg)',deg(ta.alphaL0),-2.077,0.02,'Thin-airfoil theory, published value');
+  near('NACA 2412 quarter-chord moment coefficient',ta.cm,-0.0531,0.0010,'Thin-airfoil theory, published value');
+  near('NACA 0012 zero-lift angle (deg)',deg(thinAirfoil('0012').alphaL0),0,1e-12,'Symmetric section');
+  near('Lift slope, AR 6, section slope 2 pi (per rad)',helmbold(6,2*PI,0),4.5287,0.001,'Hand calculation');
+  near('Lift slope tends to the section slope at very high AR',helmbold(1e7,5.73,0),5.73,0.001,'Limit check');
+  var vt=tailGeom({type:'vtail',slant:365,rootChord:160,tipChord:160,sweepLE:0,xLE:845,dihedral:35,z:35,yRoot:20,a0:5.73});
+  near('V-tail horizontal share at 35 deg',vt.Sh/vt.S,0.6710,0.0002,'cos^2(35 deg)');
+  near('V-tail projected areas sum to the true area',(vt.Sh+vt.Sv)/vt.S,1,1e-12,'cos^2 + sin^2 = 1');
+  /* Config handling */
+  var d=defaultsConfig();d.wing.span=1400;d.components[0].x=95;d.prov['wing.span']={src:'measured',tol:0.5};
+  truth('Share link encodes and decodes a config exactly',JSON.stringify(decodeShare(encodeShare('t',d)).cfg)===JSON.stringify(d),'Round trip');
+  truth('Saved JSON reloads exactly',JSON.stringify(normalizeConfig(JSON.parse(JSON.stringify(d))))===JSON.stringify(d),'Round trip');
+  truth('Bad input falls back to defaults',JSON.stringify(normalizeConfig({wing:{span:'abc'},components:'x'}))===JSON.stringify(defaultsConfig()),'Robustness');
+  /* Sanity ranges for the default aircraft */
+  var r0=compute(defaultsConfig());
+  range('Default aircraft: stall speed (m/s)',r0.Vs,6.5,8.5,'Sanity range');
+  range('Default aircraft: cruise CL at 13 m/s',r0.CLcr,0.35,0.45,'Sanity range');
+  range('Default aircraft: static thrust to weight',r0.TW,1.4,3,'Sanity range');
+  range('Default aircraft: tail arm, wing to tail quarter chord (m)',r0.tail.xac-(r0.wing.xLEmac+0.25*r0.wing.mac),0.55,0.65,'Sanity range');
+  range('Default aircraft: horizontal tail volume (wing-based arm)',r0.VHbar,0.38,0.48,'Hand estimate 0.43');
+  range('Default aircraft: neutral point (% chord)',r0.hn*100,36,46,'Hand estimate about 41%');
+  /* Consistency of the configuration on screen */
+  if(cur){
+    var r=compute(cur);
+    if(r.mass.M>0){
+      near('Current config: lift equals weight at cruise CL (N)',r.q*r.wing.S*r.CLcr,r.W,1e-9*Math.max(1,r.W),'Consistency');
+      var mom=0;cur.components.forEach(function(c){mom+=c.mass*(c.x-r.xcg);});
+      near('Current config: moments about the CG sum to zero (g mm)',mom,0,1e-6*Math.max(1,r.mass.M*1e6),'Consistency');
+      near('Current config: static margin equals NP minus CG (%)',r.sm*100,(r.hn-r.hcg)*100,1e-9,'Consistency');
     }
-  </script>
+  }
+  return T;
+}
+/*CORE-END*/
 
+/* =====================================================================
+   UI
+   ===================================================================== */
+var root=document.getElementById('acsim');
+if(!root)return;
+var KEY='acsim.v1';
+var UNIT={
+  mm:{imp:'in',k:1/25.4},g:{imp:'oz',k:0.0352739619},kg:{imp:'lb',k:2.20462262},'m/s':{imp:'kt',k:1.9438445},m:{imp:'ft',k:3.2808399},
+  m2:{imp:'ft\u00b2',k:10.7639104,label:'m\u00b2'},dC:{imp:'\u00b0F',k:1.8,label:'\u00b0C'},'kg/m2':{imp:'oz/ft\u00b2',k:3.27706,label:'kg/m\u00b2'},
+  kgm2:{imp:'slug\u00b7ft\u00b2',k:0.737562,label:'kg\u00b7m\u00b2'},deg:{label:'\u00b0'}
+};
+var state={configs:[],active:null,units:'metric',showTol:false,compare:[]};
+var hist={},seq=0,els={},tab='components';
+
+function uid(){seq++;return 'c'+Date.now().toString(36)+seq;}
+function isImp(){return state.units==='imperial';}
+function toDisp(v,u){var d=UNIT[u];return (isImp()&&d&&d.k)?v*d.k:v;}
+function fromDisp(v,u){var d=UNIT[u];return (isImp()&&d&&d.k)?v/d.k:v;}
+function ulabel(u){var d=UNIT[u];if(!d)return u;return (isImp()&&d.imp)?d.imp:(d.label||u);}
+function trimNum(v,dp){if(v==null||!isFinite(v))return '';return String(parseFloat(v.toFixed(dp==null?4:dp)));}
+function fx(v,dp){return isFinite(v)?v.toFixed(dp):'\u2013';}
+function act(){for(var i=0;i<state.configs.length;i++){if(state.configs[i].id===state.active)return state.configs[i];}return state.configs[0];}
+function cur(){return act().cfg;}
+
+function h(tag,attrs){
+  var e=document.createElement(tag),k;
+  if(attrs){for(k in attrs){var v=attrs[k];if(v==null||v===false)continue;
+    if(k==='text')e.textContent=v;else if(k==='class')e.className=v;
+    else if(k.slice(0,2)==='on')e.addEventListener(k.slice(2),v);
+    else e.setAttribute(k,v===true?'':v);}}
+  for(var i=2;i<arguments.length;i++)addKid(e,arguments[i]);
+  return e;
+}
+function addKid(e,c){
+  if(c==null||c===false)return;
+  if(Array.isArray(c)){c.forEach(function(x){addKid(e,x);});return;}
+  e.appendChild(typeof c==='object'?c:document.createTextNode(String(c)));
+}
+var SVGNS='http://www.w3.org/2000/svg';
+function sv(tag,attrs){
+  var e=document.createElementNS(SVGNS,tag),k;
+  if(attrs){for(k in attrs){if(attrs[k]==null)continue;if(k==='text')e.textContent=attrs[k];else e.setAttribute(k,attrs[k]);}}
+  for(var i=2;i<arguments.length;i++){if(arguments[i])e.appendChild(arguments[i]);}
+  return e;
+}
+function clear(e){while(e.firstChild)e.removeChild(e.firstChild);}
+
+/* ---------- storage, history ---------- */
+function save(){
+  try{localStorage.setItem(KEY,JSON.stringify({v:1,configs:state.configs,active:state.active,units:state.units,showTol:state.showTol}));}catch(e){}
+}
+function load(){
+  var raw=null;
+  try{raw=JSON.parse(localStorage.getItem(KEY));}catch(e){raw=null;}
+  if(raw&&Array.isArray(raw.configs)&&raw.configs.length){
+    state.configs=raw.configs.slice(0,30).map(function(c){return {id:uid(),name:String(c&&c.name||'Config').slice(0,60),cfg:normalizeConfig(c&&c.cfg)};});
+    var idx=0;raw.configs.forEach(function(c,i){if(c&&c.id===raw.active)idx=i;});
+    state.active=state.configs[Math.min(idx,state.configs.length-1)].id;
+    state.units=raw.units==='imperial'?'imperial':'metric';state.showTol=!!raw.showTol;
+  }else{
+    state.configs=[{id:uid(),name:'Baseline',cfg:defaultsConfig()}];state.active=state.configs[0].id;
+  }
+  /* shared link */
+  try{
+    var m=/[#&]c=([A-Za-z0-9_-]+)/.exec(location.hash||'');
+    if(m){
+      var sh=decodeShare(m[1]),js=JSON.stringify(sh.cfg),found=null;
+      state.configs.forEach(function(c){if(JSON.stringify(c.cfg)===js)found=c;});
+      if(!found){found={id:uid(),name:sh.name,cfg:sh.cfg};state.configs.push(found);}
+      state.active=found.id;
+    }
+  }catch(e){}
+  state.compare=state.configs.slice(0,3).map(function(c){return c.id;});
+  state.configs.forEach(function(c){hist[c.id]={stack:[JSON.stringify(c.cfg)],idx:0};});
+}
+function commit(){
+  var c=act(),j=JSON.stringify(c.cfg),H=hist[c.id]||(hist[c.id]={stack:[],idx:-1});
+  if(H.stack[H.idx]!==j){
+    H.stack=H.stack.slice(0,H.idx+1);H.stack.push(j);
+    if(H.stack.length>100)H.stack.shift();
+    H.idx=H.stack.length-1;
+  }
+  save();updateBar();renderTests();
+}
+function undo(dir){
+  var c=act(),H=hist[c.id];if(!H)return;
+  var n=H.idx+dir;if(n<0||n>=H.stack.length)return;
+  H.idx=n;c.cfg=normalizeConfig(JSON.parse(H.stack[n]));
+  save();renderInputs();live();updateBar();renderTests();
+}
+
+/* ---------- modal ---------- */
+function modal(o){
+  var ov=h('div',{class:'ov'}),inp=null;
+  var box=h('div',{class:'modal',role:'dialog','aria-modal':'true'},h('h3',{text:o.title}),o.text?h('p',{text:o.text}):null);
+  if(o.input){inp=h('input',{type:'text',class:'minp','aria-label':o.title});inp.value=o.value||'';if(o.readonly)inp.readOnly=true;box.appendChild(inp);}
+  function close(){if(ov.parentNode)ov.parentNode.removeChild(ov);}
+  var ok=h('button',{class:'btn pri',text:o.okText||'OK',onclick:function(){close();if(o.onOk)o.onOk(inp?inp.value:undefined);}});
+  box.appendChild(h('div',{class:'mrow'},o.noCancel?null:h('button',{class:'btn',text:'Cancel',onclick:close}),ok));
+  ov.appendChild(box);root.appendChild(ov);
+  ov.addEventListener('keydown',function(e){if(e.key==='Escape')close();if(e.key==='Enter'&&inp){ok.click();}});
+  if(inp){inp.focus();inp.select();}else ok.focus();
+}
+
+/* ---------- config manager ---------- */
+function switchTo(id){state.active=id;save();renderInputs();live();updateBar();renderTests();}
+function addConfig(name,cfg){
+  var c={id:uid(),name:name,cfg:cfg};state.configs.push(c);hist[c.id]={stack:[JSON.stringify(cfg)],idx:0};
+  if(state.compare.length<3)state.compare.push(c.id);
+  switchTo(c.id);
+}
+function uniqueName(base){
+  var n=base,i=2,names=state.configs.map(function(c){return c.name;});
+  while(names.indexOf(n)>=0){n=base+' '+i;i++;}
+  return n;
+}
+function download(name,text){
+  var u=URL.createObjectURL(new Blob([text],{type:'application/json'}));
+  var a=h('a',{href:u,download:name});root.appendChild(a);a.click();
+  setTimeout(function(){URL.revokeObjectURL(u);if(a.parentNode)a.parentNode.removeChild(a);},800);
+}
+function doSave(){var c=act();download(c.name.replace(/[^\w-]+/g,'_')+'.json',JSON.stringify({acsim:1,name:c.name,cfg:c.cfg},null,1));}
+function doLoad(file){
+  var rd=new FileReader();
+  rd.onload=function(){
+    try{
+      var o=JSON.parse(rd.result),list=Array.isArray(o.configs)?o.configs:[o];
+      list.slice(0,20).forEach(function(it){addConfig(uniqueName(String(it&&it.name||'Loaded').slice(0,60)),normalizeConfig(it&&it.cfg?it.cfg:it));});
+    }catch(e){modal({title:'Could not read that file',text:'It is not a configuration saved from this page.',noCancel:true});}
+  };
+  rd.readAsText(file);
+}
+function doShare(){
+  var c=act(),link=location.href.split('#')[0]+'#c='+encodeShare(c.name,c.cfg);
+  var copied=false;
+  function show(){modal({title:'Share link',text:(copied?'Copied to the clipboard. ':'')+'Anyone opening this link sees this exact configuration.',input:true,value:link,readonly:true,noCancel:true,okText:'Done'});}
+  try{navigator.clipboard.writeText(link).then(function(){copied=true;show();},show);}catch(e){show();}
+}
+
+/* ---------- shell ---------- */
+function renderShell(){
+  clear(root);
+  var wrap=h('div',{class:'wrap'});root.appendChild(wrap);
+  wrap.appendChild(h('header',{class:'top'},
+    h('div',null,h('div',{class:'tag',text:'Fixed-wing UAS \u00b7 pusher \u00b7 V-tail'}),h('h1',null,'Flight ',h('span',{text:'Simulator'}))),
+    h('div',{class:'tag',text:'Stage 1 \u00b7 mass, balance, sizing'})));
+  els.file=h('input',{type:'file',accept:'.json,application/json',class:'hide',onchange:function(){if(els.file.files[0])doLoad(els.file.files[0]);els.file.value='';}});
+  els.sel=h('select',{'aria-label':'Configuration',onchange:function(){switchTo(els.sel.value);}});
+  els.undo=h('button',{class:'btn',text:'Undo',onclick:function(){undo(-1);}});
+  els.redo=h('button',{class:'btn',text:'Redo',onclick:function(){undo(1);}});
+  els.units=h('button',{class:'btn',onclick:function(){state.units=isImp()?'metric':'imperial';save();renderInputs();live();updateBar();}});
+  els.tolb=h('button',{class:'btn',text:'Uncertainty',title:'Show the tolerance on every input',onclick:function(){state.showTol=!state.showTol;save();updateBar();}});
+  wrap.appendChild(h('nav',{class:'bar','aria-label':'Configuration'},
+    els.sel,
+    h('button',{class:'btn',text:'New',title:'New configuration from the defaults',onclick:function(){addConfig(uniqueName('Config'),defaultsConfig());}}),
+    h('button',{class:'btn',text:'Duplicate',onclick:function(){addConfig(uniqueName(act().name+' copy'),clone(cur()));}}),
+    h('button',{class:'btn',text:'Rename',onclick:function(){modal({title:'Rename configuration',input:true,value:act().name,onOk:function(v){v=String(v||'').trim().slice(0,60);if(v){act().name=v;save();updateBar();renderCompare();}}});}}),
+    h('button',{class:'btn',text:'Delete',onclick:function(){
+      if(state.configs.length<2){modal({title:'Cannot delete',text:'Keep at least one configuration.',noCancel:true});return;}
+      modal({title:'Delete "'+act().name+'"?',text:'This cannot be undone.',okText:'Delete',onOk:function(){
+        var id=state.active;state.configs=state.configs.filter(function(c){return c.id!==id;});
+        state.compare=state.compare.filter(function(x){return x!==id;});delete hist[id];switchTo(state.configs[0].id);}});}}),
+    els.undo,els.redo,h('span',{class:'sp'}),
+    h('button',{class:'btn',text:'Save file',onclick:doSave}),
+    h('button',{class:'btn',text:'Load file',onclick:function(){els.file.click();}}),
+    h('button',{class:'btn',text:'Share link',onclick:doShare}),
+    h('button',{class:'btn',text:'Reset',title:'Reset this configuration to the defaults',onclick:function(){
+      modal({title:'Reset "'+act().name+'" to the defaults?',text:'You can undo this.',okText:'Reset',onOk:function(){act().cfg=defaultsConfig();renderInputs();live();commit();}});}}),
+    els.units,els.tolb,els.file));
+
+  els.cards=h('div',{class:'cards'});
+  els.gauge=h('div',{class:'gauge'});
+  wrap.appendChild(h('section',{id:'acs-summary'},h('h2',{text:'Summary'}),els.cards,els.gauge));
+
+  els.side=sv('svg',{role:'img','aria-label':'Side view of the aircraft with CG and neutral point'});
+  els.topv=sv('svg',{class:'topv',role:'img','aria-label':'Top view of the aircraft'});
+  els.checks=h('div');
+  wrap.appendChild(h('section',{id:'acs-schematic'},h('h2',{text:'Side view'}),h('div',{class:'svgbox'},els.side),
+    h('p',{class:'hint',text:'Drag the CG marker to slide the movable parts. Drag any part to move it along the body. Orange outlines are unweighed estimates, green are measured.'})));
+  wrap.appendChild(h('div',{class:'grid2'},
+    h('section',null,h('h2',{text:'Checks'}),els.checks),
+    h('section',null,h('h2',{text:'Top view'}),h('div',{class:'svgbox'},els.topv))));
+
+  els.tabs=h('div',{class:'tabs',role:'tablist'});
+  els.inputs=h('div');
+  wrap.appendChild(h('section',{id:'acs-inputs'},h('h2',{text:'Configuration'}),els.tabs,els.inputs));
+
+  els.results=h('div',{class:'tscroll'});
+  wrap.appendChild(h('section',null,h('h2',{text:'Derived values'}),els.results));
+  els.compare=h('div');
+  wrap.appendChild(h('section',null,h('h2',{text:'Compare configurations'}),els.compare));
+  els.tests=h('div');
+  wrap.appendChild(h('section',null,h('h2',{text:'Self-tests'}),els.tests));
+  wrap.appendChild(h('section',null,h('h2',{text:'Assumptions and limits'}),h('ul',{class:'plain'},
+    h('li',null,h('b',{text:'Frame. '}),'Origin at the nose tip, x aft, y right, z up. Every position uses it.'),
+    h('li',null,h('b',{text:'Mass. '}),'Parts are uniform boxes, cylinders or points; inertia by the parallel-axis theorem. Tilted tail panels are entered as their bounding box.'),
+    h('li',null,h('b',{text:'Lift slope. '}),'Helmbold finite-wing formula (DATCOM, Raymer). The section slope and CLmax are inputs, not predictions.'),
+    h('li',null,h('b',{text:'V-tail. '}),'Projected-area theory, NACA Report 823: pitch uses S cos\u00b2, yaw uses S sin\u00b2.'),
+    h('li',null,h('b',{text:'Neutral point. '}),'Etkin and Reid stick-fixed form with downwash 2a/(\u03c0AR) from Nelson and a Munk slender-body fuselage term. Expect about \u00b13% of chord.'),
+    h('li',null,h('b',{text:'Not yet modelled. '}),'Drag, trim, thrust against airspeed, dynamics and the flight simulation arrive in Stages 2 to 5. Until then the forward CG guide comes from the static-margin target, not from elevator authority.'))));
+  attachDrag();
+}
+function updateBar(){
+  clear(els.sel);
+  state.configs.forEach(function(c){var o=h('option',{value:c.id,text:c.name});els.sel.appendChild(o);});
+  els.sel.value=state.active;
+  var H=hist[state.active]||{stack:[],idx:0};
+  els.undo.disabled=H.idx<=0;els.redo.disabled=H.idx>=H.stack.length-1;
+  els.units.textContent=isImp()?'Imperial':'Metric';
+  els.tolb.className='btn'+(state.showTol?' on':'');
+  root.className=state.showTol?'showtol':'';
+}
+
+/* ---------- inputs ---------- */
+function srcSelect(val,onchg){
+  var s=h('select',{class:'src '+val,'aria-label':'Data source',title:'Where this number came from'});
+  SRC.forEach(function(x){s.appendChild(h('option',{value:x,text:x}));});
+  s.value=val;
+  s.addEventListener('change',function(){s.className='src '+s.value;onchg(s.value);});
+  return s;
+}
+function fieldRow(f){
+  var id='acs_'+f.path.replace(/\./g,'_'),v=getPath(cur(),f.path),p=getProv(cur(),f.path),inp;
+  var row=h('div',{class:'fld','data-only':f.only||null});
+  row.appendChild(h('label',{for:id,title:f.tip,text:f.label}));
+  if(f.type==='select'){
+    inp=h('select',{id:id,class:'val',title:f.tip});
+    f.options.forEach(function(o){inp.appendChild(h('option',{value:o[0],text:o[1]}));});
+    inp.value=v;
+    inp.addEventListener('change',function(){
+      setPath(cur(),f.path,inp.value);
+      if(f.path==='prop.id'&&PROPS[inp.value]){var P=PROPS[inp.value],c=cur();c.prop.diam=P.diam;c.prop.pitch=P.pitch;c.prop.blades=P.blades;c.prop.staticThrust=P.max[1];c.prop.staticCurrent=P.max[0];renderInputs();}
+      applyOnly();live();commit();
+    });
+    row.appendChild(inp);
+  }else if(f.type==='text'){
+    inp=h('input',{id:id,class:'txt',type:'text',inputmode:'numeric',maxlength:'4',title:f.tip});inp.value=v;
+    inp.addEventListener('input',function(){
+      if(/^\d{4}$/.test(inp.value)){inp.className='txt';inp.title=f.tip;setPath(cur(),f.path,inp.value);live();}
+      else{inp.className='txt badv';inp.title='Enter four digits';}
+    });
+    inp.addEventListener('change',commit);
+    row.appendChild(inp);row.appendChild(h('span',{class:'u'}));
+  }else{
+    inp=h('input',{id:id,class:'num',type:'number',step:'any',title:f.tip,placeholder:f.nullable?'auto':null});
+    inp.value=v==null?'':trimNum(toDisp(v,f.unit));
+    inp.addEventListener('input',function(){
+      var raw=inp.value.trim(),val;
+      function bad(msg){inp.className='num badv';inp.title=msg;}
+      if(raw===''){if(!f.nullable){bad('A value is required');return;}val=null;}
+      else{
+        val=fromDisp(parseFloat(raw),f.unit);
+        if(!isFinite(val)){bad('Enter a number');return;}
+        if(f.int)val=Math.round(val);
+        if(val<f.min-1e-9||val>f.max+1e-9){bad('Allowed range: '+trimNum(toDisp(f.min,f.unit),3)+' to '+trimNum(toDisp(f.max,f.unit),3)+' '+ulabel(f.unit));return;}
+      }
+      inp.className='num';inp.title=f.tip;setPath(cur(),f.path,val);
+      if(f.group==='prop'&&/^prop\.(diam|pitch|blades|staticThrust|staticCurrent)$/.test(f.path)&&cur().prop.id!=='custom'){
+        cur().prop.id='custom';var ps=document.getElementById('acs_prop_id');if(ps)ps.value='custom';}
+      live();
+    });
+    inp.addEventListener('change',commit);
+    row.appendChild(inp);row.appendChild(h('span',{class:'u',text:ulabel(f.unit)}));
+  }
+  row.appendChild(srcSelect(p.src,function(s){var c=cur();c.prov[f.path]={src:s,tol:getProv(c,f.path).tol};commit();}));
+  var tolIn=h('input',{type:'number',step:'any',min:'0','aria-label':'Tolerance for '+f.label});
+  tolIn.value=trimNum(f.abs?toDisp(p.tol,f.unit==='dC'?'':f.unit):p.tol,3);
+  tolIn.addEventListener('change',function(){
+    var tv=parseFloat(tolIn.value);if(!isFinite(tv)||tv<0){tolIn.value='0';tv=0;}
+    var c=cur();c.prov[f.path]={src:getProv(c,f.path).src,tol:f.abs?fromDisp(tv,f.unit==='dC'?'':f.unit):tv};commit();
+  });
+  row.appendChild(h('span',{class:'tol'},'\u00b1',tolIn,f.abs?ulabel(f.unit):'%'));
+  return row;
+}
+function applyOnly(){
+  var type=cur().tail.type,rows=els.inputs.querySelectorAll('[data-only]');
+  for(var i=0;i<rows.length;i++)rows[i].className='fld'+(rows[i].getAttribute('data-only')===type?'':' hide');
+}
+function compRow(c,i){
+  function numCell(key,unit,min){
+    var inp=h('input',{type:'number',step:'any','aria-label':key+' of '+c.name});
+    inp.value=trimNum(toDisp(c[key],unit),3);
+    inp.addEventListener('input',function(){
+      var v=fromDisp(parseFloat(inp.value),unit);
+      if(!isFinite(v)||(min!=null&&v<min)){inp.className='badv';return;}
+      inp.className='';cur().components[i][key]=v;live();
+    });
+    inp.addEventListener('change',commit);
+    return h('td',null,inp);
+  }
+  var name=h('input',{type:'text',class:'nm',maxlength:'60','aria-label':'Part name'});name.value=c.name;
+  name.addEventListener('input',function(){cur().components[i].name=name.value.slice(0,60);live();});
+  name.addEventListener('change',commit);
+  var shape=h('select',{'aria-label':'Shape of '+c.name});
+  [['box','Box'],['cyl','Cylinder'],['point','Point']].forEach(function(o){shape.appendChild(h('option',{value:o[0],text:o[1]}));});
+  shape.value=c.shape;
+  shape.addEventListener('change',function(){cur().components[i].shape=shape.value;live();commit();});
+  var axis=h('select',{'aria-label':'Cylinder axis of '+c.name,title:'Cylinder axis'});
+  ['x','y','z'].forEach(function(o){axis.appendChild(h('option',{value:o,text:o}));});
+  axis.value=c.axis;
+  axis.addEventListener('change',function(){cur().components[i].axis=axis.value;live();commit();});
+  var tol=h('input',{type:'number',step:'any',min:'0','aria-label':'Mass tolerance percent of '+c.name});tol.value=trimNum(c.tol,2);
+  tol.addEventListener('change',function(){var v=parseFloat(tol.value);cur().components[i].tol=isFinite(v)&&v>=0?v:0;commit();});
+  var mov=h('input',{type:'checkbox','aria-label':'Movable: '+c.name});mov.checked=c.mov;
+  mov.addEventListener('change',function(){cur().components[i].mov=mov.checked;live();commit();});
+  function structural(fn){return function(){fn(cur().components);renderComponents();live();commit();};}
+  return h('tr',null,h('td',null,name),numCell('mass','g',0),numCell('x','mm'),numCell('y','mm'),numCell('z','mm'),
+    h('td',null,shape),numCell('lx','mm',0),numCell('ly','mm',0),numCell('lz','mm',0),h('td',null,axis),
+    h('td',null,srcSelect(c.src,function(s){cur().components[i].src=s;live();commit();})),h('td',null,tol),h('td',{style:'text-align:center'},mov),
+    h('td',{class:'acts'},
+      h('button',{class:'btn sm',text:'\u2191',title:'Move up','aria-label':'Move '+c.name+' up',disabled:i===0,onclick:structural(function(a){var t=a[i-1];a[i-1]=a[i];a[i]=t;})}),' ',
+      h('button',{class:'btn sm',text:'\u2193',title:'Move down','aria-label':'Move '+c.name+' down',disabled:i===cur().components.length-1,onclick:structural(function(a){var t=a[i+1];a[i+1]=a[i];a[i]=t;})}),' ',
+      h('button',{class:'btn sm',text:'Copy','aria-label':'Duplicate '+c.name,onclick:structural(function(a){var n=clone(a[i]);n.name=(n.name+' copy').slice(0,60);a.splice(i+1,0,n);})}),' ',
+      h('button',{class:'btn sm',text:'\u00d7',title:'Delete','aria-label':'Delete '+c.name,onclick:structural(function(a){a.splice(i,1);})})));
+}
+function renderComponents(){
+  var box=els.compBox;if(!box)return;clear(box);
+  var L=ulabel('mm'),tb=h('tbody');
+  cur().components.forEach(function(c,i){tb.appendChild(compRow(c,i));});
+  box.appendChild(h('div',{class:'tscroll'},h('table',{class:'comp'},h('thead',null,h('tr',null,
+    ['Part','Mass ('+ulabel('g')+')','x ('+L+')','y ('+L+')','z ('+L+')','Shape','Length','Width / dia.','Height','Axis','Source','\u00b1 %','Movable',''].map(function(t){return h('th',{text:t});}))),tb)));
+  box.appendChild(h('div',{style:'margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center'},
+    h('button',{class:'btn',text:'Add part',onclick:function(){cur().components.push(C('New part',0,Math.round(compute(cur()).xcg),0,0,'point',0,0,0,'guess',0,false));renderComponents();live();commit();}}),
+    h('span',{class:'hint',style:'margin:0',text:'Positions are the centre of each part. Length runs along x, width along y, height along z. For a cylinder, length is along its axis and width is the diameter.'})));
+}
+function renderInputs(){
+  clear(els.tabs);clear(els.inputs);
+  var all=[['components','Components']].concat(GROUPS),panes={};
+  all.forEach(function(g){
+    var b=h('button',{class:'btn'+(tab===g[0]?' on':''),role:'tab','aria-selected':tab===g[0]?'true':'false',text:g[1],onclick:function(){tab=g[0];renderInputs();}});
+    els.tabs.appendChild(b);
+    var p=h('div',{class:tab===g[0]?'':'hide',role:'tabpanel'});panes[g[0]]=p;els.inputs.appendChild(p);
+  });
+  els.compBox=panes.components;renderComponents();
+  GROUPS.forEach(function(g){
+    var grid=h('div',{class:'fgrid'});
+    FIELDS.forEach(function(f){if(f.group===g[0])grid.appendChild(fieldRow(f));});
+    panes[g[0]].appendChild(grid);
+  });
+  applyOnly();
+}
+
+/* ---------- outputs ---------- */
+var last=null;
+function live(){last=compute(cur());renderCards(last);drawSide(last);drawTop(last);renderChecks(last);renderResults(last);renderCompare();}
+function card(label,val,unit,sub,status){
+  return h('div',{class:'card '+(status||'')},h('div',{class:'l',text:label}),h('div',{class:'v'},val,unit?h('small',{text:unit}):null),h('div',{class:'s',text:sub||''}));
+}
+function smStatus(r){var s=r.sm*100,c=cur().flt;if(!isFinite(s))return 'bad';if(s<0)return 'bad';if(s<c.smMin||s>c.smMax)return 'warn';return 'ok';}
+function renderCards(r){
+  clear(els.cards);var c=cur(),M=r.mass.M*1000;
+  var d=function(v,u,dp){return fx(toDisp(v,u),dp);};
+  els.cards.appendChild(card('Mass',d(M,'g',isImp()?1:0),ulabel('g'),'target '+d(c.flt.massTarget,'g',isImp()?1:0)+' '+ulabel('g'),Math.abs(M-c.flt.massTarget)/c.flt.massTarget>0.1?'warn':'ok'));
+  els.cards.appendChild(card('CG from nose',d(r.xcg,'mm',isImp()?2:0),ulabel('mm'),fx(r.hcg*100,1)+'% of chord',smStatus(r)));
+  els.cards.appendChild(card('Neutral point',d(r.xnp,'mm',isImp()?2:0),ulabel('mm'),fx(r.hn*100,1)+'% of chord'));
+  els.cards.appendChild(card('Static margin',fx(r.sm*100,1),'%','target '+c.flt.smMin+' to '+c.flt.smMax+'%',smStatus(r)));
+  els.cards.appendChild(card('Stall speed',d(r.Vs,'m/s',1),ulabel('m/s'),'design speed is '+fx(r.Vratio,2)+' x stall',r.Vratio<1.1?'bad':r.Vratio<1.3?'warn':'ok'));
+  els.cards.appendChild(card('Cruise CL',fx(r.CLcr,3),'','at '+d(r.V,'m/s',1)+' '+ulabel('m/s'),r.CLcr>c.wing.clMax?'bad':'ok'));
+  els.cards.appendChild(card('Tail volume, horiz.',fx(r.Vh,3),'','typical 0.35 to 0.6',r.Vh<0.25?'bad':r.Vh<0.35?'warn':'ok'));
+  els.cards.appendChild(card('Tail volume, vert.',fx(r.Vv,3),'','typical 0.025 to 0.05',r.Vv<0.02?'bad':r.Vv<0.025?'warn':'ok'));
+  els.cards.appendChild(card('Wing loading',d(r.wingLoading,'kg/m2',2),ulabel('kg/m2'),'area '+d(r.wing.S,'m2',3)+' '+ulabel('m2')));
+  els.cards.appendChild(card('Static thrust / weight',fx(r.TW,2),'','full throttle, standing still',r.TW<0.5?'warn':'ok'));
+  clear(els.gauge);
+  var pos=Math.max(0,Math.min(100,(r.sm*100+10)/40*100));
+  els.gauge.appendChild(h('div',{class:'track'},h('div',{class:'pin',style:'left:'+(isFinite(pos)?pos:0)+'%'})));
+  els.gauge.appendChild(h('div',{class:'scale'},h('span',{text:'-10% unstable'}),h('span',{text:'0'}),h('span',{text:'5'}),h('span',{text:'static margin'}),h('span',{text:'20'}),h('span',{text:'30% very stable'})));
+}
+function renderChecks(r){
+  clear(els.checks);
+  validity(cur(),r).forEach(function(v){
+    els.checks.appendChild(h('div',{class:'chk'},h('span',{class:'dot '+v.level,title:v.level}),
+      h('div',null,h('b',{text:v.title}),h('div',{class:'d',text:v.detail}),v.fix?h('div',{class:'f',text:v.fix}):null)));
+  });
+}
+function renderResults(r){
+  clear(els.results);
+  var rows=[],imp=isImp();
+  function sec(t){rows.push(h('tr',null,h('th',{colspan:'4',text:t})));}
+  function row(label,v,unit,dp,note){rows.push(h('tr',null,h('td',{text:label}),h('td',{class:'n',text:fx(UNIT[unit]?toDisp(v,unit):v,dp)}),h('td',{text:UNIT[unit]?ulabel(unit):unit}),h('td',{class:'note',text:note||''})));}
+  var L=imp?2:1,I=r.mass.I;
+  sec('Mass and inertia');
+  row('Total mass',r.mass.M*1000,'g',imp?2:0,'Sum of the component table');
+  row('CG x',r.xcg,'mm',L,'From the nose tip');row('CG y',r.mass.cg.y,'mm',L,'Positive to the right');row('CG z',r.mass.cg.z,'mm',L,'Above the body centreline');
+  row('Roll inertia Ixx',I.xx,'kgm2',4,'About the CG');row('Pitch inertia Iyy',I.yy,'kgm2',4,'About the CG');row('Yaw inertia Izz',I.zz,'kgm2',4,'About the CG');row('Product Ixz',I.xz,'kgm2',5,'Sum of m x z about the CG');
+  sec('Wing');
+  row('Area',r.wing.S,'m2',4,cur().wing.areaOverride!=null?'Override in use':'Span x mean chord');
+  row('Aspect ratio',r.wing.AR,'',2,'Span squared / area');row('Mean aerodynamic chord',r.wing.mac*1000,'mm',L,'');
+  row('Lift-curve slope',r.aw,'1/rad',3,'Helmbold');row('Zero-lift angle',deg(r.airfoil.alphaL0),'deg',2,'Thin-airfoil theory');
+  row('Section moment coefficient',r.airfoil.cm,'',4,'About the quarter chord');row('Reynolds number',r.Re/1000,'x1000',0,'At design airspeed, on the mean chord');
+  sec('Tail');
+  row('True area, both panels',r.tail.S,'m2',4,'');row('Horizontal projected area',r.tail.Sh,'m2',4,cur().tail.type==='vtail'?'S cos\u00b2(angle)':'Horizontal tail');
+  row('Vertical projected area',r.tail.Sv,'m2',4,cur().tail.type==='vtail'?'S sin\u00b2(angle)':'Fin');
+  row('Lift-curve slope',r.tail.aN,'1/rad',3,'Normal to the panel');row('Tail arm from CG',r.lt*1000,'mm',L,'CG to tail quarter chord');
+  row('Tail arm from wing',r.lbar*1000,'mm',L,'Wing-body centre of lift to tail');
+  row('Horizontal tail volume',r.Vh,'',3,'S_h l / (S c)');row('Vertical tail volume',r.Vv,'',4,'S_v l / (S b)');
+  sec('Stability');
+  row('Downwash gradient',r.epsA,'',3,cur().aero.downwash!=null?'Override in use':'2a / (pi AR)');
+  row('Fuselage moment slope',r.cmaF,'1/rad',4,'Munk slender body, destabilising');
+  row('Wing-body centre of lift',r.hacwb*100,'% chord',1,'Quarter chord shifted by the fuselage');
+  row('Neutral point',r.hn*100,'% chord',1,'Stick fixed');row('CG',r.hcg*100,'% chord',1,'');row('Static margin',r.sm*100,'%',1,'Neutral point minus CG');
+  row('CG guide, forward',r.xFwd,'mm',L,'At the maximum target margin');row('CG guide, aft',r.xAft,'mm',L,'At the minimum target margin');
+  sec('Flight condition');
+  row('Air density',r.atm.rho,'kg/m\u00b3',4,'ISA with the temperature offset');row('Stall speed',r.Vs,'m/s',2,'sqrt(2W / (rho S CLmax))');
+  row('Cruise lift coefficient',r.CLcr,'',3,'W / (q S)');row('Design speed / stall speed',r.Vratio,'',2,'');row('Wing loading',r.wingLoading,'kg/m2',2,'');
+  sec('Propulsion');
+  row('Pack voltage, full',r.packV,'V',1,'');row('Battery current limit',r.battI,'A',0,'C rating x capacity');
+  row('No-load pitch speed',r.pitchSpeed,'m/s',1,'Upper bound: Kv x voltage x pitch');row('Static thrust / weight',r.TW,'',2,'');
+  els.results.appendChild(h('table',null,h('tbody',null,rows)));
+}
+function flatCfg(cfg){
+  var o={},seen={};
+  FIELDS.forEach(function(f){
+    var v=getPath(cfg,f.path),g='';GROUPS.forEach(function(x){if(x[0]===f.group)g=x[1];});
+    if(f.type==='select'){f.options.forEach(function(op){if(op[0]===v)v=op[1];});}
+    else if(typeof v==='number')v=trimNum(toDisp(v,f.unit),3)+(f.unit?' '+ulabel(f.unit):'');
+    else if(v==null)v='auto';
+    o[g+' \u00b7 '+f.label]=String(v);
+  });
+  cfg.components.forEach(function(c){
+    var n=c.name;seen[n]=(seen[n]||0)+1;if(seen[n]>1)n+=' #'+seen[n];
+    o['Part \u00b7 '+n+' \u00b7 mass']=trimNum(toDisp(c.mass,'g'),2)+' '+ulabel('g');
+    o['Part \u00b7 '+n+' \u00b7 x, y, z']=[c.x,c.y,c.z].map(function(v){return trimNum(toDisp(v,'mm'),2);}).join(', ')+' '+ulabel('mm');
+  });
+  return o;
+}
+function renderCompare(){
+  clear(els.compare);
+  var pick=h('div',{style:'display:flex;flex-wrap:wrap;gap:14px;margin-bottom:10px'});
+  state.configs.forEach(function(c){
+    var cb=h('input',{type:'checkbox'});cb.checked=state.compare.indexOf(c.id)>=0;
+    cb.addEventListener('change',function(){
+      if(cb.checked){if(state.compare.length>=3){cb.checked=false;return;}state.compare.push(c.id);}
+      else state.compare=state.compare.filter(function(x){return x!==c.id;});
+      renderCompare();
+    });
+    pick.appendChild(h('label',null,cb,' ',c.name));
+  });
+  els.compare.appendChild(pick);
+  var sel=state.configs.filter(function(c){return state.compare.indexOf(c.id)>=0;});
+  if(sel.length<2){els.compare.appendChild(h('p',{class:'hint',text:'Duplicate this configuration, change something, then tick two or three to compare them.'}));return;}
+  var rs=sel.map(function(c){return compute(c.cfg);}),rows=[];
+  function out(label,fn){
+    var vals=rs.map(fn),same=vals.every(function(v){return v===vals[0];});
+    rows.push(h('tr',null,h('td',{text:label}),vals.map(function(v){return h('td',{class:'n'+(same?'':' diff'),text:v});})));
+  }
+  rows.push(h('tr',null,h('th',{text:'Result'}),sel.map(function(c){return h('th',{text:c.name,style:'text-align:right'});})));
+  out('Mass ('+ulabel('g')+')',function(r){return fx(toDisp(r.mass.M*1000,'g'),isImp()?1:0);});
+  out('CG from nose ('+ulabel('mm')+')',function(r){return fx(toDisp(r.xcg,'mm'),isImp()?2:0);});
+  out('Neutral point ('+ulabel('mm')+')',function(r){return fx(toDisp(r.xnp,'mm'),isImp()?2:0);});
+  out('Static margin (%)',function(r){return fx(r.sm*100,1);});
+  out('Stall speed ('+ulabel('m/s')+')',function(r){return fx(toDisp(r.Vs,'m/s'),1);});
+  out('Cruise CL',function(r){return fx(r.CLcr,3);});
+  out('Tail volume, horizontal',function(r){return fx(r.Vh,3);});
+  out('Tail volume, vertical',function(r){return fx(r.Vv,3);});
+  out('Wing loading ('+ulabel('kg/m2')+')',function(r){return fx(toDisp(r.wingLoading,'kg/m2'),2);});
+  out('Static thrust / weight',function(r){return fx(r.TW,2);});
+  out('Pitch inertia Iyy ('+ulabel('kgm2')+')',function(r){return fx(toDisp(r.mass.I.yy,'kgm2'),4);});
+  var flats=sel.map(function(c){return flatCfg(c.cfg);}),keys=[];
+  flats.forEach(function(f){Object.keys(f).forEach(function(k){if(keys.indexOf(k)<0)keys.push(k);});});
+  var diffs=keys.filter(function(k){return !flats.every(function(f){return f[k]===flats[0][k];});});
+  rows.push(h('tr',null,h('th',{colspan:String(sel.length+1),text:diffs.length?'Inputs that differ ('+diffs.length+')':'No input differences'})));
+  diffs.slice(0,80).forEach(function(k){rows.push(h('tr',null,h('td',{text:k}),flats.map(function(f){return h('td',{class:'n diff',text:f[k]==null?'\u2013':f[k]});})));});
+  els.compare.appendChild(h('div',{class:'tscroll'},h('table',null,h('tbody',null,rows))));
+}
+function renderTests(){
+  clear(els.tests);
+  var T=selfTests(cur()),fails=T.filter(function(t){return !t.pass;}).length;
+  els.tests.appendChild(h('p',{class:fails?'fail':'pass',text:fails?(fails+' of '+T.length+' tests FAILED. Do not trust the numbers above until this is fixed.'):('All '+T.length+' tests pass.')}));
+  var rows=[h('tr',null,['','Test','Expected','Got','Basis'].map(function(t){return h('th',{text:t});}))];
+  T.forEach(function(t){
+    var exp=typeof t.exp==='number'?trimNum(t.exp,5)+(t.tol?' \u00b1 '+t.tol:''):String(t.exp);
+    rows.push(h('tr',null,h('td',{class:t.pass?'pass':'fail',text:t.pass?'PASS':'FAIL'}),h('td',{text:t.name}),h('td',{class:'n',text:exp}),
+      h('td',{class:'n',text:typeof t.got==='number'?trimNum(t.got,5):String(t.got)}),h('td',{class:'note',text:t.note})));
+  });
+  els.tests.appendChild(h('div',{class:'tscroll'},h('table',null,h('tbody',null,rows))));
+}
+
+/* ---------- schematic ---------- */
+function pts(a){return a.map(function(p){return p[0].toFixed(1)+','+(-p[1]).toFixed(1);}).join(' ');}
+function drawSide(r){
+  var svg=els.side,c=cur(),fu=c.fus,w=c.wing,t=c.tail,pr=c.prop;
+  clear(svg);
+  var Lf=r.fus.L*1000,hh=fu.height/2,R=pr.diam/2,zg=r.ground,tipZ=r.tail.tipZ;
+  var zTop=Math.max(tipZ,t.z,w.z+60,pr.z+R,hh)+70,zBot=Math.min(zg,pr.z-R,tipZ,-hh)-120;
+  var x0=-100,x1=Math.max(Lf,pr.x)+110;
+  svg.setAttribute('viewBox',[x0,-zTop,x1-x0,zTop-zBot].join(' '));
+  /* grid */
+  var gx,gz,grid=sv('g',{stroke:'#16202d','stroke-width':'1'});
+  for(gx=Math.ceil(x0/100)*100;gx<=x1;gx+=100)grid.appendChild(sv('line',{x1:gx,y1:-zTop,x2:gx,y2:-zBot}));
+  for(gz=Math.ceil(zBot/100)*100;gz<=zTop;gz+=100)grid.appendChild(sv('line',{x1:x0,y1:-gz,x2:x1,y2:-gz}));
+  svg.appendChild(grid);
+  svg.appendChild(sv('line',{class:'gnd',x1:x0,y1:-zg,x2:x1,y2:-zg}));
+  svg.appendChild(sv('text',{x:x0+8,y:-zg+18,text:'ground line'}));
+  /* fuselage */
+  var xb=fu.noseLen+fu.boomLen,zm=Math.max(-hh,Math.min(hh,pr.z)),mh=Math.min(hh,17);
+  svg.appendChild(sv('polygon',{class:'fus',points:pts([[0,0],[fu.noseLen,hh],[xb,hh],[Lf,Math.min(hh,zm+mh)],[Lf,Math.max(-hh,zm-mh)],[xb,-hh],[fu.noseLen,-hh]])}));
+  if(fu.skid>0)svg.appendChild(sv('line',{x1:r.xcg-40,y1:hh,x2:r.xcg-40,y2:-zg,stroke:'#4a5b70','stroke-width':'3'}));
+  /* tail */
+  var cf=t.surfChordFrac,tanS=Math.tan(rad(t.sweepLE));
+  if(t.type==='vtail'){
+    var xt=t.xLE+t.slant*tanS;
+    svg.appendChild(sv('polygon',{class:'tailp',points:pts([[t.xLE,t.z],[t.xLE+t.rootChord,t.z],[xt+t.tipChord,tipZ],[xt,tipZ]])}));
+    svg.appendChild(sv('polygon',{class:'surf',points:pts([[t.xLE+t.rootChord*(1-cf),t.z],[t.xLE+t.rootChord,t.z],[xt+t.tipChord,tipZ],[xt+t.tipChord*(1-cf),tipZ]])}));
+  }else{
+    svg.appendChild(sv('polygon',{class:'tailp',points:pts([[t.xLE,t.z],[t.xLE+t.finRootChord,t.z],[t.xLE+t.finRootChord,tipZ],[t.xLE+t.finRootChord-t.finTipChord,tipZ]])}));
+    svg.appendChild(sv('line',{x1:t.xLE,y1:-t.z,x2:t.xLE+t.rootChord,y2:-t.z,stroke:'#56c7f2','stroke-width':'5'}));
+  }
+  /* wing root section */
+  var inc=rad(w.incidence),ci=Math.cos(inc),si=Math.sin(inc);
+  svg.appendChild(sv('polygon',{class:'wing',points:pts(nacaOutline(w.naca,28).map(function(p){
+    var X=p[0]*w.rootChord,Z=p[1]*w.rootChord;return [w.xLE+X*ci+Z*si,w.z-X*si+Z*ci];}))}));
+  /* prop */
+  svg.appendChild(sv('ellipse',{cx:pr.x,cy:-pr.z,rx:7,ry:R,fill:'#c9d4e0','fill-opacity':'.08',stroke:'#c9d4e0','stroke-opacity':'.4'}));
+  svg.appendChild(sv('line',{class:'prop',x1:pr.x,y1:-(pr.z+R),x2:pr.x,y2:-(pr.z-R)}));
+  /* components */
+  c.components.forEach(function(k,i){
+    if(k.mass<=0&&!k.mov)return;
+    var lx=k.shape==='point'?10:Math.max(8,k.shape==='cyl'&&k.axis!=='x'?k.ly:k.lx);
+    var lz=k.shape==='point'?10:Math.max(8,k.shape==='cyl'?(k.axis==='z'?k.lx:k.ly):k.lz);
+    var cls='comp'+(k.src==='measured'?' meas':'')+(k.mov?' mov':'');
+    var g=sv(k.shape==='point'?'circle':'rect',k.shape==='point'?{class:cls,cx:k.x,cy:-k.z,r:6,'data-drag':'comp:'+i}:{class:cls,x:k.x-lx/2,y:-k.z-lz/2,width:lx,height:lz,rx:2,'data-drag':'comp:'+i});
+    g.appendChild(sv('title',{text:k.name+' \u2013 '+trimNum(toDisp(k.mass,'g'),1)+' '+ulabel('g')+' at x = '+trimNum(toDisp(k.x,'mm'),1)+' '+ulabel('mm')}));
+    svg.appendChild(g);
+  });
+  /* CG guide strip */
+  var ys=-(zBot+55);
+  svg.appendChild(sv('line',{x1:0,y1:ys,x2:Lf,y2:ys,stroke:'#33445a','stroke-width':'2'}));
+  svg.appendChild(sv('rect',{x:Math.min(r.xFwd,r.xAft),y:ys-7,width:Math.abs(r.xAft-r.xFwd),height:14,fill:'#3ddc97','fill-opacity':'.35',stroke:'#3ddc97'}));
+  svg.appendChild(sv('text',{x:Math.min(r.xFwd,r.xAft),y:ys+30,text:'CG guide '+fx(toDisp(r.xFwd,'mm'),isImp()?1:0)+' to '+fx(toDisp(r.xAft,'mm'),isImp()?1:0)+' '+ulabel('mm')}));
+  /* neutral point */
+  svg.appendChild(sv('line',{x1:r.xnp,y1:-(hh+34),x2:r.xnp,y2:ys,stroke:'#56c7f2','stroke-dasharray':'5 5'}));
+  svg.appendChild(sv('polygon',{points:pts([[r.xnp,hh+6],[r.xnp-10,hh+26],[r.xnp+10,hh+26]]),fill:'#56c7f2'}));
+  svg.appendChild(sv('text',{x:r.xnp+14,y:-(hh+70),fill:'#56c7f2',style:'fill:#56c7f2',text:'NP '+fx(toDisp(r.xnp,'mm'),isImp()?1:0)}));
+  /* CG */
+  if(r.mass.M>0){
+    var cz=r.mass.cg.z;
+    svg.appendChild(sv('line',{x1:r.xcg,y1:-cz,x2:r.xcg,y2:ys,stroke:'#f5a524','stroke-dasharray':'5 5'}));
+    var g2=sv('g',{class:'cg','data-drag':'cg'});
+    g2.appendChild(sv('circle',{cx:r.xcg,cy:-cz,r:13,fill:'#0a0e14',stroke:'#f5a524','stroke-width':'2.5'}));
+    g2.appendChild(sv('path',{d:'M'+r.xcg+','+(-cz)+' L'+r.xcg+','+(-cz-13)+' A13,13 0 0 1 '+(r.xcg+13)+','+(-cz)+' Z M'+r.xcg+','+(-cz)+' L'+r.xcg+','+(-cz+13)+' A13,13 0 0 1 '+(r.xcg-13)+','+(-cz)+' Z',fill:'#f5a524'}));
+    g2.appendChild(sv('circle',{cx:r.xcg,cy:-cz,r:20,fill:'transparent'}));
+    g2.appendChild(sv('title',{text:'Centre of gravity. Drag to slide the movable parts.'}));
+    svg.appendChild(g2);
+    svg.appendChild(sv('text',{x:r.xcg+(r.xcg>r.xnp?18:-18),y:-(cz-36),'text-anchor':r.xcg>r.xnp?'start':'end',style:'fill:#f5a524',text:'CG '+fx(toDisp(r.xcg,'mm'),isImp()?1:0)}));
+  }
+  /* body axes */
+  svg.appendChild(sv('path',{d:'M-60,0 L-10,0 M-22,-6 L-10,0 L-22,6 M-60,0 L-60,-50 M-66,-38 L-60,-50 L-54,-38',stroke:'#8493a8','stroke-width':'1.5',fill:'none'}));
+  svg.appendChild(sv('text',{x:-30,y:18,text:'x'}));svg.appendChild(sv('text',{x:-80,y:-40,text:'z'}));
+}
+function drawTop(r){
+  var svg=els.topv,c=cur(),fu=c.fus,w=c.wing,t=c.tail,pr=c.prop;
+  clear(svg);
+  var Lf=r.fus.L*1000,hb=w.span/2*Math.cos(rad(w.dihedral)),R=pr.diam/2;
+  var ymax=Math.max(hb,r.tail.tipY,R)+60,x0=-60,x1=Math.max(Lf,pr.x)+60;
+  /* rotate so the nose points up: screen x = y, screen y = x */
+  svg.setAttribute('viewBox',[-ymax,x0,2*ymax,x1-x0].join(' '));
+  function P(a){return a.map(function(p){return p[1].toFixed(1)+','+p[0].toFixed(1);}).join(' ');}
+  var hw=fu.width/2,xb=fu.noseLen+fu.boomLen;
+  svg.appendChild(sv('polygon',{class:'fus',points:P([[0,0],[fu.noseLen,hw],[xb,hw],[Lf,Math.min(hw,17)],[Lf,-Math.min(hw,17)],[xb,-hw],[fu.noseLen,-hw]])}));
+  var tw=Math.tan(rad(w.sweepLE))*w.span/2;
+  [1,-1].forEach(function(s){
+    svg.appendChild(sv('polygon',{class:'wing',points:P([[w.xLE,0],[w.xLE+tw,s*hb],[w.xLE+tw+w.tipChord,s*hb],[w.xLE+w.rootChord,0]])}));
+    var yi=hb*(1-w.ailSpanFrac),f=yi/hb,cI=w.rootChord+(w.tipChord-w.rootChord)*f,xI=w.xLE+tw*f;
+    if(w.ailSpanFrac>0&&w.ailChordFrac>0)svg.appendChild(sv('polygon',{class:'surf',points:P([[xI+cI*(1-w.ailChordFrac),s*yi],[w.xLE+tw+w.tipChord*(1-w.ailChordFrac),s*hb],[w.xLE+tw+w.tipChord,s*hb],[xI+cI,s*yi]])}));
+    var ts=Math.tan(rad(t.sweepLE))*t.slant,ty=r.tail.tipY,cf=t.surfChordFrac;
+    svg.appendChild(sv('polygon',{class:'tailp',points:P([[t.xLE,s*t.yRoot],[t.xLE+ts,s*ty],[t.xLE+ts+t.tipChord,s*ty],[t.xLE+t.rootChord,s*t.yRoot]])}));
+    svg.appendChild(sv('polygon',{class:'surf',points:P([[t.xLE+t.rootChord*(1-cf),s*t.yRoot],[t.xLE+ts+t.tipChord*(1-cf),s*ty],[t.xLE+ts+t.tipChord,s*ty],[t.xLE+t.rootChord,s*t.yRoot]])}));
+  });
+  svg.appendChild(sv('line',{class:'prop',x1:-R,y1:pr.x,x2:R,y2:pr.x}));
+  c.components.forEach(function(k){
+    if(k.mass<=0)return;
+    var d=sv('circle',{cx:k.y,cy:k.x,r:Math.max(5,Math.min(16,Math.sqrt(k.mass))),fill:k.src==='measured'?'#3ddc97':'#f5a524','fill-opacity':'.3',stroke:k.src==='measured'?'#3ddc97':'#f5a524'});
+    d.appendChild(sv('title',{text:k.name+' \u2013 '+trimNum(toDisp(k.mass,'g'),1)+' '+ulabel('g')}));
+    svg.appendChild(d);
+  });
+  svg.appendChild(sv('line',{x1:-ymax*0.5,y1:r.xnp,x2:ymax*0.5,y2:r.xnp,stroke:'#56c7f2','stroke-dasharray':'6 6','stroke-width':'2'}));
+  if(r.mass.M>0){
+    svg.appendChild(sv('circle',{cx:r.mass.cg.y,cy:r.xcg,r:12,fill:'#0a0e14',stroke:'#f5a524','stroke-width':'3'}));
+    svg.appendChild(sv('circle',{cx:r.mass.cg.y,cy:r.xcg,r:4,fill:'#f5a524'}));
+  }
+}
+/* dragging on the side view: the svg element persists, its children are redrawn */
+function attachDrag(){
+  var svg=els.side,drag=null;
+  function pos(e){
+    var m=svg.getScreenCTM&&svg.getScreenCTM();if(!m||!svg.createSVGPoint)return null;
+    var p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(m.inverse());
+  }
+  svg.addEventListener('pointerdown',function(e){
+    var el=e.target&&e.target.closest?e.target.closest('[data-drag]'):null;if(!el)return;
+    var p=pos(e);if(!p)return;
+    var k=el.getAttribute('data-drag'),c=cur();
+    if(k==='cg'){
+      if(!(last&&last.mass.mMov>0)){modal({title:'Nothing is movable',text:'Tick "movable" on the battery or ballast in the component table, then drag the CG.',noCancel:true});return;}
+      drag={type:'cg',x0:p.x,cg0:last.xcg,start:c.components.map(function(q){return q.x;}),M:last.mass.M,m:last.mass.mMov};
+    }else{
+      var i=parseInt(k.split(':')[1],10);if(!c.components[i])return;
+      drag={type:'comp',i:i,x0:p.x,start:c.components[i].x};
+    }
+    try{svg.setPointerCapture(e.pointerId);}catch(err){}
+    e.preventDefault();
+  });
+  svg.addEventListener('pointermove',function(e){
+    if(!drag)return;var p=pos(e);if(!p)return;var c=cur(),dx=p.x-drag.x0;
+    if(drag.type==='cg'){
+      var shift=dx*drag.M/drag.m;
+      c.components.forEach(function(q,i){if(q.mov)q.x=Math.round(drag.start[i]+shift);});
+    }else c.components[drag.i].x=Math.round(drag.start+dx);
+    live();
+  });
+  function end(e){
+    if(!drag)return;drag=null;
+    try{svg.releasePointerCapture(e.pointerId);}catch(err){}
+    renderComponents();commit();
+  }
+  svg.addEventListener('pointerup',end);svg.addEventListener('pointercancel',end);
+}
+
+/* ---------- boot ---------- */
+load();renderShell();updateBar();renderInputs();live();renderTests();
+/* test hook: lets a headless run inspect the page */
+root.__acsim={state:state,compute:compute,cur:cur};
+})();
+</script>
 </body>
 </html>
